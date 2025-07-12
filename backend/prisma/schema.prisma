@@ -1,0 +1,962 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Role => Admin, User, User-Box, Owner, Manager, Technician 
+model roles {
+  role_id    String    @id @default(uuid()) @db.Uuid
+  role_name  String    @unique @db.VarChar(15)
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
+
+  // permissions permissions[]
+  users    users[]
+  employee employees[]
+}
+
+//--------------------- test ---------------------
+
+model users {
+  employee_id      String    @id @default(uuid()) @db.Uuid //
+  employee_code    String?   @unique @db.VarChar(50)
+  username         String    @unique @db.VarChar(50) // username == email
+  password         String    @db.VarChar(255)
+  is_active        Boolean   @default(true)
+  role             roles     @relation(fields: [role_id], references: [role_id])
+  role_id          String    @db.Uuid
+  email            String    @db.VarChar(50)
+  first_name       String    @db.VarChar(20)
+  last_name        String?   @db.VarChar(20)
+  birthday         String?   @db.VarChar(10)
+  phone_number     String?   @db.VarChar(10)
+  line_id          String?   @db.VarChar(20)
+  addr_number      String?   @db.VarChar(10)
+  addr_alley       String?   @db.VarChar(50)
+  addr_street      String?   @db.VarChar(100)
+  addr_subdistrict String?   @db.VarChar(50)
+  addr_district    String?   @db.VarChar(50)
+  addr_province    String?   @db.VarChar(50)
+  addr_postcode    String?   @db.VarChar(5)
+  position         String?   @db.VarChar(20)
+  remark           String?   @db.VarChar(255)
+  employee_image   String?   @db.VarChar(100)
+  created_at       DateTime  @default(now())
+  created_by       String?   @db.Uuid
+  updated_at       DateTime? @updatedAt
+  updated_by       String?   @db.Uuid
+
+  // master_color_create master_color[] @relation("ColorCreatedBy")
+  // master_color_update master_color[] @relation("ColorUpdatedBy")
+}
+
+model master_color {
+  color_id   String    @id @default(uuid()) @db.Uuid
+  color_name String
+  created_at DateTime  @default(now())
+  created_by String    @db.Uuid
+  updated_at DateTime? @updatedAt
+  updated_by String    @db.Uuid
+
+  created_by_user employees @relation("ColorCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_user employees @relation("ColorUpdatedBy", fields: [updated_by], references: [employee_id])
+}
+
+//--------------------- end test ---------------------
+
+model Company {
+  company_id  String  @id @default(uuid()) @db.Uuid
+  name_th     String  @unique @db.VarChar(50)
+  name_en     String  @unique @db.VarChar(50)
+  address_th  String? @db.VarChar(255)
+  country_th  String? @db.VarChar(50)
+  province_th String? @db.VarChar(50)
+  district_th String? @db.VarChar(50)
+  address_en  String? @db.VarChar(255)
+  country_en  String? @db.VarChar(50)
+  province_en String? @db.VarChar(50)
+  district_en String? @db.VarChar(50)
+  tax_id      String? @db.VarChar(50)
+  phone       String? @db.VarChar(10)
+  email       String? @db.VarChar(50)
+  logo        String? @db.VarChar(255)
+}
+
+model employees {
+  employee_id     String    @id @default(uuid()) @db.Uuid
+  employee_code   String?   @unique @db.VarChar(50)
+  username        String    @unique @db.VarChar(50)
+  password        String    @db.VarChar(255)
+  email           String    @db.VarChar(50)
+  role_id         String    @db.Uuid
+  is_active       Boolean   @default(true)
+  // permission_id   String?   @db.Uuid
+  position        String?   @db.VarChar(20)
+  team_id         String?   @db.Uuid
+  first_name      String    @db.VarChar(20)
+  last_name       String?   @db.VarChar(20)
+  birthdate       String?   @db.VarChar(10)
+  phone           String?   @db.VarChar(10)
+  line_id         String?   @db.VarChar(20)
+  address_id      String?   @db.Uuid
+  remark          String?   @db.VarChar(255)
+  profile_picture String?   @db.VarChar(100)
+  salary          Decimal?  @db.Decimal(7, 2)
+  status_id       String?   @db.Uuid
+  start_date      String?   @db.VarChar(10)
+  end_date        String?   @db.VarChar(10)
+  created_at      DateTime  @default(now())
+  created_by      String?   @db.Uuid
+  updated_at      DateTime? @updatedAt
+  updated_by      String?   @db.Uuid
+
+  // relation ot table
+
+  employee_status employeeStatus? @relation("EmployeeStatus", fields: [status_id], references: [status_id])
+  team_employee   Team?           @relation("EmployeeTeam", fields: [team_id], references: [team_id])
+  role            roles           @relation(fields: [role_id], references: [role_id])
+
+  // test
+  master_color_create master_color[] @relation("ColorCreatedBy")
+  master_color_update master_color[] @relation("ColorUpdatedBy")
+
+  // customer
+  customer_create Customer[] @relation("CustomerCreatedBy")
+  customer_update Customer[] @relation("CustomerUpdatedBy")
+  customer        Customer[] @relation("Responsible")
+
+  address_create Address[] @relation("AddressCreatedBy")
+  address_update Address[] @relation("AddressUpdatedBy")
+  address        Address[] @relation("Address")
+
+  customer_tag_create CustomerTags[] @relation("CustomerTagsCreatedBy")
+  customer_tag_update CustomerTags[] @relation("CustomerTagsUpdatedBy")
+
+  group_create GroupTags[] @relation("GroupTagsCreatedBy")
+  group_update GroupTags[] @relation("GroupTagsUpdatedBy")
+
+  customer_role_create CustomerRole[] @relation("CustomerRoleCreatedBy")
+  customer_role_update CustomerRole[] @relation("CustomerRoleUpdatedBy")
+
+  customer_character_create CustomerCharacter[] @relation("CustomerCharacterCreatedBy")
+  customer_character_update CustomerCharacter[] @relation("CustomerCharacterUpdatedBy")
+  customer_character        CustomerCharacter[] @relation("CustomerCharacter")
+
+  customer_contact_create CustomerContact[] @relation("CustomerContactCreatedBy")
+  customer_contact_update CustomerContact[] @relation("CustomerContactUpdatedBy")
+
+  // employee
+  character_create Character[] @relation("CharacterCreatedBy")
+  character_update Character[] @relation("CharacterUpdatedBy")
+
+  permissions_create Permission[]
+  team_create        Team[]       @relation("TeamCreatedBy")
+  team_update        Team[]       @relation("TeamUpdatedBy")
+  team_head          Team[]       @relation("TeamHead")
+
+  contact_create       Contact[]      @relation("ContactCreatedBy")
+  contact_update       Contact[]      @relation("ContactUpdatedBy")
+  social_create        Social[]       @relation("SocialCreatedBy")
+  social_update        Social[]       @relation("SocialUpdatedBy")
+  detail_social_create DetailSocial[] @relation("DetailSocialCreatedBy")
+  detail_social_update DetailSocial[] @relation("DetailSocialUpdatedBy")
+  detail_social        DetailSocial[] @relation("DetailSocial")
+
+  payment_method_create PaymentMethod[] @relation("PaymentMethodCreatedBy")
+  payment_method_update PaymentMethod[] @relation("PaymentMethodUpdatedBy")
+
+  currency_create Currency[] @relation("CurrencyCreatedBy")
+  currency_update Currency[] @relation("CurrencyUpdatedBy")
+
+  // product
+  group_product_create GroupProduct[] @relation("GropProductCreatedBy")
+  group_product_update GroupProduct[] @relation("GropProductUpdatedBy")
+
+  product_create Product[] @relation("ProductCreatedBy")
+  product_update Product[] @relation("ProductUpdatedBy")
+
+  unit_create Unit[] @relation("UnitCreatedBy")
+  unit_update Unit[] @relation("UnitUpdatedBy")
+
+  // quotation
+  quotation_responsible Quotation[] @relation("QuotationResponsible")
+  quotation_create      Quotation[] @relation("QuotationCreatedBy")
+  quotation_update      Quotation[] @relation("QuotationUpdatedBy")
+
+  payment_term_create PaymentTerm[] @relation("PaymentTermCreatedBy")
+  payment_term_update PaymentTerm[] @relation("PaymentTermUpdatedBy")
+
+  quotation_item_create QuotationItem[] @relation("QuotationItemCreatedBy")
+  quotation_item_update QuotationItem[] @relation("QuotationItemUpdatedBy")
+
+  quotation_status_create QuotationStatus[] @relation("QuotationStatusCreatedBy")
+  quotation_file_create   QuotationFile[]   @relation("QuotationFileCreatedBy")
+
+  // sale order
+  sale_order_responsible SaleOrder[] @relation("SaleOrderResponsible")
+  sale_order_create      SaleOrder[] @relation("SaleOrderCreatedBy")
+  sale_order_update      SaleOrder[] @relation("SaleOrderUpdatedBy")
+
+  sale_order_payment_term_create SaleOrderPaymentTerm[] @relation("PaymentTermCreatedBy")
+
+  sale_order_item_create SaleOrderItem[] @relation("SaleOrderItemCreatedBy")
+  sale_order_item_update SaleOrderItem[] @relation("SaleOrderItemUpdatedBy")
+
+  sale_order_status_create SaleOrderStatus[] @relation("SaleOrderStatusCreatedBy")
+  sale_order_file_create   SaleOrderFile[]   @relation("SaleOrderFileCreatedBy")
+
+  @@index([employee_code])
+  @@index([username])
+  @@index([email])
+  @@index([first_name])
+  @@index([last_name])
+}
+
+model employeeStatus {
+  status_id  String      @id @default(uuid()) @db.Uuid
+  name       String      @unique @db.VarChar(50)
+  created_at DateTime    @default(now())
+  updated_at DateTime?   @updatedAt
+  employee   employees[] @relation("EmployeeStatus")
+
+  @@index([name])
+}
+
+model Permission {
+  permission_id String   @id @default(uuid()) @db.Uuid
+  name          String   @db.VarChar(50)
+  created_at    DateTime @default(now())
+  created_by    String   @db.Uuid
+
+  create_by_employee employees @relation(fields: [created_by], references: [employee_id])
+
+  @@index([name])
+}
+
+model Character {
+  character_id          String   @id @default(uuid()) @db.Uuid
+  character_name        String   @db.VarChar(50)
+  character_description String   @db.Text
+  created_at            DateTime @default(now())
+  created_by            String   @db.Uuid
+  updated_at            DateTime @updatedAt
+  updated_by            String   @db.Uuid
+
+  created_by_employee employees @relation("CharacterCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("CharacterUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  customer_character CustomerCharacter[] @relation("CustomerCharacter")
+
+  @@index([character_name])
+}
+
+model CustomerCharacter {
+  customer_character_id String   @id @default(uuid()) @db.Uuid
+  employee_id           String?  @db.Uuid
+  customer_contact_id   String?  @unique @db.Uuid
+  character_id          String   @db.Uuid
+  created_at            DateTime @default(now())
+  created_by            String   @db.Uuid
+  updated_at            DateTime @updatedAt
+  updated_by            String   @db.Uuid
+
+  employee             employees?       @relation("CustomerCharacter", fields: [employee_id], references: [employee_id])
+  character            Character        @relation("CustomerCharacter", fields: [character_id], references: [character_id])
+  customer_contact     CustomerContact? @relation("CustomerCharacter", fields: [customer_contact_id], references: [customer_contact_id])
+  created_by_employee  employees        @relation("CustomerCharacterCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employees employees        @relation("CustomerCharacterUpdatedBy", fields: [updated_by], references: [employee_id])
+}
+
+model Team {
+  team_id String @id @default(uuid()) @db.Uuid
+
+  name        String   @db.VarChar(50)
+  description String   @db.Text
+  head_id     String?  @db.Uuid
+  head_name   String?  @db.VarChar(50)
+  created_at  DateTime @default(now())
+  created_by  String   @db.Uuid
+  updated_at  DateTime @updatedAt
+  updated_by  String   @db.Uuid
+
+  head_employee       employees? @relation("TeamHead", fields: [head_id], references: [employee_id])
+  created_by_employee employees  @relation("TeamCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees  @relation("TeamUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  employee_team employees[] @relation("EmployeeTeam")
+  customer_team Customer[]  @relation("CustomerTeam")
+  quotation     Quotation[] @relation("Quotation")
+  sale_order    SaleOrder[] @relation("SaleOrder")
+
+  // responesible  Responsible[] @relation("Responsible")
+
+  @@index([name])
+}
+
+model Contact {
+  contact_id   String   @id @default(uuid()) @db.Uuid
+  contact_name String   @db.VarChar(50)
+  created_at   DateTime @default(now())
+  created_by   String   @db.Uuid
+  updated_at   DateTime @updatedAt
+  updated_by   String   @db.Uuid
+
+  created_by_employee employees @relation("ContactCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("ContactUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([contact_name])
+}
+
+model Social {
+  social_id  String   @id @default(uuid()) @db.Uuid
+  name       String   @unique @db.VarChar(50)
+  created_at DateTime @default(now())
+  created_by String?  @db.Uuid
+  updated_at DateTime @updatedAt
+  updated_by String?  @db.Uuid
+
+  created_by_employee employees? @relation("SocialCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees? @relation("SocialUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  detail_social DetailSocial[] @relation("Social")
+
+  @@index([name])
+}
+
+model DetailSocial {
+  detail_social_id    String   @id @default(uuid()) @db.Uuid
+  detail              String   @db.VarChar(50)
+  employee_id         String?  @db.Uuid
+  customer_contact_id String?  @unique @db.Uuid
+  social_id           String   @db.Uuid
+  created_at          DateTime @default(now())
+  created_by          String   @db.Uuid
+  updated_at          DateTime @updatedAt
+  updated_by          String   @db.Uuid
+
+  employee             employees?       @relation("DetailSocial", fields: [employee_id], references: [employee_id])
+  customer_contact     CustomerContact? @relation("DetailSocial", fields: [customer_contact_id], references: [customer_contact_id])
+  social               Social           @relation("Social", fields: [social_id], references: [social_id])
+  created_by_employee  employees        @relation("DetailSocialCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employees employees        @relation("DetailSocialUpdatedBy", fields: [updated_by], references: [employee_id])
+}
+
+// ติดไว้ก่อน
+model SalesForecasting {
+  sale_dorecasting_id String    @id @default(uuid()) @db.Uuid
+  forecast_date       DateTime  @db.Date
+  goal                Decimal   @db.Decimal(10, 5)
+  new_forecast        Decimal   @db.Decimal(10, 5)
+  forecast            String    @db.VarChar(50) // 1-5
+  employee_id         String    @db.Uuid
+  team_id             String    @db.Uuid
+  created_at          DateTime  @default(now())
+  created_by          String    @db.Uuid
+  updated_at          DateTime? @updatedAt
+  updated_by          String    @db.Uuid
+}
+
+model Customer {
+  customer_id  String   @id @default(uuid()) @db.Uuid
+  // customer_name String   @db.VarChar(50)
+  company_name String   @unique @db.VarChar(50)
+  type         String?  @db.VarChar(50)
+  email        String?  @db.VarChar(50)
+  phone        String?  @db.VarChar(10)
+  tax_id       String   @db.VarChar(50)
+  note         String?  @db.Text
+  priority     Int      @db.Integer //1-5
+  is_active    Boolean  @default(true) @db.Boolean
+  resp_phone   String   @db.VarChar()
+  resp_email   String   @db.VarChar()
+  team_id      String   @db.Uuid
+  employee_id  String   @db.Uuid // ผู้รับผิดชอบ
+  place_name   String?  @db.VarChar(100)
+  address      String?  @db.Text
+  country_id   String?  @db.Uuid
+  province_id  String?  @db.Uuid
+  district_id  String?  @db.Uuid
+  created_at   DateTime @default(now())
+  created_by   String   @db.Uuid
+  updated_at   DateTime @updatedAt
+  updated_by   String   @db.Uuid
+
+  customer_address Address[]         @relation("Address")
+  customer_contact CustomerContact[] @relation("CustomerContact")
+
+  customer_tags CustomerTags[] @relation("CustomerTags")
+
+  quotation  Quotation[] @relation("Quotation")
+  sale_order SaleOrder[] @relation("SaleOrder")
+
+  created_by_employee employees @relation("CustomerCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("CustomerUpdatedBy", fields: [updated_by], references: [employee_id])
+  country             Country?  @relation("Customer", fields: [country_id], references: [country_id])
+  province            Province? @relation("Customer", fields: [province_id], references: [province_id])
+  district            District? @relation("Customer", fields: [district_id], references: [district_id])
+  team                Team      @relation("CustomerTeam", fields: [team_id], references: [team_id])
+  responsible         employees @relation("Responsible", fields: [employee_id], references: [employee_id])
+
+  @@index([company_name])
+  @@index([type])
+  @@index([email])
+  @@index([priority])
+  @@index([resp_email])
+  @@index([resp_phone])
+}
+
+model CustomerContact {
+  customer_contact_id String   @id @default(uuid()) @db.Uuid
+  customer_id         String   @db.Uuid
+  name                String   @db.VarChar(50)
+  phone               String?  @db.VarChar(10)
+  phone_extension     String?  @db.VarChar(50)
+  position            String?  @db.VarChar(50)
+  customer_role_id    String   @db.Uuid
+  email               String   @db.VarChar(50)
+  main                Boolean  @default(false) @db.Boolean
+  created_at          DateTime @default(now())
+  created_by          String   @db.Uuid
+  updated_at          DateTime @updatedAt
+  updated_by          String   @db.Uuid
+
+  customer_role       CustomerRole @relation("CustomerContact", fields: [customer_role_id], references: [customer_role_id])
+  customer            Customer     @relation("CustomerContact", fields: [customer_id], references: [customer_id])
+  created_by_employee employees    @relation("CustomerContactCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees    @relation("CustomerContactUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  detail_social      DetailSocial[]      @relation("DetailSocial")
+  customer_character CustomerCharacter[] @relation("CustomerCharacter")
+
+  @@index([name])
+}
+
+model GroupTags {
+  tag_id          String   @id @default(uuid()) @db.Uuid
+  tag_name        String   @db.VarChar(50)
+  tag_description String   @db.VarChar(255)
+  color           String   @db.VarChar(50)
+  created_at      DateTime @default(now())
+  created_by      String   @db.Uuid
+  updated_at      DateTime @updatedAt
+  updated_by      String   @db.Uuid
+
+  customer_tags CustomerTags[] @relation("CustomerTags")
+
+  created_by_employee employees @relation("GroupTagsCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("GroupTagsUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([tag_name])
+}
+
+model CustomerTags {
+  customer_tag_id String   @id @default(uuid()) @db.Uuid
+  customer_id     String   @db.Uuid
+  tag_id          String   @db.Uuid
+  number          Int?     @db.Integer // ยังไม่รู้
+  created_at      DateTime @default(now())
+  created_by      String   @db.Uuid
+  updated_at      DateTime @updatedAt
+  updated_by      String   @db.Uuid
+
+  group_tag           GroupTags @relation("CustomerTags", fields: [tag_id], references: [tag_id])
+  customer            Customer  @relation("CustomerTags", fields: [customer_id], references: [customer_id])
+  created_by_employee employees @relation("CustomerTagsCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("CustomerTagsUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([number])
+}
+
+model Country {
+  country_id   String      @id @default(uuid()) @db.Uuid
+  country_name String      @unique @default("ไทย") @db.VarChar(50)
+  province     Province[]  @relation("Province")
+  address      Address[]   @relation("Address")
+  customer     Customer[]  @relation("Customer")
+  quotation    Quotation[] @relation("Quotation")
+  sale_order   SaleOrder[] @relation("SaleOrder")
+
+  @@index([country_name])
+}
+
+model Province {
+  province_id   String  @id @default(uuid()) @db.Uuid
+  province_name String  @unique @db.VarChar(50)
+  country_id    String  @db.Uuid
+  country       Country @relation("Province", fields: [country_id], references: [country_id])
+
+  district   District[]  @relation("District")
+  address    Address[]   @relation("Address")
+  customer   Customer[]  @relation("Customer")
+  quotation  Quotation[] @relation("Quotation")
+  sale_order SaleOrder[] @relation("SaleOrder")
+
+  @@index([province_name])
+}
+
+model District {
+  district_id   String   @id @default(uuid()) @db.Uuid
+  district_name String   @unique @db.VarChar(50)
+  province_id   String   @db.Uuid
+  province      Province @relation("District", fields: [province_id], references: [province_id])
+
+  address    Address[]   @relation("Address")
+  customer   Customer[]  @relation("Customer")
+  quotation  Quotation[] @relation("Quotation")
+  sale_order SaleOrder[] @relation("SaleOrder")
+
+  @@unique([province_id, district_name], name: "province_id_name")
+  @@index([district_name])
+}
+
+model Address {
+  address_id   String   @id @default(uuid()) @db.Uuid
+  customer_id  String?  @db.Uuid
+  employee_id  String?  @db.Uuid
+  place_name   String?  @db.VarChar(100)
+  address      String?  @db.Text
+  country_id   String   @db.Uuid
+  province_id  String   @db.Uuid
+  district_id  String   @db.Uuid
+  main_address Boolean  @default(false) @db.Boolean
+  type         String?  @db.VarChar(10)
+  created_at   DateTime @default(now())
+  created_by   String   @db.Uuid
+  updated_at   DateTime @updatedAt
+  updated_by   String   @db.Uuid
+
+  address_employee    employees? @relation("Address", fields: [employee_id], references: [employee_id])
+  address_customer    Customer?  @relation("Address", fields: [customer_id], references: [customer_id])
+  country             Country    @relation("Address", fields: [country_id], references: [country_id])
+  province            Province   @relation("Address", fields: [province_id], references: [province_id])
+  district            District   @relation("Address", fields: [district_id], references: [district_id])
+  created_by_employee employees  @relation("AddressCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees  @relation("AddressUpdatedBy", fields: [updated_by], references: [employee_id])
+}
+
+model CustomerRole {
+  customer_role_id String   @id @default(uuid()) @db.Uuid
+  name             String   @db.VarChar(50)
+  description      String   @db.Text
+  created_at       DateTime @default(now())
+  created_by       String   @db.Uuid
+  updated_at       DateTime @updatedAt
+  updated_by       String   @db.Uuid
+
+  customer_contact CustomerContact[] @relation("CustomerContact")
+
+  created_by_employee employees @relation("CustomerRoleCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("CustomerRoleUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([name])
+}
+
+model GroupProduct {
+  group_product_id   String   @id @default(uuid()) @db.Uuid
+  group_product_name String   @unique @db.VarChar(50)
+  created_at         DateTime @default(now())
+  created_by         String   @db.Uuid
+  updated_at         DateTime @updatedAt
+  updated_by         String   @db.Uuid
+
+  products        Product[]       @relation("GroupProduct")
+  quotation_item  QuotationItem[] @relation("QuotaionItem")
+  sale_order_item SaleOrderItem[] @relation("SaleOrderItem")
+
+  created_by_employee employees @relation("GropProductCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("GropProductUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([group_product_name])
+}
+
+model Product {
+  product_id          String   @id @default(uuid()) @db.Uuid
+  product_name        String   @unique @db.VarChar(50)
+  product_description String   @db.Text
+  unit_price          Decimal  @db.Decimal(8, 2)
+  unit_id             String   @db.Uuid
+  group_product_id    String   @db.Uuid
+  created_at          DateTime @default(now())
+  created_by          String   @db.Uuid
+  updated_at          DateTime @updatedAt
+  updated_by          String   @db.Uuid
+
+  group_product       GroupProduct @relation("GroupProduct", fields: [group_product_id], references: [group_product_id])
+  unit                Unit         @relation("UnitProduct", fields: [unit_id], references: [unit_id])
+  created_by_employee employees    @relation("ProductCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees    @relation("ProductUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  quotation_item  QuotationItem[] @relation("QuotaionItem")
+  sale_order_item SaleOrderItem[] @relation("SaleOrderItem")
+
+  @@index([product_name, unit_id])
+  @@index([product_name, group_product_id])
+  @@index([product_name])
+}
+
+model Unit {
+  unit_id    String   @id @default(uuid()) @db.Uuid
+  unit_name  String   @unique @db.VarChar(50)
+  created_at DateTime @default(now())
+  created_by String   @db.Uuid
+  updated_at DateTime @updatedAt
+  updated_by String   @db.Uuid
+
+  products        Product[]       @relation("UnitProduct")
+  quotation_item  QuotationItem[] @relation("QuotaionItem")
+  sale_order_item SaleOrderItem[] @relation("SaleOrderItem")
+
+  created_by_employee employees @relation("UnitCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("UnitUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([unit_name])
+}
+
+model PaymentMethod {
+  payment_method_id   String   @id @default(uuid()) @db.Uuid
+  payment_method_name String   @unique @db.VarChar(50)
+  created_at          DateTime @default(now())
+  created_by          String   @db.Uuid
+  updated_at          DateTime @updatedAt
+  updated_by          String   @db.Uuid
+
+  created_by_employee employees @relation("PaymentMethodCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("PaymentMethodUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  quotation              Quotation[]           @relation("Quotation")
+  sale_order             SaleOrder[]           @relation("SaleOrder")
+  sale_order_payment_log SaleOrderPaymentLog[] @relation("SaleOrderPaymentLog")
+
+  @@index([payment_method_name])
+}
+
+model Currency {
+  currency_id   String   @id @default(uuid()) @db.Uuid
+  currency_name String   @unique @db.VarChar(50)
+  created_at    DateTime @default(now())
+  created_by    String   @db.Uuid
+  updated_at    DateTime @updatedAt
+  updated_by    String   @db.Uuid
+
+  created_by_employee employees @relation("CurrencyCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("CurrencyUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  quotation  Quotation[] @relation("Quotation")
+  sale_order SaleOrder[] @relation("SaleOrder")
+
+  @@index([currency_name])
+}
+
+model Vat {
+  vat_id         String  @id @default(uuid()) @db.Uuid
+  vat_percentage Decimal @unique @db.Decimal(4, 2)
+
+  quotation  Quotation[] @relation("Quotation")
+  sale_order SaleOrder[] @relation("SaleOrder")
+}
+
+model PaymentTerm {
+  payment_term_id   String   @id @default(uuid()) @db.Uuid
+  quotation_id      String   @db.Uuid
+  // payment_term_day         Int       @db.Integer // ชำระภายในกี่วัน
+  // payment_term_installment Int       @db.Integer // ผ่อนกี่งวด
+  installment_no    Int      @default(1) @db.Integer // ผ่อนกี่ครั้ง
+  installment_price Decimal  @default(0) @db.Decimal(10, 2) // ผ่อนครั้งละเท่าไหร่
+  created_at        DateTime @default(now())
+  created_by        String   @db.Uuid
+  updated_at        DateTime @updatedAt
+  updated_by        String   @db.Uuid
+
+  quotation           Quotation @relation("PaymentTerm", fields: [quotation_id], references: [quotation_id])
+  created_by_employee employees @relation("PaymentTermCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("PaymentTermUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([quotation_id])
+}
+
+model Quotation {
+  quotation_id                  String    @id @default(uuid()) @db.Uuid
+  customer_id                   String    @db.Uuid
+  quotation_number              String    @unique @db.VarChar(50) // Q20251203000001
+  quotation_status              String    @db.VarChar(50) // status default
+  // quotation_status_date         DateTime // status date default
+  // quotation_status_by           String   @db.Uuid
+  issue_date                    DateTime // ออกเอกสาร
+  price_date                    DateTime
+  priority                      Int       @db.Integer
+  responsible_employee          String    @db.Uuid
+  team_id                       String    @db.Uuid
+  shipping_method               String    @db.VarChar(50) // วิธีการจัดส่ง 
+  shipping_remark               String?   @db.Text // วิธีการจัดส่งเพิ่มเติม
+  expected_delivery_date        DateTime
+  status_expected_delivery_date Boolean   @default(true) @db.Boolean
+  place_name                    String    @db.VarChar(100)
+  address                       String    @db.Text
+  country_id                    String    @db.Uuid
+  province_id                   String    @db.Uuid
+  district_id                   String    @db.Uuid
+  contact_name                  String    @db.VarChar(50)
+  contact_email                 String    @db.VarChar(50)
+  contact_phone                 String    @db.VarChar(10)
+  status_product_id             Boolean   @default(true) @db.Boolean
+  currency_id                   String    @db.Uuid
+  payment_term_name             String    @db.VarChar(50)
+  payment_term_day              Int       @default(1) @db.Integer // ชำระภายในกี่วัน
+  payment_term_installment      Int       @default(1) @db.Integer // ผ่อนกี่งวด
+  payment_method_id             String    @db.Uuid
+  remark                        String?   @db.VarChar(50)
+  total_amount                  Decimal   @db.Decimal(10, 2)
+  special_discount              Decimal   @default(0.00) @db.Decimal(10, 2)
+  amount_after_discount         Decimal   @default(0.00) @db.Decimal(10, 2)
+  vat_id                        String    @db.Uuid
+  vat_amount                    Decimal   @default(0.00) @db.Decimal(10, 2)
+  grand_total                   Decimal   @default(0.00) @db.Decimal(10, 2)
+  additional_notes              String?   @db.Text
+  expected_closing_date         DateTime?
+  is_active                     Boolean   @default(true) @db.Boolean
+  created_at                    DateTime  @default(now())
+  created_by                    String    @db.Uuid
+  updated_at                    DateTime  @updatedAt
+  updated_by                    String    @db.Uuid
+
+  customer            Customer      @relation("Quotation", fields: [customer_id], references: [customer_id])
+  responsible         employees     @relation("QuotationResponsible", fields: [responsible_employee], references: [employee_id])
+  team                Team          @relation("Quotation", fields: [team_id], references: [team_id])
+  country             Country       @relation("Quotation", fields: [country_id], references: [country_id])
+  province            Province      @relation("Quotation", fields: [province_id], references: [province_id])
+  district            District      @relation("Quotation", fields: [district_id], references: [district_id])
+  currency            Currency      @relation("Quotation", fields: [currency_id], references: [currency_id])
+  payment_method      PaymentMethod @relation("Quotation", fields: [payment_method_id], references: [payment_method_id])
+  vat                 Vat           @relation("Quotation", fields: [vat_id], references: [vat_id])
+  created_by_employee employees     @relation("QuotationCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees     @relation("QuotationUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  status             QuotationStatus[] @relation("QuotaionStatus")
+  quotation_products QuotationItem[]   @relation("QuotaionItem")
+  quotation_file     QuotationFile[]   @relation("QuotaionFile")
+  payment_term       PaymentTerm[]     @relation("PaymentTerm")
+  sale_order         SaleOrder[]       @relation("SaleOrder")
+
+  @@index([team_id])
+  @@index([quotation_number])
+}
+
+model QuotationItem {
+  quotation_item_id     String   @id @default(uuid()) @db.Uuid
+  quotation_id          String   @db.Uuid
+  product_id            String   @db.Uuid
+  // quotation_item_desciption String?  @db.Text
+  // quotation_item_remark     String?  @db.Text
+  quotation_item_count  Decimal  @default(1.00) @db.Decimal(9, 2)
+  unit_id               String   @db.Uuid
+  unit_price            Decimal  @default(0.00) @db.Decimal(10, 2)
+  unit_discount         Decimal  @default(0.00) @db.Decimal(10, 2)
+  unit_discount_percent Decimal  @default(0.00) @db.Decimal(10, 2)
+  quotation_item_price  Decimal  @default(0.00) @db.Decimal(10, 2)
+  group_product_id      String   @db.Uuid
+  created_at            DateTime @default(now())
+  created_by            String   @db.Uuid
+  updated_at            DateTime @updatedAt
+  updated_by            String   @db.Uuid
+
+  quotation           Quotation    @relation("QuotaionItem", fields: [quotation_id], references: [quotation_id])
+  unit                Unit         @relation("QuotaionItem", fields: [unit_id], references: [unit_id])
+  product             Product      @relation("QuotaionItem", fields: [product_id], references: [product_id])
+  group_product       GroupProduct @relation("QuotaionItem", fields: [group_product_id], references: [group_product_id])
+  created_by_employee employees    @relation("QuotationItemCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees    @relation("QuotationItemUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([quotation_id])
+}
+
+model QuotationStatus {
+  quotation_status_id     String   @id @default(uuid()) @db.Uuid
+  quotation_id            String   @db.Uuid
+  quotation_status        String   @db.VarChar(50)
+  quotation_status_remark String?  @db.Text
+  created_at              DateTime @default(now())
+  created_by              String   @db.Uuid
+
+  quotation           Quotation @relation("QuotaionStatus", fields: [quotation_id], references: [quotation_id])
+  created_by_employee employees @relation("QuotationStatusCreatedBy", fields: [created_by], references: [employee_id])
+
+  @@index([quotation_id])
+}
+
+model QuotationFile {
+  quotation_file_id   String   @id @default(uuid()) @db.Uuid
+  quotation_id        String   @db.Uuid
+  quotation_file_name String   @db.VarChar(50)
+  quotation_file_url  String   @db.VarChar(100)
+  quotation_file_type String   @db.VarChar(50)
+  created_at          DateTime @default(now())
+  created_by          String   @db.Uuid
+
+  quotation           Quotation @relation("QuotaionFile", fields: [quotation_id], references: [quotation_id])
+  created_by_employee employees @relation("QuotationFileCreatedBy", fields: [created_by], references: [employee_id])
+}
+
+model SaleOrderPaymentTerm {
+  payment_term_id   String   @id @default(uuid()) @db.Uuid
+  sale_order_id     String   @db.Uuid
+  installment_no    Int      @default(1) @db.Integer // ผ่อนกี่ครั้ง
+  installment_price Decimal  @default(0) @db.Decimal(10, 2) // ผ่อนครั้งละเท่าไหร่
+  created_at        DateTime @default(now())
+  created_by        String   @db.Uuid
+
+  sale_order          SaleOrder @relation("PaymentTerm", fields: [sale_order_id], references: [sale_order_id])
+  created_by_employee employees @relation("PaymentTermCreatedBy", fields: [created_by], references: [employee_id])
+
+  @@index([sale_order_id])
+}
+
+model SaleOrderPaymentLog {
+  payment_log_id    String        @id @default(uuid()) @db.Uuid
+  sale_order_id     String        @db.Uuid
+  // pay_times      Int      @db.Integer
+  payment_date      DateTime      
+  payment_term_name String        @db.VarChar(50)
+  amount_paid       Decimal       @db.Decimal(10, 2)
+  payment_method_id String        @db.Uuid
+  payment_remark    String?       @db.Text
+  payment_file      Json
+  created_at        DateTime      @default(now())
+  created_by        String        @db.Uuid
+  updated_at        DateTime      @updatedAt
+  updated_by        String        @db.Uuid
+  sale_order        SaleOrder     @relation("PaymentLog", fields: [sale_order_id], references: [sale_order_id])
+  payment_method    PaymentMethod @relation("SaleOrderPaymentLog", fields: [payment_method_id], references: [payment_method_id])
+
+  @@index([sale_order_id])
+}
+
+model SaleOrder {
+  sale_order_id                     String        @id @default(uuid()) @db.Uuid
+  sale_order_number                 String        @unique @db.VarChar(50)
+  sale_order_status                 String        @db.VarChar(50)
+  // sale_order_state String  @db.VarChar(50)
+  quotation_id                      String        @db.Uuid
+  customer_id                       String        @db.Uuid
+  issue_date                        DateTime // ออกเอกสาร
+  price_date                        DateTime
+  manufacture_factory_date          DateTime?
+  expected_manufacture_factory_date DateTime?
+  delivery_date_success             DateTime?
+  expected_delivery_date_success    DateTime?
+  receipt_date                      DateTime?
+  expected_receipt_date             DateTime?
+  priority                          Int           @db.Integer
+  responsible_employee              String        @db.Uuid
+  team_id                           String        @db.Uuid
+  shipping_method                   String        @db.VarChar(50) // วิธีการจัดส่ง 
+  shipping_remark                   String?       @db.Text // วิธีการจัดส่งเพิ่มเติม
+  expected_delivery_date            DateTime
+  place_name                        String        @db.VarChar(100)
+  address                           String        @db.Text
+  country_id                        String        @db.Uuid
+  province_id                       String        @db.Uuid
+  district_id                       String        @db.Uuid
+  contact_name                      String        @db.VarChar(50)
+  contact_email                     String        @db.VarChar(50)
+  contact_phone                     String        @db.VarChar(10)
+  currency_id                       String        @db.Uuid
+  payment_term_name                 String        @db.VarChar(50)
+  payment_term_day                  Int           @default(1) @db.Integer // ชำระภายในกี่วัน
+  payment_term_installment          Int           @default(1) @db.Integer // ผ่อนกี่งวด
+  payment_method_id                 String        @db.Uuid
+  payment_status                    String        @default("รอการชำระเงิน") @db.VarChar(50)
+  remark                            String?       @db.VarChar(50)
+  total_amount                      Decimal       @db.Decimal(10, 2)
+  special_discount                  Decimal       @default(0.00) @db.Decimal(10, 2)
+  amount_after_discount             Decimal       @default(0.00) @db.Decimal(10, 2)
+  vat_id                            String        @db.Uuid
+  vat_amount                        Decimal       @default(0.00) @db.Decimal(10, 2)
+  grand_total                       Decimal       @default(0.00) @db.Decimal(10, 2)
+  additional_notes                  String?       @db.Text
+  created_at                        DateTime      @default(now())
+  created_by                        String        @db.Uuid
+  updated_at                        DateTime      @updatedAt
+  updated_by                        String        @db.Uuid
+  quotation                         Quotation     @relation("SaleOrder", fields: [quotation_id], references: [quotation_id])
+  customer                          Customer      @relation("SaleOrder", fields: [customer_id], references: [customer_id])
+  team                              Team          @relation("SaleOrder", fields: [team_id], references: [team_id])
+  country                           Country       @relation("SaleOrder", fields: [country_id], references: [country_id])
+  province                          Province      @relation("SaleOrder", fields: [province_id], references: [province_id])
+  district                          District      @relation("SaleOrder", fields: [district_id], references: [district_id])
+  currency                          Currency      @relation("SaleOrder", fields: [currency_id], references: [currency_id])
+  payment_method                    PaymentMethod @relation("SaleOrder", fields: [payment_method_id], references: [payment_method_id])
+  vat                               Vat           @relation("SaleOrder", fields: [vat_id], references: [vat_id])
+  responsible                       employees     @relation("SaleOrderResponsible", fields: [responsible_employee], references: [employee_id])
+  created_by_employee               employees     @relation("SaleOrderCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee               employees     @relation("SaleOrderUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  sale_order_payment_log  SaleOrderPaymentLog[]  @relation("PaymentLog")
+  sale_order_payment_term SaleOrderPaymentTerm[] @relation("PaymentTerm")
+  sale_order_file         SaleOrderFile[]        @relation("File")
+  sale_order_product      SaleOrderItem[]        @relation("Item")
+  status                  SaleOrderStatus[]      @relation("Status")
+
+  @@index([quotation_id])
+}
+
+model SaleOrderFile {
+  sale_order_file_id   String    @id @default(uuid()) @db.Uuid
+  sale_order_id        String    @db.Uuid
+  sale_order_file_name String    @db.VarChar(50)
+  sale_order_file_url  String    @db.VarChar(100)
+  sale_order_file_type String    @db.VarChar(50)
+  created_at           DateTime  @default(now())
+  created_by           String    @db.Uuid
+  sale_order           SaleOrder @relation("File", fields: [sale_order_id], references: [sale_order_id])
+  created_by_employee  employees @relation("SaleOrderFileCreatedBy", fields: [created_by], references: [employee_id])
+}
+
+model SaleOrderItem {
+  sale_order_item_id    String       @id @default(uuid()) @db.Uuid
+  sale_order_id         String       @db.Uuid
+  product_id            String       @db.Uuid
+  // sale_order_item_desciption String?  @db.Text
+  // sale_order_item_remark     String?  @db.Text
+  sale_order_item_count Decimal      @default(1.00) @db.Decimal(9, 2)
+  unit_id               String       @db.Uuid
+  unit_price            Decimal      @default(0.00) @db.Decimal(10, 2)
+  unit_discount         Decimal      @default(0.00) @db.Decimal(10, 2)
+  unit_discount_percent Decimal      @default(0.00) @db.Decimal(10, 2)
+  sale_order_item_price Decimal      @default(0.00) @db.Decimal(10, 2)
+  group_product_id      String       @db.Uuid
+  created_at            DateTime     @default(now())
+  created_by            String       @db.Uuid
+  updated_at            DateTime     @updatedAt
+  updated_by            String       @db.Uuid
+  sale_order            SaleOrder    @relation("Item", fields: [sale_order_id], references: [sale_order_id])
+  created_by_employee   employees    @relation("SaleOrderItemCreatedBy", fields: [created_by], references: [employee_id])
+  upadated_by_employee  employees    @relation("SaleOrderItemUpdatedBy", fields: [updated_by], references: [employee_id])
+  unit                  Unit         @relation("SaleOrderItem", fields: [unit_id], references: [unit_id])
+  product               Product      @relation("SaleOrderItem", fields: [product_id], references: [product_id])
+  group_product         GroupProduct @relation("SaleOrderItem", fields: [group_product_id], references: [group_product_id])
+
+  @@index([sale_order_id])
+}
+
+model SaleOrderStatus {
+  sale_order_status_id              String    @id @default(uuid()) @db.Uuid
+  sale_order_id                     String    @db.Uuid
+  sale_order_status                 String    @db.VarChar(50)
+  manufacture_factory_date          DateTime?
+  expected_manufacture_factory_date DateTime?
+  delivery_date_success             DateTime?
+  expected_delivery_date_success    DateTime?
+  receipt_date                      DateTime?
+  expected_receipt_date             DateTime?
+  sale_order_status_remark          String?   @db.Text
+  created_at                        DateTime  @default(now())
+  created_by                        String    @db.Uuid
+  sale_order                        SaleOrder @relation("Status", fields: [sale_order_id], references: [sale_order_id])
+  created_by_employee               employees @relation("SaleOrderStatusCreatedBy", fields: [created_by], references: [employee_id])
+
+  @@index([sale_order_id])
+}

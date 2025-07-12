@@ -1,0 +1,11 @@
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`; // ไบต์
+  } else if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(2)} KB`; // กิโลไบต์
+  } else if (bytes < 1024 * 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`; // เมกะไบต์
+  } else {
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`; // กิกะไบต์
+  }
+}

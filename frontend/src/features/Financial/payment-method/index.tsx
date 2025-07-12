@@ -1,0 +1,308 @@
+import { useEffect, useState } from "react";
+import MasterTableFeature from "@/components/customs/display/master.main.component";
+import DialogComponent from "@/components/customs/dialog/dialog.main.component";
+import InputAction from "@/components/customs/input/input.main.component";
+// import { getQuotationData } from "@/services/ms.quotation.service.ts";
+import {
+
+  postRole,
+  updateRole,
+  deleteRole,
+} from "@/services/customerRole.service";
+import { useToast } from "@/components/customs/alert/ToastContext";
+
+
+//
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useCustomerRole } from "@/hooks/useCustomerRole";
+import { TypePaymentmethodResponse } from "@/types/response/response.payment";
+import { usePayment } from "@/hooks/usePayment";
+import { deletePayment, postPayment, updatePayment } from "@/services/paymentMethod.service";
+
+type dateTableType = {
+  className: string;
+  cells: {
+    value: any;
+    className: string;
+  }[];
+  data: TypePaymentmethodResponse; //ตรงนี้
+}[];
+
+//
+export default function PaymentMethod() {
+  const [searchText, setSearchText] = useState("");
+
+  const [paymentMethodName, setPaymentMethodName] = useState("");
+  // const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [data, setData] = useState<dateTableType>([]);
+
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [selectedItem, setSelectedItem] = useState<TypePaymentmethodResponse | null>(null);
+
+  const { showToast } = useToast();
+  //
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = searchParams.get("page") ?? "1";
+  const pageSize = searchParams.get("pageSize") ?? "25";
+  const [searchRole, setSearchRole] = useState("");
+
+
+  const { data: dataPayment, refetch: refetchPayment } = usePayment({
+    page: page,
+    pageSize: pageSize,
+    searchText: searchRole,
+  });
+
+  useEffect(() => {
+
+    if (dataPayment?.responseObject?.data) {
+      const formattedData = dataPayment.responseObject?.data.map(
+        (item: TypePaymentmethodResponse, index: number) => ({
+          className: "",
+          cells: [
+            { value: index + 1, className: "text-center" },
+            { value: item.payment_method_name, className: "text-left" },
+          ],
+          data: item,
+        })
+      );
+      setData(formattedData);
+    }
+  }, [dataPayment]);
+
+
+  //
+  const headers = [
+    { label: "ลำดับ", colSpan: 1, className: "min-w-10" },
+    { label: "ชื่อสกุลเงิน", colSpan: 1, className: "min-w-80" },
+    { label: "แก้ไข", colSpan: 1, className: "min-w-10" },
+    { label: "ลบ", colSpan: 1, className: "min-w-10" },
+  ];
+
+  useEffect(() => {
+    if (searchRole === "") {
+      setSearchRole(searchRole);
+      setSearchParams({ page: "1", pageSize });
+      refetchPayment();
+    }
+  }, [searchRole]);
+
+  //handle
+  const handleSearch = () => {
+    setSearchRole(searchRole);
+    setSearchParams({ page: "1", pageSize });
+    refetchPayment();
+
+  };
+
+
+  //เปิด
+  const handleCreateOpen = () => {
+    setPaymentMethodName("");
+    setIsCreateDialogOpen(true);
+  };
+  const handleEditOpen = (item: TypePaymentmethodResponse) => {
+    setSelectedItem(item);
+    setPaymentMethodName(item.payment_method_name);
+    setIsEditDialogOpen(true);
+  };
+  const handleDeleteOpen = (item: TypePaymentmethodResponse) => {
+    setSelectedItem(item);
+    setIsDeleteDialogOpen(true);
+
+  };
+
+  //ปิด
+  const handleCreateClose = () => {
+    setIsCreateDialogOpen(false);
+  };
+  const handleEditClose = () => {
+    setIsEditDialogOpen(false);
+  };
+  const handleDeleteClose = () => {
+    setIsDeleteDialogOpen(false);
+  };
+
+  //ยืนยันไดอะล็อค
+  const handleConfirm = async () => {
+    if (!paymentMethodName) {
+      showToast("กรุณาระบุวิธีการชำระเงิน", false);
+      return;
+    }
+    try {
+      const response = await postPayment({
+        payment_method_name: paymentMethodName, // ใช้ชื่อ field ที่ตรงกับ type
+      });
+
+      if (response.statusCode === 200) {
+        setPaymentMethodName("");
+        handleCreateClose();
+        showToast("สร้างวิธีการชำระเงินเรียบร้อยแล้ว", true);
+        setSearchParams({ page: "1", pageSize });
+        refetchPayment();
+      } else {
+        showToast("วิธีการชำระเงินนี้มีอยู่แล้ว", false);
+      }
+    } catch {
+      showToast("ไม่สามารถสร้างวิธีการชำระเงินได้", false);
+    }
+  };
+
+  const handleEditConfirm = async () => {
+    if (!paymentMethodName) {
+      showToast("กรุณาระบุให้ครบทุกช่อง", false);
+      return;
+    }
+    if (!selectedItem) {
+      showToast("กรุณาระบุวิธีการชำระเงิน", false);
+      return;
+    }
+
+    try {
+      const response = await updatePayment(selectedItem.payment_method_id, {
+        payment_method_name: paymentMethodName, // ใช้ชื่อ field ที่ตรงกับ type
+      });
+
+      if (response.statusCode === 200) {
+        showToast("แก้ไขวิธีการชำระเงินเรียบร้อยแล้ว", true);
+        setPaymentMethodName("");
+        setIsEditDialogOpen(false);
+        refetchPayment();
+      } else {
+        showToast("ข้อมูลนี้มีอยู่แล้ว", false);
+      }
+    } catch (error) {
+      showToast("ไม่สามารถแก้ไขวิธีการชำระเงินได้", false);
+      console.error(error); // Log the error for debugging
+    }
+  };
+  const handleDeleteConfirm = async () => {
+    if (!selectedItem || !selectedItem.payment_method_name) {
+      showToast("กรุณาระบุวิธีการชำระเงินที่ต้องการลบ", false);
+      return;
+    }
+
+
+    try {
+      const response = await deletePayment(selectedItem.payment_method_id);
+
+      if (response.statusCode === 200) {
+        showToast("ลบวิธีการชำระเงินเรียบร้อยแล้ว", true);
+        setIsDeleteDialogOpen(false);
+        setSearchParams({ page: "1", pageSize });
+        refetchPayment();
+      }
+      else if (response.statusCode === 400) {
+        if (response.message === "Color in quotation") {
+          showToast("ไม่สามารถลบวิธีการชำระเงินได้ เนื่องจากมีใบเสนอราคาอยู่", false);
+        }
+        else {
+          showToast("ไม่สามารถลบวิธีการชำระเงินได้", false);
+        }
+      }
+      else {
+        showToast("ไม่สามารถลบวิธีการชำระเงินได้", false);
+      }
+    } catch (error) {
+      showToast("ไม่สามารถลบวิธีการชำระเงินได้", false);
+    }
+  };
+
+  return (
+    <div>
+      <MasterTableFeature
+        title="วิธีการชำระเงิน"
+        hideTitleBtn={true}
+        inputs={[
+          {
+            id: "search_input",
+            value: searchRole,
+            size: "3",
+            placeholder: "ค้นหา....",
+            onChange: setSearchRole,
+            onAction: handleSearch,
+          },
+        ]}
+        onSearch={handleSearch}
+        headers={headers}
+        rowData={data}
+        totalData={dataPayment?.responseObject?.totalCount}
+        onEdit={handleEditOpen}
+        onDelete={handleDeleteOpen}
+        onCreateBtn={true}
+        onCreateBtnClick={handleCreateOpen}
+        nameCreateBtn="+ เพิ่มวิธีการชำระเงิน"
+      />
+
+      {/* สร้าง */}
+      <DialogComponent
+        isOpen={isCreateDialogOpen}
+        onClose={handleCreateClose}
+        title="สร้างวิธีการชำระเงิน"
+        onConfirm={handleConfirm}
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
+        confirmBtnType="primary"
+      >
+        <div className="flex flex-col space-y-5">
+          <InputAction
+            id="tag-name"
+            placeholder="ชื่อวิธีการชำระเงิน"
+            onChange={(e) => setPaymentMethodName(e.target.value)}
+            value={paymentMethodName}
+            label="ชื่อวิธีการชำระเงิน"
+            labelOrientation="horizontal"
+            onAction={handleConfirm}
+            classNameLabel="w-60 flex "
+            classNameInput="w-full"
+          />
+         
+        </div>
+      </DialogComponent>
+
+      {/* แก้ไข */}
+      <DialogComponent
+        isOpen={isEditDialogOpen}
+        onClose={handleEditClose}
+        title="แก้ไขวิธีการชำระเงิน"
+        onConfirm={handleEditConfirm}
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
+        confirmBtnType="primary"
+      >
+        <div className="flex flex-col space-y-5">
+          <InputAction
+            id="tag-name"
+            placeholder="ชื่อวิธีการชำระเงิน"
+            onChange={(e) => setPaymentMethodName(e.target.value)}
+            value={paymentMethodName}
+            label="ชื่อวิธีการชำระเงิน"
+            labelOrientation="horizontal"
+            onAction={handleEditConfirm}
+            classNameLabel="w-60 flex "
+            classNameInput="w-full"
+          />
+         
+        </div>
+      </DialogComponent>
+
+      {/* ลบ */}
+
+      <DialogComponent
+        isOpen={isDeleteDialogOpen}
+        onClose={handleDeleteClose}
+        title="ยืนยันการลบ"
+        onConfirm={handleDeleteConfirm}
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
+      >
+        <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?</p>
+        <p>ชื่อ : <span className="text-red-500">{selectedItem?.payment_method_name} </span></p>
+      </DialogComponent>
+    </div>
+
+  );
+}

@@ -1,0 +1,187 @@
+import React, { ChangeEvent, KeyboardEvent, ReactNode } from "react";
+// import { useEffect, useState } from "react";
+import { TextField, Select } from "@radix-ui/themes";
+
+interface InputActionProps {
+  onAction?: () => void; // Callback to handle input value (Enter key)
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void; // Callback to  changes
+  placeholder?: string; // Optional placeholder text
+  label?: string; // Optional label for the input
+  value: string;
+  labelOrientation?: "horizontal" | "vertical"; // Label position
+  size?: "1" | "2" | "3"; // Radix input size
+  defaultValue?: string; // Optional default value
+  id?: string; // Input ID (used for navigation)
+  nextFields?: { left?: string; right?: string; up?: string; down?: string }; // Navigation config
+  className?: string;
+  classNameInput?: string;
+  classNameLabel?: string;
+  require?: string;
+  disabled?: boolean;
+  type?:
+  | "number"
+  | "search"
+  | "text"
+  | "time"
+  | "hidden"
+  | "date"
+  | "datetime-local"
+  | "email"
+  | "month"
+  | "password"
+  | "tel"
+  | "url"
+  | "week"
+  | undefined;
+  iconLeft?: ReactNode;
+  maxLength?: number;
+  errorMessage?: string;
+  maxValue?: string | number | undefined;
+}
+
+const InputAction: React.FC<InputActionProps> = ({
+  onAction,
+  onChange,
+  placeholder = "Enter value...",
+  label = "",
+  labelOrientation = "vertical",
+  size = "2",
+  value = "",
+  defaultValue = "",
+  id = "",
+  nextFields = {},
+  className = "",
+  classNameInput = "",
+  classNameLabel = "",
+  require = "",
+  disabled = false,
+  type = "text",
+  iconLeft,
+  maxLength,
+  errorMessage,
+  maxValue,
+}) => {
+  // const [inputValue, setInputValue] = useState<string>(defaultValue);
+
+  // useEffect(() => {
+  //   setInputValue(defaultValue);
+  // }, [defaultValue]);
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const keycode = e.key;
+    const nextFieldId =
+      keycode === "ArrowUp"
+        ? nextFields.up
+        : keycode === "ArrowDown"
+          ? nextFields.down
+          : keycode === "ArrowLeft"
+            ? nextFields.left
+            : keycode === "ArrowRight"
+              ? nextFields.right
+              : null;
+
+    // ป้องกันการพิมพ์ตัวอักษรพิเศษ (อนุญาตเฉพาะตัวเลข, Backspace, และปุ่มควบคุมอื่น ๆ)
+    if (
+      (type === "number" || type === "tel") &&
+      !/^[0-9]$/.test(keycode) &&
+      keycode !== "Backspace" &&
+      keycode !== "Tab" &&
+      keycode !== "ArrowUp" &&
+      keycode !== "ArrowDown" &&
+      keycode !== "ArrowLeft" &&
+      keycode !== "ArrowRight" &&
+      keycode !== "Enter"
+    ) {
+      e.preventDefault();
+      return; // ยกเลิกการทำงานของคีย์ที่ไม่ได้รับอนุญาต
+    }
+
+    if (keycode === "Enter") {
+      if (onAction) {
+        onAction(); // Call onAction if provided
+      } else if (nextFields.right) {
+        // Fallback: move to next field (right) if onAction is not provided
+        const nextField = document.getElementById(nextFields.right);
+        if (nextField) {
+          (nextField as HTMLInputElement).focus();
+          (nextField as HTMLInputElement).select();
+        }
+      }
+    } else if (nextFieldId) {
+      // Navigate to the specified field based on arrow key
+      const nextField = document.getElementById(nextFieldId);
+      if (nextField) {
+        (nextField as HTMLInputElement).focus();
+        (nextField as HTMLInputElement).select();
+      }
+    }
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // setInputValue(value);
+
+    // ตรวจสอบว่า value มีเฉพาะตัวเลข
+    if (/^\d*$/.test(value) && type === "number") {
+      // แปลงเป็นตัวเลขเพื่อกรองค่า เช่น ลบ 0 นำหน้า
+      const numericValue = parseInt(value, 10);
+
+      // ตรวจสอบว่าค่าเป็นค่าบวกหรือไม่
+      if (numericValue >= 0) {
+        e.target.value = value.replace(/^0+/, "") || "0";
+        // setInputValue(value.replace(/^0+/, "") || "0"); // ลบ 0 นำหน้า
+      }
+    }
+
+    if (onChange) {
+      onChange(e);
+    }
+  };
+
+  return (
+    // style={{
+    //   display: "flex",
+    //   flexDirection: labelOrientation === "horizontal" ? "row" : "column",
+    //   alignItems: labelOrientation === "horizontal" ? "center" : undefined,
+    //   gap: labelOrientation === "horizontal" ? "0.5rem" : undefined,
+    // }}
+    <div
+      className={`${className || ""} flex flex-col sm:flex-row items-start sm:items-center gap-2`}
+    >
+      {label && (
+        <label
+          htmlFor={id}
+          className={classNameLabel || ""}
+        >
+          {label}
+          {require && <span style={{ color: "red" }}>*</span>}
+        </label>
+      )}
+
+      <TextField.Root
+      className={`h-input_main ${classNameInput}`}
+      size={size}
+      placeholder={placeholder}
+      value={value}
+      defaultValue={defaultValue}
+      max={maxValue}
+      onChange={handleChange}
+      onKeyDown={handleKeyDown}
+      id={id}
+      disabled={disabled}
+      type={type}
+      maxLength={maxLength}
+      autoComplete="off"
+    >
+      {iconLeft && <TextField.Slot>{iconLeft}</TextField.Slot>}
+    </TextField.Root>
+      
+      {errorMessage && (
+        <div className="text-red-600 pt-1 text-sm"> {errorMessage}</div>
+      )}
+    </div>
+  );
+};
+
+export default InputAction;
+

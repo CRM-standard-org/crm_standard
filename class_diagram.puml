@@ -1,0 +1,590 @@
+@startuml
+
+class Company {
+  - company_id: String
+  - name_th: String
+  - name_en: String
+  - address_th: String
+  - country_th: String
+  - province_th: String
+  - district_th: String
+  - address_en: String
+  - country_en: String
+  - province_en: String
+  - district_en: String
+  - tax_id: String
+  - phone: String
+  - email: String
+  - logo: String
+  + updateCompany(data: array): string
+  + getCompany(): array
+}
+
+class Employee {
+  - employee_id: String uuid
+  - username: String
+  - password: String
+  - email: String
+  - is_active: Boolean
+  - permission_id: String uuid
+  - team_id: String uuid
+  - first_name: String
+  - last_name: String
+  - birthdate: Date
+  - phone: String
+  - contact_id: String uuid
+  - contact_name: String
+  - address: String
+  - country: String
+  - province: String
+  - district: String
+  - remark: String
+  - profile_picture: URL
+  - created_at: Date
+  - created_by: String uuid 
+  - updated_at: Date
+  - updated_by: String uuid
+  + createEmployee(data: array): boolean
+  + updateUser(data: array): boolean
+  + getUser(username: string): array
+  + getUsers(data: array): array
+}
+
+Company "1" -- "*" Employee : employs
+
+class Permission {
+  - permission_id: String uuid
+  - name: String
+  - created_at: Date
+  - created_by: String uuid
+  + getPermission(): array
+}
+
+' พนักงานมีสิทธิได้แค่หนึ่งสิทธิ แต่สิทธิสามารถมีมากกว่าหนึ่งพนักงานได้ 
+Employee "*"--"1" Permission : has permission
+
+class Team {
+  - team_id: String uuid
+  - name: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createTeam(data: array): boolean
+  + getTeams(data: array): array
+  + getTeam(team_id: string): array
+  + updateTeam(data: array): boolean
+  + deleteTeam(team_id: string): boolean
+  {constraint: "If there are employees in the team, 
+  the team cannot be deleted."}
+}
+
+' พนักงานหนึ่งคนจะมีทีมหรือไม่มีก็ได้ และทีมสามารถมีมากกว่าหนึ่งคนได้
+Employee "0..*" o--o "0..1" Team : belongs to
+
+class Contact {
+  - contact_id: String uuid
+  - contact_name: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createContact(contact_name: string): boolean
+  + updateContact(data: array): boolean
+  + getContact(contact_id: string): string
+  + getContactAll(data: array): array
+  + deleteContact(contact_id: string): boolean
+  {constraint: "If there are employees in the contact channel,
+   the contact channel cannot be deleted."}
+}
+
+' พนักงานหนึ่งคนจะมีช่องทางการติดต่อหรือไม่มีก็ได้ และช่องทางการติดต่อสามารถมีมากกว่าหนึ่งคนได้
+Employee "0..*" o--o "0..1" Contact : has contact
+
+class Customer {
+  - customer_id: String uuid
+  - customer_name: String
+  - type: String
+  - tax_id: String
+  - email: String
+  - country: String
+  - province: String
+  - district: String
+  - priority_level: Integer
+  - is_active: Boolean
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createCustomer(data: array): boolean
+  + updateCustomer(data: array): boolean
+  + getCustomers(data: array): array
+  + getCustomer(customer_id: string): array
+  + deleteCustomer(customer_id: string): boolean
+  {constraint: "If a customer is included in the customer tag, 
+  the customer cannot be deleted."}
+  {constraint: "If a customer is included in the customer address, 
+  the customer cannot be deleted."}
+  {constraint: "If there are customers in the activity log, 
+  the customer cannot be deleted."}
+  {constraint: "A customer cannot be deleted if they have quotations."}
+  {constraint: "A customer cannot be deleted if they have sale order."}
+}
+
+class GroupTags {
+  - tag_id: String uuid
+  - tag_name: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createTag(tag_name: string): boolean
+  + updateTag(data: array): boolean
+  + getTags(data: array): array
+  + getTag(tag_id: string): array
+  + deleteTag(tag_id: string): boolean
+  {constraint: "If there are customers in the tag, 
+  the tag cannot be deleted."}
+}
+
+class CustomerTags {
+  - customer_tag_id: String uuid
+  - customer_id: String uuid
+  - tag_id: String uuid
+  - number: Integer
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createTag(data: array): boolean
+  + getCustomerTag(customer_id: string): array
+  + deleteTag(customer_tag_id: string): boolean
+}
+
+' หนึ่งลูกค้าสามารถมีมากกว่าหนึ่งแท็กได้ และ กลุ่มแท็กสามารถมีมากกว่าหนึ่งลูกค้าได้
+Customer "1" *-- "0..*" CustomerTags : has Tag
+GroupTags "1..*" *-- "0..*" CustomerTags : is linked to
+
+class CustomerAddress {
+  - customer_address_id: String: uuid
+  - customer_id: String: uuid
+  - address: String
+  - country: String
+  - province: String
+  - district: String
+  - main: Boolean
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createAddress(data: array): boolean
+  + updateAddress(data: array): boolean
+  + getAddressAll(customer_id: string): array
+  + getAddress(customer_address_id: string): array
+  + deleteAddress(customer_address_id: string): boolean
+}
+
+' หนึ่งลูกค้าสามารถมีมากกว่าหนึ่งที่อยู่ได้ แต่หนึ่งลูกค้าที่อยู่ สามารถมีได้แค่หนึ่งลูกค้า
+Customer "1" *-- "0..*" CustomerAddress : has Address
+
+class CustomerRole {
+  - customer_role_id: String uuid
+  - customer_role_name: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createRole(customer_role_name: string): boolean
+  + updateRole(data: array): boolean
+  + getRoles(data: array): array
+  + getRole(customer_role_id: string): array
+  + deleteRole(customer_role_id: string): boolean
+  {constraint: "If there is a customer in the contact information
+The customer role cannot be deleted."}
+}
+
+class CustomerContact {
+  - customer_contact_id: String uuid
+  - customer_id: String uuid
+  - contact_name: String
+  - phone: String
+  - phone_extension: String
+  - position: String
+  - customer_role_id: String uuid
+  - email: String
+  - contact_id: String uuid
+  - contact_name: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createContact(data: array): boolean
+  + updateContact(data: array): boolean
+  + getContactAll(customer_id: string): array
+  + getContact(customer_contact_id: string): array
+  + deleteContact(customer_contact_id: string): boolean
+}
+
+' หนึ่งลูกค้าสามารถมีมากกว่าหนึ่งข้่อมูลผู้ติดต่อ แต่หนึ่งลูกค้าข้อมูลผู้ติดต่อ สามารถมีได้แค่หนึ่งลูกค้า
+Customer "1" *-- "0..*" CustomerContact : has Address
+CustomerRole "1..*" *-- "0..*" CustomerContact : is linked to
+
+
+
+class GroupProduct {
+  - group_product_id: String uuid
+  - group_product_name: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createGroupProduct(data: array): boolean
+  + updateGroupProduct(data: array): boolean
+  + getGroupProducts(data: array): array
+  + getGroupProduct(group_product_id: string): array
+  + deleteGroupProduct(group_product_id: string): boolean
+  {constraint: "If there is a product group in the product
+The product group cannot be deleted."}
+  {constraint: "A GroupProduct cannot be deleted if they have quotations item."}
+}
+
+class Unit {
+  - unit_id: String uuid
+  - unit_name: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createUnit(data: array): boolean
+  + updateUnit(data: array): boolean
+  + getUnits(data: array): array
+  + getUnit(unit_id: string): array
+  + deleteUnit(unit_id: string): boolean
+  {constraint: "If there is a unit in the product
+The unit cannot be deleted."}
+  {constraint: "A Unit cannot be deleted if they have quotations item."}
+}
+
+class Product {
+  - product_id: String uuid
+  - product_name: String
+  - description: String
+  - unit_price: double
+  - unit_id: String uuid
+  - group_product_id: String uuid
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createProduct(data: array): boolean
+  + updateProduct(data: array): boolean
+  + getProducts(data: array): array
+  + getProduct(product_id: string): array
+  + deleteProduct(product_id: string): boolean
+  {constraint: "If there is a product in the Quotation Item
+The product cannot be deleted."}
+  {constraint: "A Product cannot be deleted if they have quotations item."}
+}
+
+' หนึ่งกลุ่มสินค้า สามารถมีสินค้า 0 ตัวขึ้นไป (อาจไม่มีสินค้าเลย หรือมีมากกว่าหนึ่งสินค้าได้)
+' แต่ละสินค้า ต้องอยู่ใน กลุ่มสินค้าเพียงหนึ่งกลุ่ม เท่านั้น 
+GroupProduct "1" *-- "0..*" Product : contains
+' หนึ่งหน่วย สามารถมีสินค้า 0 ตัวขึ้นไป (อาจไม่มีสินค้าเลย หรือมีมากกว่าหนึ่งสินค้าได้)
+' แต่ละสินค้า ต้องอยู่ใน หน่วยเพียงหนึ่งกลุ่ม เท่านั้น 
+Unit "1" *-- "0..*" Product : contains
+
+class Vat {
+  - vat_id: String uuid
+  - vat_name: String
+  - vat: double
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createVat(data: array): boolean
+  + updateVat(data: array): boolean
+  + getVats(data: array): array
+  + getVat(vat_id: string): array
+  + deleteVat(vat_id: string): boolean
+  {constraint: "If there is a vat in the Quotation
+The vat cannot be deleted."}
+{constraint: "A vat cannot be deleted if they have quotations."}
+}
+
+class Currency {
+  - currency_id: String uuid
+  - currency_name: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createCurrency(currency_name: string): boolean
+  + updateCurrency(data: array): boolean
+  + getCurrencys(data: array): array
+  + getCUrrency(currency_id: string): array
+  + deleteCurrency(currency_id: string): boolean
+  {constraint: "If there is a currency in the Quotation
+The currency cannot be deleted."}
+  {constraint: "A currency cannot be deleted if they have quotations."}
+}
+
+class ActivityLog {
+  - log_id: String
+  - customer_id: String
+  - contact_name: String
+  - contact_date: Date
+  - contact_time: Time
+  - contact_method: String
+  - importance_level: Integer
+  - details: String
+  - responsible_employee: String uuid
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createActivityLog(data: array): boolean
+  + updateActivityLog(data: array): boolean
+  + getActivityLogs(data: array): array
+  + getActivityLog(log_id: string): array
+  + deleteActivityLog(log_id: string): boolean
+  {constraint: "If a activity log is deleted, 
+  the quotation activity must also be deleted."}
+}
+
+' หนึ่งลูกค้าสามารถมีมากกว่าหนึ่งบันทึกกิจกรรมได้ แต่หนึ่งบันทึกกิจจกรม สามารถมีได้แค่หนึ่งลูกค้า
+Customer "1" *-- "0..*" ActivityLog : has Activity log
+
+class Quotation {
+  - quotation_id: String uuid
+  - customer_id: String uuid
+  - quotation_number: String
+  - quotation_status: String
+  - quotation_status_date: Date
+  - quotation_status_by: String uuid
+  - issue_date: Date
+  - price_date: Date
+  - priority: Integer
+  - responsible_employee: String uuid
+  - team_id: String uuid 
+  - shipping_method: String
+  - shipping_remark: String
+  - expected_delivery_date: Date
+  - status_expected_delivery_date: Boolean
+  - place_name: String
+  - address: String
+  - country: String
+  - province: String
+  - district: String
+  - contact_name: String
+  - contact_email: String
+  - contact_phone: String
+  - status_product_id: Boolean
+  - currency_id: String uuid
+  - payment_terms: String
+  - payment_terms_day: Integer
+  - payment_method: String
+  - remark: String
+  - total_amount: Double
+  - special_discount: Double
+  - amount_after_discount: Double
+  - tax_id: String uuid
+  - tax_percentage: Double
+  - tax_amount: Double
+  - grand_total: Double
+  - additional_notes: String
+  - expected_closing_date: Date
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createQuotation(data: array): boolean
+  + updateQuotation(data: array): boolean
+  + getQuotation(customer_id: string): array
+  + getQuotations(data: array): array
+  + deleteQuotation(quotation_id: string): boolean
+  {constraint: "A Quotation cannot be deleted if they have quotations item."}
+  {constraint: "A Quotation cannot be deleted if they have quotations file."}
+  {constraint: "A Quotation cannot be deleted if they have quotations activity."}
+  {constraint: "A Quotation cannot be deleted if they have sale order."}
+}
+
+' ความสัมพันธ์: ลูกค้าสามารถมีหลายใบเสนอราคา แต่ใบเสนอราคามีได้เพียงลูกค้าเดียว
+Customer "1" *-- "0..*" Quotation : owns
+' ความสัมพันธ์: สกุลเงินสามารถมีหลายใบเสนอราคา แต่ใบเสนอราคามีได้เพียงหนึ่งสกุลเงิน
+Currency "1" *-- "0..*" Quotation : owns
+' ความสัมพันธ์: ภาษีสามารถมีหลาบใบเสนอราคา แต่ใบเสนอราคาจะมีหรือไม่มีภาษีก็ได้
+Vat "0..1" *-- "0..*" Quotation : owns
+
+
+class QuotationItem {
+  - quotation_item_id: String uuid
+  - quotation_id: String uuid 
+  - product_id: String uuid 
+  - description: String
+  - remark: String
+  - count: Double
+  - unit_id: String uuid 
+  - unit_price: Double
+  - unit_discount: Double
+  - unit_discount_percent: Double
+  - price: Double
+  - group_product_id: String uuid 
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createQuotationItem(data: array): boolean
+  + updateQuotationItem(data: array): boolean
+  + getQuotationItem(data: array): array
+  + getQuotationItems(quotation_item_id: string): array
+  + deleteQuotationItem(quotation_item_id: string): boolean
+}
+' ความสัมพันธ์: ใบเสนอราคาสามารถมีรายการสินค้าได้ 0..* แต่รายการสินค้าสามารถมีเพียงใบเสนอราคาได้เพียงหนึ่งใบ
+Quotation "1" *-- "0..*" QuotationItem : owns
+QuotationItem "0..*" --* "1..*" Product : has
+QuotationItem "0..*" --* "1..*" Unit : has
+QuotationItem "0..*" --* "1..*" GroupProduct : has
+
+class QuotationFile {
+  - quotation_file_id: String uuid
+  - quotation_id: String uuid
+  - file_name: String
+  - file_url: String
+  - type: String
+  - created_at: Date
+  - created_by: String uuid
+  + createQuotationFile(data: array): boolean
+  + getQuotationFiles(data: array): array
+  + deleteQuotationFile(quotation_file_id: string): boolean
+}
+
+Quotation "1" *-- "0..*" QuotationFile : owns
+
+class QuotationActivity {
+  - quotation_activity_id: String uuid
+  - quotation_id: String uuid
+  - log_id: String uuid
+  - importance_level: Integer
+  - number: Integer
+  - contact_method: String
+  - next_contact_date: Date
+  - next_contact_remark: String
+  - responsible_employee: String uuid
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createQuotationActivity(data: array): boolean
+  + updateQuotationActivity(data: array): boolean
+  + getQuotationActivities(data: array): array
+  + getQuotationActivity(quotation_activity_id: string): array
+  + deleteQuotationActivity(quotation_activity_id: string): boolean
+  {constraint: "If a quotation activity is deleted, 
+  the activity log must also be deleted."}
+}
+
+Quotation "1" *-- "0..*" QuotationActivity : owns
+ActivityLog "1" *--* "1" QuotationActivity
+
+class QuotationStatus {
+  - quotation_status_id: String uuid
+  - quotation_id: String uuid
+  - quotation_status: String
+  - remark: String
+  - sequence: Integer
+  - created_at: Date
+  - created_by: String uuid
+  + createQuotationStatus(data: array): boolean
+  + getQuotationStatuses(data: array): array
+}
+
+' หนึ่งใบเสนอราคาสามารถมีประวัติสถานะได้มากกว่าหนึ่งสถานะ แต่สถานะที่ใช้งานต้องเป็นลำดับล่าสุด
+Quotation "1" -- "1..*" QuotationStatus : owns
+
+class PaymentMethod {
+  - payment_method_id: String uuid
+  - payment_method_name: String
+  - created_at: Date
+  - created_by: String uuid
+  + createPaymentMethod(data: array): boolean
+  + getPeymentMethods(data: array): array
+}
+
+class SaleOrder {
+  - sale_order_id: String uuid
+  - sale_order_no: String
+  - sale_order_state: String
+  - quotation_id: String uuid 
+  - customer_id: String uuid 
+  - issue_date: Date
+  - manufacture_factory_date: Date
+  - delivery_date: Date
+  - receipt_date: Date
+  - address: String
+  - country: String
+  - province: String
+  - district: String
+  - contact_name: String
+  - contact_phone: String
+  - email: String
+  - shipping_type: String
+  - responsible_employee: String uuid
+  - payment_terms: String
+  - payment_terms_day: Integer
+  - payment_remark: String
+  - payment_method_id: String uuid 
+  - payment_status: String
+  - shipping_status: String
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createSaleOrder(data: array): boolean
+  + updateSaleOrder(data: array): boolean
+  + getSaleOrders(data: array): array
+  + getSaleOrder(sale_order_id: string): array
+  + deleteSaleOrder(sale_order_id: string): boolean
+    {constraint: "A Sale Order cannot be deleted if they have sale order file."}
+}
+
+Quotation "1" *-- "0..*" SaleOrder : owns
+Customer "1" *-- "0..*" SaleOrder : owns
+PaymentMethod "0..1" *-- "0..*" SaleOrder : owns
+
+class SaleOrderFile {
+  - sale_order_file_id: String uuid
+  - sale_order_id: String uuid
+  - file_name: String
+  - file_url: String
+  - type: String
+  - created_at: Date
+  - created_by: String uuid
+  + createSaleOrderFile(data: array): boolean
+  + getSaleOrderFiles(data: array): array
+  + deleteSaleOrderFile(sale_order_file_id: string): boolean
+}
+
+SaleOrder "1" *-- "0..*" SaleOrderFile : owns
+
+class SalesForecasting {
+  - sale_forecasting_id: String uuid
+  - forecast_date: Date
+  - goal: Double
+  - new_forecast: Double
+  - forecast_type: String
+  - employee_id: String uuid
+  - team_id: String uuid
+  - created_at: Date
+  - created_by: String uuid
+  - updated_at: Date
+  - updated_by: String uuid
+  + createSaleForecast(data: array): boolean
+  + updateSaleForecast(data: array): boolean
+  + getSaleForecasts(data: array): array
+  + getSaleForecast(data: array): array
+  + deleteSaleForecast(sale_forecasting_id: string): boolean
+}
+
+Team "0..1" *-- "0..*" SalesForecasting : owns
+
+@enduml
