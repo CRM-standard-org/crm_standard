@@ -357,6 +357,7 @@ export const quotationRepository = {
         const quotation = await prisma.quotation.findFirst({
             where: { quotation_id : quotation_id , is_active : true },
             select: {
+                quotation_number: true,
                 customer: { select: { customer_id: true ,  company_name: true , tax_id: true }},
                 priority: true,
                 issue_date: true,

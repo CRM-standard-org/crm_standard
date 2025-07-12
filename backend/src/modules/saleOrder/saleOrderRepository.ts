@@ -228,6 +228,7 @@ export const saleOrderRepository = {
         const saleOrder = await prisma.saleOrder.findFirst({
             where: { sale_order_id : sale_order_id },
             select: {
+                sale_order_number:true,
                 customer: { select: { customer_id: true ,  company_name: true , tax_id: true }},
                 priority: true,
                 issue_date: true,
