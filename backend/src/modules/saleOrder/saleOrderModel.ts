@@ -242,3 +242,12 @@ export const ExpectedReceiptSchema = z.object({
         sale_order_status_remark: z.string(),
     })
 });
+
+export const SaleSchema = z.object({
+    params: z.object({
+        sale_order_id: z.string().min(1).max(50),
+    }),
+    body : z.object({
+        sale_order_status_remark: z.string().optional(),
+    })
+});

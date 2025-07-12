@@ -541,5 +541,61 @@ export const saleOrderService = {
             );
         }
     },
+    closeSale: async (sale_order_id: string , remark:string, employee_id:string ) => {
+        try{
+            const check = await saleOrderRepository.findById(sale_order_id);
+            if(!check){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Sale order not found",
+                    null,
+                    StatusCodes.BAD_REQUEST
+                );
+            }
+            const data = await saleOrderRepository.closeSale(sale_order_id, remark, employee_id);
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Close sale success",
+                null,
+                StatusCodes.OK
+            )
+        }catch (ex){
+            const errorMessage = "Error close sale :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
+    rejectSale: async (sale_order_id: string , remark:string, employee_id:string ) => {
+        try{
+            const check = await saleOrderRepository.findById(sale_order_id);
+            if(!check){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Sale order not found",
+                    null,
+                    StatusCodes.BAD_REQUEST
+                );
+            }
+            const data = await saleOrderRepository.closeSale(sale_order_id, remark, employee_id);
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Reject sale success",
+                null,
+                StatusCodes.OK
+            )
+        }catch (ex){
+            const errorMessage = "Error reject sale :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
     
 }
