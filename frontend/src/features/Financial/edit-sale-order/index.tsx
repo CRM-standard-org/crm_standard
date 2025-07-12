@@ -1302,17 +1302,17 @@ export default function EditSaleOrder() {
                             <h1>การรับสินค้า <span style={{ color: "red" }}>*</span></h1>
                             <RadioComponent
                                 options={[
-                                    { label: "บริการจัดส่ง", value: "delivery" },
-                                    { label: "รับด้วยตนเอง", value: "pickup" },
-                                    { label: "ไม่ระบุ", value: "no" },
-                                    { label: "อื่นๆ", value: "other" },
+                                    { label: "บริการจัดส่ง", value: "บริการจัดส่ง" },
+                                    { label: "รับด้วยตนเอง", value: "รับด้วยตนเอง" },
+                                    { label: "ไม่ระบุ", value: "ไม่ระบุ" },
+                                    { label: "อื่นๆ", value: "อื่นๆ" },
                                 ]}
                                 value={shippingMethod}
                                 onChange={setShippingMethod}
 
                             />
                         </div>
-                        {shippingMethod && shippingMethod === "other" && (
+                        {shippingMethod && shippingMethod === "อื่นๆ" && (
                             <InputAction
                                 id="shipping-other"
                                 placeholder="โปรดระบุ"
@@ -1494,7 +1494,7 @@ export default function EditSaleOrder() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "contact-person", down: "email-contact" }}
                                 require="require"
-
+                                maxLength={10}
                             />
                         </div>
                         <div className="">
@@ -2315,29 +2315,39 @@ export default function EditSaleOrder() {
                             <h1 className="text-xl font-semibold mb-1">ประวัติเอกสาร</h1>
                             <div className="border-b-2 border-main mb-6"></div>
 
-                            <div className="flex items-start gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
-                                    <LuSquareCheckBig />
-                                </div>                        <div className="flex-1">
-                                    <div className="bg-yellow-300 text-slate-800 text-sm px-2 py-1 rounded-md inline-block mb-2">
-                                        สถานะใบสั่งขาย: แปลงจากใบเสนอราคา
+                            {dataSaleOrder?.status.map((status, index) => (
+                                <div key={index} className="flex items-start gap-3 mb-6">
+                                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
+                                        <LuSquareCheckBig />
                                     </div>
-                                    <p className="text-sm text-slate-600">วันออกเอกสาร:</p>
-                                    <p className="text-sm text-slate-600">ชื่อผู้รับผิดชอบ:</p>
-                                    <p className="text-sm text-slate-600">ชื่อผู้บันทึก:</p>
-                                </div>
-                            </div>
+                                    <div className="flex-1">
+                                        <div className="bg-yellow-300 text-slate-800 text-sm px-2 py-1 rounded-md inline-block mb-2">
+                                            สถานะใบสั่งขาย: <span className="font-bold">{status.sale_order_status}</span>
 
-                            <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
-                                    <LuSquareCheckBig />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="bg-sky-100 text-sky-800 text-sm px-2 py-1 rounded-md inline-block mb-2">
-                                        สถานะใบสั่งขาย: รอดำเนินการ
+                                        </div>
+                                        <p className="text-sm text-slate-600">
+                                            วันออกเอกสาร:
+                                            <span className="font-medium ms-1">{status?.created_at
+                                                ? new Date(status?.created_at).toLocaleDateString("th-TH")
+                                                : "-"}
+                                            </span>
+                                        </p>
+                                        <p className="text-sm text-slate-600">
+                                            ชื่อผู้รับผิดชอบ:
+                                            <span className="font-medium ms-1">
+                                                {dataSaleOrder.responsible.first_name} {dataSaleOrder.responsible.last_name}
+                                            </span>
+                                        </p>
+                                        <p className="text-sm text-slate-600">
+                                            ชื่อผู้บันทึก:
+                                            <span className="font-medium ms-1">
+                                                {status.created_by_employee.first_name} {status.created_by_employee.last_name}
+                                            </span>
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
+                            ))}
+
                         </div>
                     </div>
                 </div>
@@ -2514,7 +2524,7 @@ export default function EditSaleOrder() {
                         defaultValue={{ label: updatePaymentCondition, value: mapPaymentTermNameToId(updatePaymentCondition) }}
                         nextFields={{ up: "payment-date", down: "payment-value" }}
                     />
-                    
+
                     <InputAction
                         id="payment-value"
                         placeholder=""

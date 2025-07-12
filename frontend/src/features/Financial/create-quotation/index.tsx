@@ -944,17 +944,17 @@ export default function CreateQuotation() {
                             <h1>การรับสินค้า <span style={{ color: "red" }}>*</span></h1>
                             <RadioComponent
                                 options={[
-                                    { label: "บริการจัดส่ง", value: "delivery" },
-                                    { label: "รับด้วยตนเอง", value: "pickup" },
-                                    { label: "ไม่ระบุ", value: "no" },
-                                    { label: "อื่นๆ", value: "other" },
+                                    { label: "บริการจัดส่ง", value: "บริการจัดส่ง" },
+                                    { label: "รับด้วยตนเอง", value: "รับด้วยตนเอง" },
+                                    { label: "ไม่ระบุ", value: "ไม่ระบุ" },
+                                    { label: "อื่นๆ", value: "อื่นๆ" },
                                 ]}
                                 value={shippingMethod}
                                 onChange={setShippingMethod}
 
                             />
                         </div>
-                        {shippingMethod && shippingMethod === "other" && (
+                        {shippingMethod && shippingMethod === "อื่นๆ" && (
                             <InputAction
                                 id="shipping-other"
                                 placeholder="โปรดระบุ"
@@ -1136,7 +1136,7 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{up: "contact-person", down: "email-contact" }}
                                 require="require"
-                                
+                                maxLength={10}
                             />
                         </div>
                         <div className="">

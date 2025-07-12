@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
+import { pdf } from '@react-pdf/renderer';
+import QuotationPDF from '@/features/Financial/pdf/print-quotation-detail/QuotationPDF'; 
 
 import Buttons from "@/components/customs/button/button.main.component";
 
@@ -66,7 +68,7 @@ export default function QuotationDetails() {
     const pageSize = searchParams.get("pageSize") ?? "25";
 
     //searchText control
-
+    
 
     const headers = [
         { label: "ลำดับ", colSpan: 1, className: "w-auto" },
@@ -118,6 +120,14 @@ export default function QuotationDetails() {
             setData(formattedData);
         }
     }, [dataQuotation]);
+
+    const handleOpenPdf = async () => {
+        if (!quotationId || !dataQuotation) return;
+      
+        const blob = await pdf(<QuotationPDF quotation={dataQuotation} />).toBlob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      };
     const getStatusColor = (status: string) => {
         switch (status) {
             case "ระหว่างดำเนินการ":
@@ -661,15 +671,19 @@ export default function QuotationDetails() {
                         </div>
                     </div >
                     <div className="flex justify-between space-x-5 mt-5">
-                        <Buttons
-                            btnType="primary"
-                            variant="outline"
-                            className="w-30"
-                        >
-                            <FiPrinter style={{ fontSize: 18 }} />
+                        
+                            <Buttons
+                                btnType="primary"
+                                variant="outline"
+                                className="w-30"
+                                onClick={handleOpenPdf}
+                            >
+                                <FiPrinter style={{ fontSize: 18 }} />
 
-                            พิมพ์
-                        </Buttons>
+                                พิมพ์
+                            </Buttons>
+                       
+
                         <div className="space-x-3">
 
                             {latestStatus && ["ระหว่างดำเนินการ", "ยกเลิกคำขออนุมัติ", "ปรับปรุง"].includes(latestStatus) && (

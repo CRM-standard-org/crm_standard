@@ -29,6 +29,8 @@ import { usePaymentFileById, useSaleOrderById } from "@/hooks/useSaleOrder";
 import { appConfig } from "@/configs/app.config";
 
 import { MdImageNotSupported } from "react-icons/md";
+import SaleorderPDF from "../pdf/print-saleorder-detail/SaleorderPDF";
+import { pdf } from "@react-pdf/renderer";
 type dateTableType = {
     className: string;
     cells: {
@@ -172,6 +174,14 @@ export default function SaleOrderDetails() {
         }
     }, [dataSaleOrder]);
 
+    const handleOpenPdf = async () => {
+        if (!saleOrderId || !dataSaleOrder) return;
+      
+        const blob = await pdf(<SaleorderPDF saleorder={dataSaleOrder} />).toBlob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case "ระหว่างดำเนินการ":
@@ -292,18 +302,7 @@ export default function SaleOrderDetails() {
                                     classNameValue="w-80"
                                 />
                             </div>
-                            <div className="">
-                                <LabelWithValue
-                                    label="วันที่คาดว่าจะปิดดีล"
-                                    value={
-                                        dataSaleOrder?.expected_closing_date
-                                            ? new Date(dataSaleOrder.expected_closing_date).toLocaleDateString("th-TH")
-                                            : "-"
-                                    }
-                                    classNameLabel="sm:w-1/2"
-                                    classNameValue="w-80"
-                                />
-                            </div>
+                           
 
                         </div>
                     </div>
@@ -750,8 +749,10 @@ export default function SaleOrderDetails() {
                     btnType="primary"
                     variant="outline"
                     className="w-30"
+                    onClick={handleOpenPdf}
                 >
                     <FiPrinter style={{ fontSize: 18 }} />
+
                     พิมพ์
                 </Buttons>
                 <Link to="/sale-order">
@@ -812,7 +813,7 @@ export default function SaleOrderDetails() {
                         })
                     ) : (
                         <div className="flex flex-col items-center justify-center w-full text-gray-500 py-10">
-                            <MdImageNotSupported className="text-6xl mb-2" /> 
+                            <MdImageNotSupported className="text-6xl mb-2" />
                             <span className="text-sm">ไม่มีภาพแนบ</span>
                         </div>
                     )}

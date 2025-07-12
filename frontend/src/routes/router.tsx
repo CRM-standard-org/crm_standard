@@ -15,6 +15,8 @@ import EditInfoCustomer from "@/pages/Customer/edit-info-customer";
 import EditCustomerActivity from "@/pages/Customer/edit-customer-activity";
 import CreateActivity from "@/pages/Customer/create-activity";
 import EditCustomerDetails from "@/pages/Customer/edit-customer-details";
+
+//financial route
 import Quotation from "@/pages/Financial/quotation";
 import CreateQuotation from "@/pages/Financial/create-quotation";
 import PaymentMethod from "@/pages/Financial/payment-method";
@@ -26,9 +28,13 @@ import ApproveDetailsQuotation from "@/pages/Financial/approve-details-quotation
 import SaleOrder from "@/pages/Financial/sale-order";
 import SaleOrderDetails from "@/pages/Financial/sale-order-details";
 import EditSaleOrder from "@/pages/Financial/edit-sale-order";
+
+//product route
 import Products from "@/pages/Product/products";
 import ProductGroup from "@/pages/Product/product-group";
 import ProductUnit from "@/pages/Product/product-unit";
+
+//organize route
 import ManageInfoCompany from "@/pages/Organization/manage-info-company";
 import EditInfoCompany from "@/pages/Organization/edit-info-company";
 import Employee from "@/pages/Organization/employee";
@@ -53,6 +59,7 @@ import ReportCustomers from "@/pages/Dashboard/report-customers";
 import ReportTagsCustomer from "@/pages/Dashboard/report-tags-customer";
 import ReportCategorySale from "@/pages/Dashboard/report-category-sale";
 import ForcastSale from "@/pages/Dashboard/forcast-sale";
+
 
 const router = createBrowserRouter([
   {

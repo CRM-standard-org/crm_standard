@@ -32,6 +32,7 @@ interface InputActionProps {
   | "tel"
   | "url"
   | "week"
+  | "tel"
   | undefined;
   iconLeft?: ReactNode;
   maxLength?: number;
@@ -66,7 +67,18 @@ const InputAction: React.FC<InputActionProps> = ({
   // useEffect(() => {
   //   setInputValue(defaultValue);
   // }, [defaultValue]);
-
+  const isValidEmail = (email: string): boolean => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+  
+  const formatPhoneNumber = (value: string): string => {
+    const digits = value.replace(/\D/g, ""); // เอาเฉพาะตัวเลข
+  
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  };
+  
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const keycode = e.key;
     const nextFieldId =
@@ -118,25 +130,27 @@ const InputAction: React.FC<InputActionProps> = ({
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // setInputValue(value);
-
-    // ตรวจสอบว่า value มีเฉพาะตัวเลข
-    if (/^\d*$/.test(value) && type === "number") {
-      // แปลงเป็นตัวเลขเพื่อกรองค่า เช่น ลบ 0 นำหน้า
-      const numericValue = parseInt(value, 10);
-
-      // ตรวจสอบว่าค่าเป็นค่าบวกหรือไม่
-      if (numericValue >= 0) {
-        e.target.value = value.replace(/^0+/, "") || "0";
-        // setInputValue(value.replace(/^0+/, "") || "0"); // ลบ 0 นำหน้า
-      }
+    let rawValue = e.target.value;
+  
+    if (type === "tel") {
+      // รับเฉพาะตัวเลขและ format เป็นเบอร์โทร
+      rawValue = rawValue.replace(/\D/g, ""); // ลบ non-digit
+      const formatted = formatPhoneNumber(rawValue);
+      e.target.value = formatted;
+  
+      // ส่งค่ากลับในรูปแบบ format
+      if (onChange) onChange({ ...e, target: { ...e.target, value: formatted } });
+      return;
     }
-
-    if (onChange) {
-      onChange(e);
+  
+    if (type === "number" && /^\d*$/.test(rawValue)) {
+      rawValue = rawValue.replace(/^0+/, "") || "0"; // ลบ 0 นำหน้า
+      e.target.value = rawValue;
     }
+  
+    if (onChange) onChange(e);
   };
+  
 
   return (
     // style={{

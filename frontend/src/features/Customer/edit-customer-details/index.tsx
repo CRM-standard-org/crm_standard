@@ -508,7 +508,7 @@ export default function EditCustomerDetails() {
                                 classNameLabel="w-1/2  "
                                 classNameInput="w-full"
                                 nextFields={{ up: "company-placename", down: "company-address" }}
-
+                                maxLength={10}
                             />
                         </div>
                         <div className="">
@@ -696,7 +696,7 @@ export default function EditCustomerDetails() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "team", down: "responsible" }}
                                 require="require"
-
+                                maxLength={10}
                             />
                         </div>
                         <div className="">

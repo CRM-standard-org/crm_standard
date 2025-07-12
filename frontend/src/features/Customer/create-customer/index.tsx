@@ -617,7 +617,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "role", down: "email" }}
-
+                                maxLength={10}
                             />
                         </div>
                         <div className="">
@@ -648,7 +648,7 @@ export default function CreateCustomer() {
                                 classNameLabel="w-1/2 "
                                 classNameInput="w-full"
                                 nextFields={{ up: "email", down: "contact-option" }}
-
+                                maxLength={10}
                             />
                         </div>
                         <div className="">
@@ -785,7 +785,7 @@ export default function CreateCustomer() {
                                 classNameLabel="w-1/2  "
                                 classNameInput="w-full"
                                 nextFields={{ up: "company-placename", down: "company-address" }}
-
+                                maxLength={10}
                             />
                         </div>
                         <div className="">
@@ -1073,7 +1073,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "team", down: "responsible" }}
                                 require="require"
-
+                                maxLength={10}
                             />
                         </div>
                         <div className="">

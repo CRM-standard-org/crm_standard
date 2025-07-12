@@ -292,10 +292,10 @@ export default function EditInfoQuotation() {
     const fetchDataCustomer = async () => {
         const customer = dataCustomerById?.responseObject.customer;
         if (!customer || !dataAddress) return;
-    
+
         const mainAddress = customer.customer_address.find((address) => address.main_address);
         const mainContact = customer.customer_contact.find((contact) => contact.main);
-    
+
         setPriority(customer.priority);
         setTaxId(customer.tax_id);
         setPlaceName(mainAddress?.place_name ?? "");
@@ -309,7 +309,7 @@ export default function EditInfoQuotation() {
         setEmailContact(mainContact?.email ?? "");
         setTelNoContact(mainContact?.phone ?? "");
     };
-    
+
     //fetch quotation detail
 
     useEffect(() => {
@@ -746,7 +746,7 @@ export default function EditInfoQuotation() {
         setSearchProduct(searchText);
         refetchProduct();
     };
-    
+
 
     //แก้ไขตัว ฟอร์มบน ส่วนของ บริษัท
     const handleEditCompanyConfirm = async () => {
@@ -1218,17 +1218,17 @@ export default function EditInfoQuotation() {
                             <h1>การรับสินค้า <span style={{ color: "red" }}>*</span></h1>
                             <RadioComponent
                                 options={[
-                                    { label: "บริการจัดส่ง", value: "delivery" },
-                                    { label: "รับด้วยตนเอง", value: "pickup" },
-                                    { label: "ไม่ระบุ", value: "no" },
-                                    { label: "อื่นๆ", value: "other" },
+                                    { label: "บริการจัดส่ง", value: "บริการจัดส่ง" },
+                                    { label: "รับด้วยตนเอง", value: "รับด้วยตนเอง" },
+                                    { label: "ไม่ระบุ", value: "ไม่ระบุ" },
+                                    { label: "อื่นๆ", value: "อื่นๆ" },
                                 ]}
                                 value={shippingMethod}
                                 onChange={setShippingMethod}
 
                             />
                         </div>
-                        {shippingMethod && shippingMethod === "other" && (
+                        {shippingMethod && shippingMethod === "อื่นๆ" && (
                             <InputAction
                                 id="shipping-other"
                                 placeholder="โปรดระบุ"
@@ -1273,7 +1273,7 @@ export default function EditInfoQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "country", down: "province" }}
                                 required
-                                
+
                             />
                         </div>
                         <div className="">
@@ -1290,7 +1290,7 @@ export default function EditInfoQuotation() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
-                                nextFields={{up: "date-delivery", down: "placename" }}
+                                nextFields={{ up: "date-delivery", down: "placename" }}
                                 require="require"
 
                             />
@@ -1307,7 +1307,7 @@ export default function EditInfoQuotation() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 require="require"
-                                nextFields={{up: "province", down: "district" }}
+                                nextFields={{ up: "province", down: "district" }}
                             />
                         </div>
                         <div className="">
@@ -1325,7 +1325,7 @@ export default function EditInfoQuotation() {
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
                                 require="require"
-                                nextFields={{up: "placename", down: "address" }}
+                                nextFields={{ up: "placename", down: "address" }}
                             />
                         </div>
 
@@ -1341,7 +1341,7 @@ export default function EditInfoQuotation() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 require="require"
-                                nextFields={{up: "district", down: "customer-address" }}
+                                nextFields={{ up: "district", down: "customer-address" }}
                             />
                         </div>
                         <div className="">
@@ -1370,7 +1370,7 @@ export default function EditInfoQuotation() {
                                 placeholder="กรุณาเลือก..."
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
-                                nextFields={{up: "address", down: "contact-person" }}
+                                nextFields={{ up: "address", down: "contact-person" }}
                             />
                         </div>
 
@@ -1393,7 +1393,7 @@ export default function EditInfoQuotation() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 require="require"
-                                nextFields={{up: "customer-address", down: "telno-contact" }}
+                                nextFields={{ up: "customer-address", down: "telno-contact" }}
 
                             />
                         </div>
@@ -1408,9 +1408,9 @@ export default function EditInfoQuotation() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
-                                nextFields={{up: "contact-person", down: "email-contact" }}
+                                nextFields={{ up: "contact-person", down: "email-contact" }}
                                 require="require"
-                                
+                                maxLength={10}
                             />
                         </div>
                         <div className="">
@@ -1424,7 +1424,7 @@ export default function EditInfoQuotation() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
-                                nextFields={{up: "telno-contact", down: "customer-contact" }}
+                                nextFields={{ up: "telno-contact", down: "customer-contact" }}
                                 require="require"
 
                             />
@@ -1453,8 +1453,8 @@ export default function EditInfoQuotation() {
                                 placeholder="กรุณาเลือก..."
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
-                                nextFields={{up: "email-contact", down: "customer" }}
-                               
+                                nextFields={{ up: "email-contact", down: "customer" }}
+
                             />
                         </div>
                     </div>
@@ -1841,7 +1841,7 @@ export default function EditInfoQuotation() {
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <label className="xl:me-15 whitespace-nowrap">เงื่อนไขการชำระเงิน</label>
                                 <div className="flex flex-row items-center space-x-3 sm:ms-16">
-                                    
+
                                     <MasterSelectComponent
                                         onChange={(option) => {
                                             setPaymentCondition(option ? String(option.name) : null);
@@ -1855,7 +1855,7 @@ export default function EditInfoQuotation() {
                                         placeholder="เลือกเงื่อนไข"
                                         isClearable
                                         classNameSelect="w-48"
-                                        defaultValue={{ label: paymentCondition, value: mapPaymentTermNameToId(paymentCondition) } }
+                                        defaultValue={{ label: paymentCondition, value: mapPaymentTermNameToId(paymentCondition) }}
                                     />
 
 
