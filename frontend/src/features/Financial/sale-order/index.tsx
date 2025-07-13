@@ -267,41 +267,6 @@ export default function SaleOrder() {
       }
     },
     {
-      name: "รออนุมัติ",
-      onChange: () => {
-        setStatusSaleOrder("รออนุมัติ")
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
-    {
-      name: "ยกเลิกคำขออนุมัติ",
-      onChange: () => {
-        setStatusSaleOrder("ยกเลิกคำขออนุมัติ")
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
-    {
-      name: "ไม่อนุมัติ",
-      onChange: () => {
-        setStatusSaleOrder("ไม่อนุมัติ")
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
-    {
-      name: "อนุมัติ",
-      onChange: () => {
-        setStatusSaleOrder("อนุมัติ")
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
-    {
-      name: "ปรับปรุง",
-      onChange: () => {
-        setStatusSaleOrder("ปรับปรุง")
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
-    {
       name: "สำเร็จ",
       onChange: () => {
         setStatusSaleOrder("สำเร็จ")
@@ -316,13 +281,7 @@ export default function SaleOrder() {
         setSearchParams({ page: "1", pageSize });
       }
     },
-    {
-      name: "ยกเลิก",
-      onChange: () => {
-        setStatusSaleOrder("ยกเลิก")
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
+   
   
   ];
   

@@ -844,7 +844,7 @@ export default function CreateQuotation() {
                             />
 
                         </div>
-                        <div className="flex flex-row space-x-4 pb-2 pt-2">
+                        <div className="flex flex-row justify-between space-x-4 pb-2 pt-2">
                             <label className="whitespace-nowrap">ความสำคัญ<span style={{ color: "red" }}>*</span></label>
                             <Rating value={priority} onChange={setPriority} />
                         </div>
