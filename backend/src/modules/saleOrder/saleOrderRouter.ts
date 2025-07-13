@@ -199,33 +199,7 @@ export const saleOrderRouter = (() => {
     }
   );
 
-  router.post("/delivery/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(DeliverySchema),  async (req: Request, res: Response) => {
-      try {
-        const sale_order_id = req.params.sale_order_id;
-        const delivery_date_success = req.body.delivery_date_success;
-        const sale_order_status_remark = req.body.sale_order_status_remark;
-        const employee_id = req.token.payload.uuid;
-        const ServiceResponse = await saleOrderService.deliveryDate(sale_order_id, delivery_date_success , sale_order_status_remark , employee_id);
-        handleServiceResponse(ServiceResponse, res);
-      } catch (err: any) {
-        res.status(500).json({ success: false, message: err.message });
-      }
-    }
-  );
-
-  router.post("/expected-delivery/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(ExpectedDeliverySchema),  async (req: Request, res: Response) => {
-      try {
-        const sale_order_id = req.params.sale_order_id;
-        const expected_delivery_date_success = req.body.expected_delivery_date_success;
-        const sale_order_status_remark = req.body.sale_order_status_remark;
-        const employee_id = req.token.payload.uuid;
-        const ServiceResponse = await saleOrderService.expectedDeliveryDate(sale_order_id, expected_delivery_date_success , sale_order_status_remark , employee_id);
-        handleServiceResponse(ServiceResponse, res);
-      } catch (err: any) {
-        res.status(500).json({ success: false, message: err.message });
-      }
-    }
-  );
+  
 
   router.post("/receipt/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(DeliverySchema),  async (req: Request, res: Response) => {
       try {
@@ -273,7 +247,7 @@ export const saleOrderRouter = (() => {
         const sale_order_id = req.params.sale_order_id;
         const sale_order_status_remark = req.body.sale_order_status_remark;
         const employee_id = req.token.payload.uuid;
-        const ServiceResponse = await saleOrderService.closeSale(sale_order_id ,sale_order_status_remark ,employee_id);
+        const ServiceResponse = await saleOrderService.rejectSale(sale_order_id ,sale_order_status_remark ,employee_id);
         handleServiceResponse(ServiceResponse, res);
       } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
