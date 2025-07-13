@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 
@@ -52,9 +52,7 @@ import { ProductByIdResponse, TypeGroupProductResponse, TypeProductResponse, Typ
 import MasterSelectTableComponent from "@/components/customs/select/selectTable.main.component";
 import { useAllCustomer, useCustomerById, useSelectCustomerAddress, useSelectCustomerContact } from "@/hooks/useCustomer";
 import { TypeAllCustomerResponse, TypeCustomerAddress, TypeCustomerContacts, TypeCustomerResponse } from "@/types/response/response.customer";
-import { addFileInQuotation, addItemInQuotation, deleteFileInQuotation, deleteItemInQuotation, postQuotation, updateCompany, updateItemInQuotation, updatePaymentQuotation } from "@/services/quotation.service";
-import { PayLoadAddItemQuotation, PayLoadCreateQuotation, PayLoadUpdateCompany, PayLoadUpdateItemQuotation, PayLoadUpdatePayment } from "@/types/requests/request.quotation";
-import { getProductById } from "@/services/product.service";
+
 import { useQuotationById, useSelectVat } from "@/hooks/useQuotation";
 import { TypeAllQuotationResponse, TypeQuotationProducts, TypeQuotationResponse, TypeVatResponse } from "@/types/response/response.quotation";
 import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
@@ -66,11 +64,12 @@ import { payment_file, TypeSaleOrderPaymentFileResponse, TypeSaleOrderPaymentLog
 import { LuSquareCheckBig } from "react-icons/lu";
 import { FaTruck } from "react-icons/fa";
 import { IoIosCube } from "react-icons/io";
-import { TypeTagColorResponse } from "@/types/response/response.tagColor";
+
 import { PayLoadCreateSaleOrderPaymentLog, PayLoadUpdateSaleOrderCompany, PayLoadUpdateSaleOrderPayment, PayLoadUpdateSaleOrderPaymentLog } from "@/types/requests/request.saleOrder";
-import { addFileInSaleOrder, deleteFileInSaleOrder, updateCompanySaleOrder, updatePaymentSaleOrder, createSaleOrderPaymentLog, updateSaleOrderPaymentLog, deleteSaleOrderPaymentLog } from "@/services/saleOrder.service";
-import { TbFileDescription } from "react-icons/tb";
+import { addFileInSaleOrder, deleteFileInSaleOrder, updateCompanySaleOrder, updatePaymentSaleOrder, createSaleOrderPaymentLog, updateSaleOrderPaymentLog, deleteSaleOrderPaymentLog, updateExpectManufacture, updateManufacture, updateExpectDelivery, updateExpectReceipt, updateDelivery, updateReceipt } from "@/services/saleOrder.service";
+import { FiCheck } from "react-icons/fi";
 import { MdImageNotSupported } from "react-icons/md";
+import dayjs from "dayjs";
 
 type dataProductTableType = {
     className: string;
@@ -237,9 +236,12 @@ export default function EditSaleOrder() {
 
 
     //สถานะจัดส่ง
-    const [produceDate, setProduceDate] = useState<Date | null>(null);
-    const [shipDate, setShipDate] = useState<Date | null>(null);
-    const [receivedDate, setReceivedDate] = useState<Date | null>(null);
+    const [expectManufactureDate, setExpectManufactureDate] = useState<Date | null>(null);
+    const [manufactureDate, setManufactureDate] = useState<Date | null>(null);
+    const [expectDeliveryDate, setExpectDeliveryDate] = useState<Date | null>(null);
+    const [deliveryDate, setDeliveryDate] = useState<Date | null>(null);
+    const [expectReceiptDate, setExpectReceiptDate] = useState<Date | null>(null);
+    const [receiptDate, setReceiptDate] = useState<Date | null>(null);
 
 
     const [saleOrderPaymentFile, setSaleOrderPaymentFile] = useState<TypeSaleOrderPaymentFileResponse>();
@@ -303,6 +305,8 @@ export default function EditSaleOrder() {
         }
     }, [saleOrderDetails]);;
 
+
+
     // useEffect(() => {
     //     if (saleOrderDetails?.responseObject?.sale_order_product) {
     //         const rows: ProductRow[] = saleOrderDetails.responseObject.sale_order_product.map((item, index) => ({
@@ -362,8 +366,18 @@ export default function EditSaleOrder() {
         fetchDataQuotation();
     }, [saleOrderDetails, dataAddress])
 
+    const getLatestFieldDate = (logs: any[], field: string): string | null => {
+        const filtered = logs
+            .filter(log => log[field])
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        return filtered.length > 0 ? filtered[0][field] : null;
+    };
+
     const fetchDataQuotation = async () => {
+
         if (saleOrderDetails?.responseObject) {
+
+
             setCustomer(saleOrderDetails?.responseObject?.customer.customer_id ?? "");
             setCustomerName(saleOrderDetails?.responseObject?.customer.company_name ?? "");
             setPriority(saleOrderDetails?.responseObject?.priority ?? 0);
@@ -412,8 +426,42 @@ export default function EditSaleOrder() {
             setInstallments(saleOrderDetails.responseObject.payment_term_installment ?? 1);
             setNote(saleOrderDetails.responseObject.additional_notes ?? "")
             setRemark(saleOrderDetails.responseObject.remark ?? "")
+
+            //วันที่
+            setExpectManufactureDate(
+                getLatestFieldDate(dataSaleOrder.status, "expected_manufacture_factory_date")
+                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "expected_manufacture_factory_date")!)
+                    : null
+            );
+            setManufactureDate(
+                getLatestFieldDate(dataSaleOrder.status, "manufacture_factory_date")
+                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "manufacture_factory_date")!)
+                    : null
+            );
+            setExpectDeliveryDate(
+                getLatestFieldDate(dataSaleOrder.status, "expected_delivery_date_success")
+                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "expected_delivery_date_success")!)
+                    : null
+            );
+            setDeliveryDate(
+                getLatestFieldDate(dataSaleOrder.status, "delivery_date_success")
+                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "delivery_date_success")!)
+                    : null
+            );
+            setExpectReceiptDate(
+                getLatestFieldDate(dataSaleOrder.status, "expected_receipt_date")
+                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "expected_receipt_date")!)
+                    : null
+            );
+            setReceiptDate(
+                getLatestFieldDate(dataSaleOrder.status, "receipt_date")
+                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "receipt_date")!)
+                    : null
+            );
+
         }
     }
+
     const generateInstallments = (count: number, total: number) => {
         //แบ่งให้เท่าๆกัน
         const evenValue = Math.floor(total / count);
@@ -789,7 +837,7 @@ export default function EditSaleOrder() {
         const payload: PayLoadUpdateSaleOrderCompany = {
             shipping_method: shippingMethod,
             shipping_remark: otherRemark,
-            expected_delivery_date: dateDelivery?.toISOString().split("T")[0] || "",
+            expected_delivery_date: dateDelivery ? dayjs(dateDelivery).format("YYYY-MM-DD") : "",
             place_name: placeName,
             address: address,
             country_id: country!,
@@ -1163,7 +1211,7 @@ export default function EditSaleOrder() {
 
         const payload: PayLoadCreateSaleOrderPaymentLog = {
 
-            payment_date: paymentDate?.toISOString().split("T")[0] || "",
+            payment_date: paymentDate ? dayjs(paymentDate).format("YYYY-MM-DD") : "",
             payment_term_name: updatePaymentCondition,
             amount_paid: paymentValue,
             payment_method_id: updatePaymentOption,
@@ -1220,7 +1268,7 @@ export default function EditSaleOrder() {
 
         const payload: PayLoadUpdateSaleOrderPaymentLog = {
             payment_log_id: paymentLogId,
-            payment_date: paymentDate?.toISOString().split("T")[0] || "",
+            payment_date: paymentDate ? dayjs(paymentDate).format("YYYY-MM-DD") : "",
             payment_term_name: updatePaymentCondition,
             amount_paid: paymentValue,
             payment_method_id: updatePaymentOption,
@@ -1263,7 +1311,7 @@ export default function EditSaleOrder() {
     //ลบประวัติชำระเงิน
     const handleDeletePaymentLogConfirm = async () => {
         if (!selectedPaymentLogItem) {
-            showToast("กรุณาระบุแท็กที่ต้องการลบ", false);
+            showToast("กรุณาระบุประวัติที่ต้องการลบ", false);
             return;
         }
 
@@ -1285,6 +1333,145 @@ export default function EditSaleOrder() {
             showToast("ไม่สามารถลบประวัติชำระเงินได้", false);
         }
     };
+    // handle status
+    const handleConfirmExpectManufacture = async () => {
+        if (!expectManufactureDate) {
+            showToast("กรุณาระบุวัน", false);
+            return;
+        }
+
+        try {
+            const response = await updateExpectManufacture(saleOrderId, {
+                expected_manufacture_factory_date: expectManufactureDate ? dayjs(expectManufactureDate).format("YYYY-MM-DD") : "",
+                sale_order_status_remark: ""
+            });
+
+            if (response.statusCode === 200) {
+                showToast("อัพเดทสถานะเรียบร้อย", true);
+                refetchSaleOrder();
+            }
+            else {
+                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+            }
+        } catch (error) {
+            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+        }
+    }
+    const handleConfirmManufacture = async () => {
+        if (!manufactureDate) {
+            showToast("กรุณาระบุวัน", false);
+            return;
+        }
+
+        try {
+            const response = await updateManufacture(saleOrderId, {
+                manufacture_factory_date: manufactureDate ? dayjs(manufactureDate).format("YYYY-MM-DD") : "",
+                sale_order_status_remark: ""
+            });
+
+            if (response.statusCode === 200) {
+                showToast("อัพเดทสถานะเรียบร้อย", true);
+                refetchSaleOrder();
+            }
+            else {
+                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+            }
+        } catch (error) {
+            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+        }
+    }
+    const handleConfirmExpectDelivery = async () => {
+        if (!expectDeliveryDate) {
+            showToast("กรุณาระบุวัน", false);
+            return;
+        }
+
+        try {
+            const response = await updateExpectDelivery(saleOrderId, {
+                expected_delivery_date_success: expectDeliveryDate ? dayjs(expectDeliveryDate).format("YYYY-MM-DD") : "",
+                sale_order_status_remark: ""
+            });
+
+            if (response.statusCode === 200) {
+                showToast("อัพเดทสถานะเรียบร้อย", true);
+                refetchSaleOrder();
+            }
+            else {
+                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+            }
+        } catch (error) {
+            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+        }
+    }
+    const handleConfirmDelivery = async () => {
+        if (!deliveryDate) {
+            showToast("กรุณาระบุวัน", false);
+            return;
+        }
+
+        try {
+            const response = await updateDelivery(saleOrderId, {
+                delivery_date_success: deliveryDate ? dayjs(deliveryDate).format("YYYY-MM-DD") : "",
+                sale_order_status_remark: ""
+            });
+
+            if (response.statusCode === 200) {
+                showToast("อัพเดทสถานะเรียบร้อย", true);
+                refetchSaleOrder();
+            }
+            else {
+                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+            }
+        } catch (error) {
+            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+        }
+    }
+    const handleConfirmExpectReceipt = async () => {
+        if (!expectReceiptDate) {
+            showToast("กรุณาระบุวัน", false);
+            return;
+        }
+
+        try {
+            const response = await updateExpectReceipt(saleOrderId, {
+                expected_receipt_date: expectReceiptDate ? dayjs(expectReceiptDate).format("YYYY-MM-DD") : "",
+                sale_order_status_remark: ""
+            });
+
+            if (response.statusCode === 200) {
+                showToast("อัพเดทสถานะเรียบร้อย", true);
+                refetchSaleOrder();
+            }
+            else {
+                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+            }
+        } catch (error) {
+            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+        }
+    }
+    const handleConfirmReceipt = async () => {
+        if (!receiptDate) {
+            showToast("กรุณาระบุวัน", false);
+            return;
+        }
+
+        try {
+            const response = await updateReceipt(saleOrderId, {
+                receipt_date: receiptDate ? dayjs(receiptDate).format("YYYY-MM-DD") : "",
+                sale_order_status_remark: ""
+            });
+
+            if (response.statusCode === 200) {
+                showToast("อัพเดทสถานะเรียบร้อย", true);
+                refetchSaleOrder();
+            }
+            else {
+                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+            }
+        } catch (error) {
+            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
+        }
+    }
     return (
         <>
 
@@ -2207,6 +2394,7 @@ export default function EditSaleOrder() {
             <div className="p-7 pb-5 bg-white shadow-lg rounded-lg">
                 <div className="w-full max-w-full overflow-x-auto lg:overflow-x-visible">
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
                         {/* ฝั่งซ้าย */}
                         <div>
                             <h1 className="text-xl font-semibold mb-1">สถานะจัดส่ง</h1>
@@ -2217,31 +2405,58 @@ export default function EditSaleOrder() {
                                 <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white text-lg">
                                     <IoIosCube />
                                 </div>
-
-                                <div className="flex-1 space-y-3">
+                                <div className="flex-1 space-y-4">
                                     <div className="bg-green-500 text-white text-sm px-2 py-1 rounded-md inline-block mb-2">
                                         สถานะการจัดส่ง: กำลังผลิต
                                     </div>
-                                    <DatePickerComponent
-                                        label="วันที่คาดว่าจะเสร็จ"
-                                        selectedDate={produceDate}
-                                        onChange={setProduceDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
-                                    <DatePickerComponent
-                                        label="วันที่ผลิตเสร็จจริง"
-                                        selectedDate={produceDate}
-                                        onChange={setProduceDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
-                                </div>
 
+                                    {/* วันที่คาดว่าจะเสร็จ */}
+                                    <div className="space-y-1">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-md font-medium text-gray-700">
+                                                วันที่คาดว่าจะผลิตเสร็จ
+                                            </label>
+                                            <button
+                                                onClick={handleConfirmExpectManufacture}
+                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
+                                            >
+                                                <FiCheck size={16} />
+                                            </button>
+
+                                        </div>
+
+                                        <DatePickerComponent
+                                            selectedDate={expectManufactureDate}
+                                            onChange={setExpectManufactureDate}
+                                            placeholder="dd/mm/yy"
+                                            required
+                                            classNameInput="w-full"
+                                        />
+                                    </div>
+
+                                    {/* วันที่ผลิตเสร็จจริง */}
+                                    <div className="space-y-1">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-md font-medium text-slate-700">
+                                                วันที่ผลิตเสร็จจริง
+                                            </label>
+                                            <button
+                                                onClick={handleConfirmManufacture}
+                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
+                                            >
+                                                <FiCheck size={16} />
+                                            </button>
+                                        </div>
+                                        <DatePickerComponent
+                                            selectedDate={manufactureDate}
+                                            onChange={setManufactureDate}
+                                            placeholder="dd/mm/yy"
+                                            required
+                                            classNameInput="w-full"
+                                        />
+
+                                    </div>
+                                </div>
                             </div>
 
                             {/* สถานะ กำลังจัดส่ง */}
@@ -2249,32 +2464,58 @@ export default function EditSaleOrder() {
                                 <div className="w-10 h-10 rounded-full bg-sky-400 flex items-center justify-center text-white text-lg">
                                     <FaTruck />
                                 </div>
-
-                                <div className="flex-1 space-y-3">
+                                <div className="flex-1 space-y-4">
                                     <div className="bg-sky-400 text-white text-sm px-2 py-1 rounded-md inline-block mb-2">
                                         สถานะการจัดส่ง: กำลังจัดส่ง
                                     </div>
-                                    <DatePickerComponent
-                                        label="วันที่คาดว่าจะส่งเสร็จ"
-                                        selectedDate={shipDate}
-                                        onChange={setShipDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
-                                    <DatePickerComponent
-                                        label="วันจัดส่งสินค้าเสร็จจริง"
-                                        selectedDate={shipDate}
-                                        onChange={setShipDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
+
+                                    {/* วันที่คาดว่าจะส่งเสร็จ */}
+                                    <div className="space-y-1">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-md font-medium text-slate-700">
+                                                วันที่คาดว่าจะจัดส่งเสร็จ
+                                            </label>
+                                            <button
+                                                onClick={handleConfirmExpectDelivery}
+                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
+                                            >
+                                                <FiCheck size={16} />
+                                            </button>
+                                        </div>
+                                        <DatePickerComponent
+                                            selectedDate={expectDeliveryDate}
+                                            onChange={setExpectDeliveryDate}
+                                            placeholder="dd/mm/yy"
+                                            required
+                                            classNameInput="w-full"
+                                        />
+
+
+                                    </div>
+
+                                    {/* วันจัดส่งสินค้าเสร็จจริง */}
+                                    <div className="space-y-1">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-md font-medium text-slate-700">
+                                                วันจัดส่งสินค้าเสร็จจริง
+                                            </label>
+                                            <button
+                                                onClick={handleConfirmDelivery}
+                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
+                                            >
+                                                <FiCheck size={16} />
+                                            </button>
+                                        </div>
+                                        <DatePickerComponent
+                                            selectedDate={deliveryDate}
+                                            onChange={setDeliveryDate}
+                                            placeholder="dd/mm/yy"
+                                            required
+                                            classNameInput="w-full"
+                                        />
+
+                                    </div>
                                 </div>
-
-
                             </div>
 
                             {/* สถานะ ได้รับสินค้าแล้ว */}
@@ -2282,86 +2523,137 @@ export default function EditSaleOrder() {
                                 <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center text-white text-lg">
                                     <LuSquareCheckBig />
                                 </div>
-                                <div className="flex-1 space-y-3">
+                                <div className="flex-1 space-y-4">
                                     <div className="bg-blue-600 text-white text-sm px-2 py-1 rounded-md inline-block mb-2">
                                         สถานะการจัดส่ง: ได้รับสินค้าแล้ว
                                     </div>
-                                    <DatePickerComponent
-                                        label="วันที่คาดว่าจะได้รับสินค้า"
-                                        selectedDate={receivedDate}
-                                        onChange={setReceivedDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
-                                    <DatePickerComponent
-                                        label="วันที่ได้รับสินค้าจริง"
-                                        selectedDate={receivedDate}
-                                        onChange={setReceivedDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
-                                </div>
 
+                                    {/* วันที่คาดว่าจะได้รับสินค้า */}
+                                    <div className="space-y-1">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-md font-medium text-slate-700">
+                                                วันที่คาดว่าจะได้รับสินค้า
+                                            </label>
+                                            <button
+                                                onClick={handleConfirmExpectReceipt}
+                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
+                                            >
+                                                <FiCheck size={16} />
+                                            </button>
+                                        </div>
+                                        <DatePickerComponent
+                                            selectedDate={expectReceiptDate}
+                                            onChange={setExpectReceiptDate}
+                                            placeholder="dd/mm/yy"
+                                            required
+                                            classNameInput="w-full"
+                                        />
+
+                                    </div>
+
+                                    {/* วันที่ได้รับสินค้าจริง */}
+                                    <div className="space-y-1">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-md font-medium text-slate-700">
+                                                วันที่ได้รับสินค้าจริง <span style={{ color: "red" }}>*</span>
+                                            </label>
+                                            <button
+                                                onClick={handleConfirmReceipt}
+                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
+                                            >
+                                                <FiCheck size={16} />
+                                            </button>
+                                        </div>
+                                        <DatePickerComponent
+                                            selectedDate={receiptDate}
+                                            onChange={setReceiptDate}
+                                            placeholder="dd/mm/yy"
+                                            required
+                                            classNameInput="w-full"
+                                        />
+
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         {/* ฝั่งขวา */}
                         <div>
-
                             <h1 className="text-xl font-semibold mb-1">ประวัติเอกสาร</h1>
-                            <div className="border-b-2 border-main mb-6"></div>
+                            <div className="border-b-2 border-main mb-4"></div>
 
-                            {dataSaleOrder?.status.map((status, index) => (
-                                <div key={index} className="flex items-start gap-3 mb-6">
-                                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
-                                        <LuSquareCheckBig />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="bg-yellow-300 text-slate-800 text-sm px-2 py-1 rounded-md inline-block mb-2">
-                                            สถานะใบสั่งขาย: <span className="font-bold">{status.sale_order_status}</span>
 
+                            <div className="max-h-[620px] overflow-y-auto pr-2 space-y-4">
+                                {dataSaleOrder?.status.map((status, index) => {
+                                    const getStatusColor = (statusName) => {
+                                        if (statusName.includes("การผลิต")) return "bg-green-500 text-white";
+                                        if (statusName.includes("ขนส่ง")) return "bg-sky-400 text-white";
+                                        if (statusName.includes("ได้รับ")) return "bg-blue-600 text-white";
+                                        return "bg-yellow-300 text-black";
+                                    };
+                                    const labelColor = getStatusColor(status.sale_order_status);
+                                    let label = "";
+                                    let dateValue = "";
+
+                                    if (status.expected_manufacture_factory_date) {
+                                        label = "วันที่คาดว่าจะผลิตเสร็จ";
+                                        dateValue = new Date(status.expected_manufacture_factory_date).toLocaleDateString("th-TH");
+                                    } else if (status.manufacture_factory_date) {
+                                        label = "วันที่ผลิตเสร็จจริง";
+                                        dateValue = new Date(status.manufacture_factory_date).toLocaleDateString("th-TH");
+                                    } else if (status.expected_delivery_date_success) {
+                                        label = "วันที่คาดว่าจะจัดส่งเสร็จ";
+                                        dateValue = new Date(status.expected_delivery_date_success).toLocaleDateString("th-TH");
+                                    } else if (status.delivery_date_success) {
+                                        label = "วันที่จัดส่งสินค้าเสร็จจริง";
+                                        dateValue = new Date(status.delivery_date_success).toLocaleDateString("th-TH");
+                                    } else if (status.expected_receipt_date) {
+                                        label = "วันที่คาดว่าจะได้รับสินค้า";
+                                        dateValue = new Date(status.expected_receipt_date).toLocaleDateString("th-TH");
+                                    } else if (status.receipt_date) {
+                                        label = "วันที่ได้รับสินค้าจริง";
+                                        dateValue = new Date(status.receipt_date).toLocaleDateString("th-TH");
+                                    }
+
+                                    const createdDate = status.created_at
+                                        ? new Date(status.created_at).toLocaleDateString("th-TH")
+                                        : "-";
+                                    const fullName = `${status.created_by_employee.first_name || ""} ${status.created_by_employee.last_name || ""}`.trim();
+
+                                    return (
+                                        <div key={index} className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
+                                                <LuSquareCheckBig />
+                                            </div>
+                                            <div className="flex-1 space-y-2">
+                                                <div className={`${labelColor}  text-sm px-2 py-1 rounded-md inline-block`}>
+                                                    สถานะใบสั่งขาย: <span className="font-bold">{status.sale_order_status}</span>
+                                                </div>
+
+                                                {label && (
+                                                    <div className="text-sm text-slate-700">
+                                                        {label}: <span className="font-semibold">{dateValue}</span>
+                                                    </div>
+                                                )}
+
+                                                <p className="text-sm text-slate-600">
+                                                    วันที่ดำเนินการ: <span className="font-medium ms-1">{createdDate}</span>
+                                                </p>
+
+                                                <p className="text-sm text-slate-600">
+                                                    ชื่อผู้ดำเนินการ: <span className="font-medium ms-1">{fullName || "-"}</span>
+                                                </p>
+                                            </div>
                                         </div>
-                                        <p className="text-sm text-slate-600">
-                                            วันออกเอกสาร:
-                                            <span className="font-medium ms-1">{status?.created_at
-                                                ? new Date(status?.created_at).toLocaleDateString("th-TH")
-                                                : "-"}
-                                            </span>
-                                        </p>
-                                        <p className="text-sm text-slate-600">
-                                            ชื่อผู้รับผิดชอบ:
-                                            <span className="font-medium ms-1">
-                                                {dataSaleOrder.responsible.first_name} {dataSaleOrder.responsible.last_name}
-                                            </span>
-                                        </p>
-                                        <p className="text-sm text-slate-600">
-                                            ชื่อผู้บันทึก:
-                                            <span className="font-medium ms-1">
-                                                {status.created_by_employee.first_name} {status.created_by_employee.last_name}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-
+                                    );
+                                })}
+                            </div>
                         </div>
+
+
                     </div>
                 </div>
-                <div className="flex justify-end space-x-5 mt-5">
-                    <Buttons
-                        btnType="primary"
-                        variant="outline"
-                        className="w-30"
-                    >
-                        บันทึกรายละเอียด
-                    </Buttons>
 
-
-                </div>
             </div>
             <div className="flex justify-center md:justify-end space-x-5 mt-5">
 

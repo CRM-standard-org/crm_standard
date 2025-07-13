@@ -33,6 +33,36 @@ export type PayLoadUpdateSaleOrderPaymentLog = {
 export type PayLoadDeleteSaleOrderPaymentLog = {
     payment_log_id:string
 }
+//จัดการสถานะ
+export type PayLoadUpdateManufactureStatus = {
+    manufacture_factory_date: string,
+    sale_order_status_remark: string
+}
+export type PayLoadUpdateExpectManufactureStatus = {
+    expected_manufacture_factory_date: string,
+    sale_order_status_remark: string
+}
+export type PayLoadUpdateDeliveryStatus = {
+    delivery_date_success: string,
+    sale_order_status_remark: string
+}
+export type PayLoadUpdateExpectDeliveryStatus = {
+    expected_delivery_date_success: string,
+    sale_order_status_remark: string
+}
+export type PayLoadUpdateReceiptStatus = {
+    receipt_date: string,
+    sale_order_status_remark: string
+}
+export type PayLoadUpdateExpectReceiptStatus = {
+    expected_receipt_date: string,
+    sale_order_status_remark: string
+}
+export type PayLoadSaleOrderStatus = {
+    sale_order_status_remark: string
+}
+
+//filter sale order
 export type PayLoadFilterSaleOrder = {
     
     responsible_id: string | null;

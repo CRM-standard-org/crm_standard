@@ -1,18 +1,26 @@
 import {
     ADD_SALEORDER_FILE,
+    CLOSE_SALE,
     CREATE_PAYMENT_LOG,
     DELETE_PAYMENT_LOG,
     DELETE_SALEORDER_FILE,
     GET_ALL_SALEORDER,
     GET_PAYMENT_FILE,
     GET_SALEORDER_BY_ID,
+    REJECT_SALE,
+    UPDATE_DELIVERY,
+    UPDATE_EXPECT_DELIVERY,
+    UPDATE_EXPECT_MANUFACTURE,
+    UPDATE_EXPECT_RECEIPT,
+    UPDATE_MANUFACTURE,
     UPDATE_PAYMENT_LOG,
+    UPDATE_RECEIPT,
     UPDATE_SALEORDER_COMPANY,
     UPDATE_SALEORDER_PAYMENT,
 } from "@/apis/endpoint.api";
 
 import mainApi from "@/apis/main.api";
-import { PayLoadCreateSaleOrderPaymentLog, PayLoadDeleteSaleOrderPaymentLog, PayLoadFilterSaleOrder } from "@/types/requests/request.saleOrder";
+import { PayLoadCreateSaleOrderPaymentLog, PayLoadDeleteSaleOrderPaymentLog, PayLoadFilterSaleOrder, PayLoadSaleOrderStatus, PayLoadUpdateDeliveryStatus, PayLoadUpdateExpectDeliveryStatus, PayLoadUpdateExpectManufactureStatus, PayLoadUpdateExpectReceiptStatus, PayLoadUpdateManufactureStatus, PayLoadUpdateReceiptStatus } from "@/types/requests/request.saleOrder";
 import { PayLoadUpdateSaleOrderCompany, PayLoadUpdateSaleOrderPayment, PayLoadUpdateSaleOrderPaymentLog } from "@/types/requests/request.saleOrder";
 import { APIResponseType } from "@/types/response";
 import { AllSaleOrderResponse, TypeSaleOrderPaymentFileResponse, SaleOrderResponse } from "@/types/response/response.saleorder";
@@ -200,6 +208,115 @@ export const deleteSaleOrderPaymentLog = async (saleorderId: string, payload: Pa
 
     } catch (error) {
         console.error("Error delete saleorder payment log", error);
+        throw error;
+    }
+};
+
+// update status manufacture
+
+export const updateManufacture = async (saleorderId: string, payload: PayLoadUpdateManufactureStatus) => {
+    try {
+        const encodedSaleorderId = encodeURIComponent(saleorderId);
+
+        const { data: response } = await mainApi.post(`${UPDATE_MANUFACTURE}/${encodedSaleorderId}`, payload);
+        return response;
+    } catch (error) {
+        console.error("Error update status manufacture", error);
+        throw error;
+    }
+};
+
+// update status Expect manufacture
+
+export const updateExpectManufacture = async (saleorderId: string, payload: PayLoadUpdateExpectManufactureStatus) => {
+    try {
+        const encodedSaleorderId = encodeURIComponent(saleorderId);
+
+        const { data: response } = await mainApi.post(`${UPDATE_EXPECT_MANUFACTURE}/${encodedSaleorderId}`, payload);
+        return response;
+    } catch (error) {
+        console.error("Error update status Expect manufacture", error);
+        throw error;
+    }
+};
+// update status Delivery
+
+export const updateDelivery = async (saleorderId: string, payload: PayLoadUpdateDeliveryStatus) => {
+    try {
+        const encodedSaleorderId = encodeURIComponent(saleorderId);
+
+        const { data: response } = await mainApi.post(`${UPDATE_DELIVERY}/${encodedSaleorderId}`, payload);
+        return response;
+    } catch (error) {
+        console.error("Error update status Delivery", error);
+        throw error;
+    }
+};
+
+// update status Expect Delivery
+
+export const updateExpectDelivery = async (saleorderId: string, payload: PayLoadUpdateExpectDeliveryStatus) => {
+    try {
+        const encodedSaleorderId = encodeURIComponent(saleorderId);
+
+        const { data: response } = await mainApi.post(`${UPDATE_EXPECT_DELIVERY}/${encodedSaleorderId}`, payload);
+        return response;
+    } catch (error) {
+        console.error("Error update status Expect Delivery", error);
+        throw error;
+    }
+};
+// update status Receipt
+
+export const updateReceipt = async (saleorderId: string, payload: PayLoadUpdateReceiptStatus) => {
+    try {
+        const encodedSaleorderId = encodeURIComponent(saleorderId);
+
+        const { data: response } = await mainApi.post(`${UPDATE_RECEIPT}/${encodedSaleorderId}`, payload);
+        return response;
+    } catch (error) {
+        console.error("Error update status Receipt", error);
+        throw error;
+    }
+};
+
+// update status Expect Receipt
+
+export const updateExpectReceipt = async (saleorderId: string, payload: PayLoadUpdateExpectReceiptStatus) => {
+    try {
+        const encodedSaleorderId = encodeURIComponent(saleorderId);
+
+        const { data: response } = await mainApi.post(`${UPDATE_EXPECT_RECEIPT}/${encodedSaleorderId}`, payload);
+        return response;
+    } catch (error) {
+        console.error("Error update status Expect Receipt", error);
+        throw error;
+    }
+};
+// closeSale
+
+export const closeSale = async (saleorderId: string, payload: PayLoadSaleOrderStatus) => {
+    try {
+        const encodedSaleorderId = encodeURIComponent(saleorderId);
+
+        const { data: response } = await mainApi.put(`${CLOSE_SALE}/${encodedSaleorderId}`, payload);
+        return response;
+    } catch (error) {
+        console.error("Error update status Receipt", error);
+        throw error;
+    }
+};
+
+// rejectSale
+
+export const rejectSale = async (saleorderId: string, payload: PayLoadSaleOrderStatus) => {
+    try {
+        const encodedSaleorderId = encodeURIComponent(saleorderId);
+
+        const { data: response } = await mainApi.put(`${REJECT_SALE}/${encodedSaleorderId}`, payload);
+        return response;
+    } catch (error) {
+        console.error("Error update status Expect Receipt", error);
         throw error;
     }
 };

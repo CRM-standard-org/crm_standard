@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import Buttons from "@/components/customs/button/button.main.component";
@@ -31,6 +31,8 @@ import { appConfig } from "@/configs/app.config";
 import { MdImageNotSupported } from "react-icons/md";
 import SaleorderPDF from "../pdf/print-saleorder-detail/SaleorderPDF";
 import { pdf } from "@react-pdf/renderer";
+import { closeSale, rejectSale } from "@/services/saleOrder.service";
+import TextArea from "@/components/customs/textAreas/textarea.main.component";
 type dateTableType = {
     className: string;
     cells: {
@@ -67,15 +69,15 @@ export default function SaleOrderDetails() {
     const [data, setData] = useState<dateTableType>([]);
     const [paymentLog, setPaymentLog] = useState<dateTablePaymentLogType>([]);
     const [isViewDialogOpen, setIsViewDialogOpen] = useState<boolean>(false);
+    const [isRejectDealDialogOpen, setIsRejectDealDialogOpen] = useState<boolean>(false);
+    const [isCloseSaleDialogOpen, setIsCloseSaleDialogOpen] = useState<boolean>(false);
 
 
     const [dataSaleOrder, setDataSaleOrder] = useState<TypeSaleOrderResponse>();
     const [selectedPaymentFiles, setSelectedPaymentFiles] = useState<{ payment_file_url: string }[]>([]);
 
-    const [produceDate, setProduceDate] = useState<Date | null>(null);
-    const [shipDate, setShipDate] = useState<Date | null>(null);
-    const [receivedDate, setReceivedDate] = useState<Date | null>(null);
 
+    const [saleOrderRemark, setSaleOrderRemark] = useState("");
 
     const { showToast } = useToast();
     //
@@ -86,11 +88,7 @@ export default function SaleOrderDetails() {
     const [paymentLogId, setPaymentLogId] = useState<string>("");
     const [saleOrderPaymentFile, setSaleOrderPaymentFile] = useState<TypeSaleOrderPaymentFileResponse>();
 
-    const [searchPayment, setSearchPayment] = useState("");
 
-    const [productRows, setProductRows] = useState<ProductRow[]>([
-        { id: "", detail: "", amount: "", unit: "", price: "", discount: "", discountPercent: "", value: "", group: "" }
-    ]);
 
 
     const headers = [
@@ -174,41 +172,56 @@ export default function SaleOrderDetails() {
         }
     }, [dataSaleOrder]);
 
+    const getLatestFieldDate = (logs: any[], field: string): string | null => {
+        const filtered = logs
+            .filter(log => log[field])
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+        return filtered.length > 0 ? filtered[0][field] : null;
+    };
+
+    //ถ้าโหลด สถานะ ทั้งหมดเสร็จ ค่อยให้เอาเข้า ฟังก์ชัน
+    const {
+        latestExpectManufactureDate,
+        latestManufactureDate,
+        latestExpectDeliveryDate,
+        latestDeliveryDate,
+        latestExpectReceiptDate,
+        latestReceiptDate,
+    } = useMemo(() => {
+        if (!dataSaleOrder?.status) {
+            return {
+                latestExpectManufactureDate: null,
+                latestManufactureDate: null,
+                latestExpectDeliveryDate: null,
+                latestDeliveryDate: null,
+                latestExpectReceiptDate: null,
+                latestReceiptDate: null,
+            };
+        }
+
+        return {
+            latestExpectManufactureDate: getLatestFieldDate(dataSaleOrder.status, "expected_manufacture_factory_date"),
+            latestManufactureDate: getLatestFieldDate(dataSaleOrder.status, "manufacture_factory_date"),
+            latestExpectDeliveryDate: getLatestFieldDate(dataSaleOrder.status, "expected_delivery_date_success"),
+            latestDeliveryDate: getLatestFieldDate(dataSaleOrder.status, "delivery_date_success"),
+            latestExpectReceiptDate: getLatestFieldDate(dataSaleOrder.status, "expected_receipt_date"),
+            latestReceiptDate: getLatestFieldDate(dataSaleOrder.status, "receipt_date"),
+        };
+    }, [dataSaleOrder]);
+
+
+
     const handleOpenPdf = async () => {
         if (!saleOrderId || !dataSaleOrder) return;
-      
+
         const blob = await pdf(<SaleorderPDF saleorder={dataSaleOrder} />).toBlob();
         const url = URL.createObjectURL(blob);
         window.open(url, '_blank');
-      };
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "ระหว่างดำเนินการ":
-            case "รออนุมัติ":
-                return "bg-yellow-300 text-gray-800";
-            case "ยกเลิกคำขออนุมัติ":
-            case "ไม่อนุมัติ":
-                return "bg-orange-300 text-gray-800";
-            case "อนุมัติ":
-            case "สำเร็จ":
-                return "bg-green-400 text-white";
-            case "ไม่สำเร็จ":
-            case "ยกเลิก":
-                return "bg-red-500 text-white";
-            case "ปรับปรุง":
-                return "bg-blue-300 text-white";
-            default:
-                return "bg-gray-200 text-gray-800";
-        }
     };
 
-    const handleViewOpen = (item: TypeSaleOrderPaymentLog) => {
 
-        setPaymentLogId(item.payment_log_id);
-        setIsViewDialogOpen(true);
 
-    };
 
     const { data: dataPaymentFile, refetch: refetchPaymentFile } = usePaymentFileById({ paymentLogId });
 
@@ -223,12 +236,83 @@ export default function SaleOrderDetails() {
             setSaleOrderPaymentFile(dataPaymentFile.responseObject);
         }
     }, [dataPaymentFile]);
+    //เปิด
+    const handleViewOpen = (item: TypeSaleOrderPaymentLog) => {
 
+        setPaymentLogId(item.payment_log_id);
+        setIsViewDialogOpen(true);
+
+    };
+
+    const handleRejectSaleOpen = () => {
+        setIsRejectDealDialogOpen(true);
+    };
+    const handleCloseSaleOpen = () => {
+        setIsCloseSaleDialogOpen(true);
+    };
     const handleViewClose = () => {
         // setSelectedItem(item);
         setIsViewDialogOpen(false);
-
     };
+    //ปิด
+    const handleRejectSaleClose = () => {
+
+        setIsRejectDealDialogOpen(false);
+    };
+    const handleCloseSaleClose = () => {
+
+        setIsCloseSaleDialogOpen(false);
+    };
+    //ยกเลิกการขาย
+    const handleRejectSale = async () => {
+        try {
+            const res = await rejectSale(saleOrderId, {
+                sale_order_status_remark: saleOrderRemark
+            });
+            if (res.statusCode === 200) {
+                showToast("ยกเลิกการขายสำเร็จ", true);
+                handleRejectSaleClose();
+                refetchSaleOrder();
+                setSaleOrderRemark("");
+            } else {
+                showToast("ไม่สามารถยกเลิกการขายได้", false);
+            }
+        } catch (err) {
+            showToast("เกิดข้อผิดพลาดขณะยกเลิกการขาย", false);
+            console.error(err);
+        }
+
+    }
+    //ปิดการขาย
+    const handleCloseSale = async () => {
+        try {
+            const res = await closeSale(saleOrderId, {
+
+                sale_order_status_remark: saleOrderRemark
+            });
+            if (res.statusCode === 200) {
+                showToast("ปิดการขายสำเร็จ", true);
+                handleCloseSaleClose();
+                refetchSaleOrder();
+                setSaleOrderRemark("");
+            }
+            else if (res.statusCode === 400) {
+                if (res.message === "Awaiting Receipt") {
+                    showToast("กรุณาระบุวันที่ได้รับสินค้า ", false);
+                }
+                else {
+                    showToast("ไม่สามารถอัพเดทการชำระได้", false);
+                }
+            }
+            else {
+                showToast("ไม่สามารถปิดการขายได้", false);
+            }
+        } catch (err) {
+            showToast("เกิดข้อผิดพลาดขณะปิดการขาย", false);
+            console.error(err);
+        }
+
+    }
 
     return (
         <>
@@ -302,7 +386,7 @@ export default function SaleOrderDetails() {
                                     classNameValue="w-80"
                                 />
                             </div>
-                           
+
 
                         </div>
                     </div>
@@ -607,24 +691,10 @@ export default function SaleOrderDetails() {
                                     <div className="bg-green-500 text-white text-sm px-2 py-1 rounded-md inline-block mb-2">
                                         สถานะการจัดส่ง: กำลังผลิต
                                     </div>
-                                    <DatePickerComponent
-                                        label="วันที่คาดว่าจะเสร็จ"
-                                        selectedDate={produceDate}
-                                        onChange={setProduceDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
-                                    <DatePickerComponent
-                                        label="วันที่ผลิตเสร็จจริง"
-                                        selectedDate={produceDate}
-                                        onChange={setProduceDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
+                                    <LabelWithValue label="วันที่คาดว่าจะผลิตเสร็จ" value={latestExpectManufactureDate ? new Date(latestExpectManufactureDate).toLocaleDateString("th-TH") : "-"} />
+                                    <LabelWithValue label="วันที่ผลิตเสร็จจริง" value={latestManufactureDate ? new Date(latestManufactureDate).toLocaleDateString("th-TH") : "-"} />
+
+
                                 </div>
 
                             </div>
@@ -639,24 +709,11 @@ export default function SaleOrderDetails() {
                                     <div className="bg-sky-400 text-white text-sm px-2 py-1 rounded-md inline-block mb-2">
                                         สถานะการจัดส่ง: กำลังจัดส่ง
                                     </div>
-                                    <DatePickerComponent
-                                        label="วันที่คาดว่าจะส่งเสร็จ"
-                                        selectedDate={shipDate}
-                                        onChange={setShipDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
-                                    <DatePickerComponent
-                                        label="วันจัดส่งสินค้าเสร็จจริง"
-                                        selectedDate={shipDate}
-                                        onChange={setShipDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
+                                    <LabelWithValue label="วันที่คาดว่าจะจัดส่งเสร็จ" value={latestExpectDeliveryDate ? new Date(latestExpectDeliveryDate).toLocaleDateString("th-TH") : "-"} />
+                                    <LabelWithValue label="วันจัดส่งสินค้าเสร็จจริง" value={latestDeliveryDate ? new Date(latestDeliveryDate).toLocaleDateString("th-TH") : "-"} />
+
+
+
                                 </div>
 
 
@@ -671,80 +728,94 @@ export default function SaleOrderDetails() {
                                     <div className="bg-blue-600 text-white text-sm px-2 py-1 rounded-md inline-block mb-2">
                                         สถานะการจัดส่ง: ได้รับสินค้าแล้ว
                                     </div>
-                                    <DatePickerComponent
-                                        label="วันที่คาดว่าจะได้รับสินค้า"
-                                        selectedDate={receivedDate}
-                                        onChange={setReceivedDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
-                                    <DatePickerComponent
-                                        label="วันที่ได้รับสินค้าจริง"
-                                        selectedDate={receivedDate}
-                                        onChange={setReceivedDate}
-                                        placeholder="dd/mm/yy"
-                                        required
-                                        classNameLabel="w-full sm:w-1/2"
-                                        classNameInput="w-full"
-                                    />
+                                    <LabelWithValue label="วันที่คาดว่าจะได้รับสินค้า" value={latestExpectReceiptDate ? new Date(latestExpectReceiptDate).toLocaleDateString("th-TH") : "-"} />
+                                    <LabelWithValue label="วันที่ได้รับสินค้าจริง" value={latestReceiptDate ? new Date(latestReceiptDate).toLocaleDateString("th-TH") : "-"} />
+
+
+
+
                                 </div>
 
                             </div>
                         </div>
 
+
                         {/* ฝั่งขวา */}
                         <div>
-
                             <h1 className="text-xl font-semibold mb-1">ประวัติเอกสาร</h1>
-                            <div className="border-b-2 border-main mb-6"></div>
+                            <div className="border-b-2 border-main mb-4"></div>
 
-                            {dataSaleOrder?.status.map((status, index) => (
-                                <div key={index} className="flex items-start gap-3 mb-6">
-                                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
-                                        <LuSquareCheckBig />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="bg-yellow-300 text-slate-800 text-sm px-2 py-1 rounded-md inline-block mb-2">
-                                            สถานะใบสั่งขาย: <span className="font-bold">{status.sale_order_status}</span>
 
+                            <div className="max-h-[500px] overflow-y-auto pr-2 space-y-4">
+                                {dataSaleOrder?.status.map((status, index) => {
+                                    const getStatusColor = (statusName) => {
+                                        if (statusName.includes("การผลิต")) return "bg-green-500 text-white";
+                                        if (statusName.includes("ขนส่ง")) return "bg-sky-400 text-white";
+                                        if (statusName.includes("ได้รับ")) return "bg-blue-600 text-white";
+                                        return "bg-yellow-300 text-black";
+                                    };
+                                    const labelColor = getStatusColor(status.sale_order_status);
+                                    let label = "";
+                                    let dateValue = "";
+
+                                    if (status.expected_manufacture_factory_date) {
+                                        label = "วันที่คาดว่าจะผลิตเสร็จ";
+                                        dateValue = new Date(status.expected_manufacture_factory_date).toLocaleDateString("th-TH");
+                                    } else if (status.manufacture_factory_date) {
+                                        label = "วันที่ผลิตเสร็จจริง";
+                                        dateValue = new Date(status.manufacture_factory_date).toLocaleDateString("th-TH");
+                                    } else if (status.expected_delivery_date_success) {
+                                        label = "วันที่คาดว่าจะจัดส่งเสร็จ";
+                                        dateValue = new Date(status.expected_delivery_date_success).toLocaleDateString("th-TH");
+                                    } else if (status.delivery_date_success) {
+                                        label = "วันที่จัดส่งสินค้าเสร็จจริง";
+                                        dateValue = new Date(status.delivery_date_success).toLocaleDateString("th-TH");
+                                    } else if (status.expected_receipt_date) {
+                                        label = "วันที่คาดว่าจะได้รับสินค้า";
+                                        dateValue = new Date(status.expected_receipt_date).toLocaleDateString("th-TH");
+                                    } else if (status.receipt_date) {
+                                        label = "วันที่ได้รับสินค้าจริง";
+                                        dateValue = new Date(status.receipt_date).toLocaleDateString("th-TH");
+                                    }
+
+                                    const createdDate = status.created_at
+                                        ? new Date(status.created_at).toLocaleDateString("th-TH")
+                                        : "-";
+                                    const fullName = `${status.created_by_employee.first_name || ""} ${status.created_by_employee.last_name || ""}`.trim();
+
+                                    return (
+                                        <div key={index} className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
+                                                <LuSquareCheckBig />
+                                            </div>
+                                            <div className="flex-1 space-y-2">
+                                                <div className={`${labelColor}  text-sm px-2 py-1 rounded-md inline-block`}>
+                                                    สถานะใบสั่งขาย: <span className="font-bold">{status.sale_order_status}</span>
+                                                </div>
+
+                                                {label && (
+                                                    <div className="text-sm text-slate-700">
+                                                        {label}: <span className="font-semibold">{dateValue}</span>
+                                                    </div>
+                                                )}
+
+                                                <p className="text-sm text-slate-600">
+                                                    วันที่ดำเนินการ: <span className="font-medium ms-1">{createdDate}</span>
+                                                </p>
+
+                                                <p className="text-sm text-slate-600">
+                                                    ชื่อผู้ดำเนินการ: <span className="font-medium ms-1">{fullName || "-"}</span>
+                                                </p>
+                                            </div>
                                         </div>
-                                        <p className="text-sm text-slate-600">
-                                            วันออกเอกสาร:
-                                            <span className="font-medium ms-1">{status?.created_at
-                                                ? new Date(status?.created_at).toLocaleDateString("th-TH")
-                                                : "-"}
-                                            </span>
-                                        </p>
-                                        <p className="text-sm text-slate-600">
-                                            ชื่อผู้รับผิดชอบ:
-                                            <span className="font-medium ms-1">
-                                                {dataSaleOrder.responsible.first_name} {dataSaleOrder.responsible.last_name}
-                                            </span>
-                                        </p>
-                                        <p className="text-sm text-slate-600">
-                                            ชื่อผู้บันทึก:
-                                            <span className="font-medium ms-1">
-                                                {status.created_by_employee.first_name} {status.created_by_employee.last_name}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="flex justify-center md:justify-end space-x-5 mt-5">
-                <Buttons
-                    btnType="submit"
-                    variant="solid"
-                    className="w-30"
-                >
-                    บันทึก
-                </Buttons>
+            <div className="flex justify-between space-x-5 mt-5">
                 <Buttons
                     btnType="primary"
                     variant="outline"
@@ -755,17 +826,37 @@ export default function SaleOrderDetails() {
 
                     พิมพ์
                 </Buttons>
-                <Link to="/sale-order">
-                    <Buttons
-                        btnType="cancel"
-                        variant="soft"
-                        className="w-30 "
-                    >
-                        ยกเลิก
-                    </Buttons>
-                </Link>
 
+                <div className="space-x-3">
+                    <Buttons
+                        btnType="submit"
+                        variant="solid"
+                        className="w-30"
+                        onClick={() => handleCloseSaleOpen()}
+                    >
+                        ปิดการขาย
+                    </Buttons>
+                    <Buttons
+                        btnType="delete"
+                        variant="solid"
+                        className="w-30"
+                        onClick={() => handleRejectSaleOpen()}
+                    >
+                        ยกเลิกการขาย
+                    </Buttons>
+
+                    <Link to="/sale-order">
+                        <Buttons
+                            btnType="cancel"
+                            variant="soft"
+                            className="w-30 "
+                        >
+                            กลับ
+                        </Buttons>
+                    </Link>
+                </div>
             </div>
+
 
             {/* ดูภาพหลักฐาน */}
             <DialogComponent
@@ -835,6 +926,59 @@ export default function SaleOrderDetails() {
                 )}
             </DialogComponent>
 
+            {/* ยกเลิกการขาย */}
+            <DialogComponent
+                isOpen={isRejectDealDialogOpen}
+                onClose={handleRejectSaleClose}
+                title="เพิ่มหมายเหตุยกเลิกการขาย"
+                onConfirm={handleRejectSale}
+                confirmText="ยืนยัน"
+                cancelText="ยกเลิก"
+                confirmBtnType="primary"
+            >
+                <div className="flex flex-col space-y-5">
+
+                    <TextArea
+                        id="note"
+                        placeholder=""
+                        onChange={(e) => setSaleOrderRemark(e.target.value)}
+                        value={saleOrderRemark}
+                        label="หมายเหตุ"
+                        labelOrientation="horizontal"
+                        onAction={handleRejectSale}
+                        classNameLabel="w-40 min-w-20 flex "
+                        classNameInput="w-full"
+                    />
+
+                </div>
+            </DialogComponent>
+
+            {/* ปิดการขาย */}
+            <DialogComponent
+                isOpen={isCloseSaleDialogOpen}
+                onClose={handleCloseSaleClose}
+                title="เพิ่มหมายเหตุปิดการขาย"
+                onConfirm={handleCloseSale}
+                confirmText="ยืนยัน"
+                cancelText="ยกเลิก"
+                confirmBtnType="primary"
+            >
+                <div className="flex flex-col space-y-5">
+
+                    <TextArea
+                        id="note"
+                        placeholder=""
+                        onChange={(e) => setSaleOrderRemark(e.target.value)}
+                        value={saleOrderRemark}
+                        label="หมายเหตุ"
+                        labelOrientation="horizontal"
+                        onAction={handleCloseSale}
+                        classNameLabel="w-40 min-w-20 flex "
+                        classNameInput="w-full"
+                    />
+
+                </div>
+            </DialogComponent>
         </>
 
     );

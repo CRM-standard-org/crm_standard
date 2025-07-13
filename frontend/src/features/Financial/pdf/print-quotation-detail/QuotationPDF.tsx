@@ -39,7 +39,7 @@ const QuotationPDF = ({ quotation }: { quotation: TypeQuotationResponse }) => {
                         <Text style={styles.label}>{quotation.address}, {quotation.district?.district_name}, {quotation.province?.province_name}, {quotation.country?.country_name}</Text>
                         <Text >
                             <Text style={styles.label}>เลขประจำตัวผู้เสียภาษี: </Text>
-                            1310200129631
+                            {quotation.customer.tax_id}
                         </Text>
                         <Text>
                             <Text style={styles.label}>ผู้ติดต่อ / Contact: </Text>
@@ -52,7 +52,7 @@ const QuotationPDF = ({ quotation }: { quotation: TypeQuotationResponse }) => {
                         <Text style={styles.titleHighlight}>ใบเสนอราคา</Text>
                         <Text>
                             <Text style={styles.label}>เลขที่: </Text>
-                            QT202507070001
+                            {quotation.quotation_number}
 
                         </Text>
                         <Text>
@@ -127,7 +127,7 @@ const QuotationPDF = ({ quotation }: { quotation: TypeQuotationResponse }) => {
                     </Text>
                     <Text style={styles.total}>
                         <Text style={styles.label}>ภาษีมูลค่าเพิ่ม ({quotation.vat.vat_percentage}%):  </Text>
-                        
+
                         {quotation.vat_amount.toLocaleString()} {quotation.currency?.currency_name}
                     </Text>
                     <Text style={styles.total}>

@@ -61,6 +61,7 @@ import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
 import { Button } from "@/components/ui/button";
 import { RiCheckLine, RiDeleteBin6Line, RiEditLine } from "react-icons/ri";
 import { appConfig } from "@/configs/app.config";
+import dayjs from "dayjs";
 
 type dateTableType = {
     className: string;
@@ -778,13 +779,13 @@ export default function EditInfoQuotation() {
         const payload: PayLoadUpdateCompany = {
             customer_id: customer ?? "",
             priority,
-            issue_date: issueDate?.toISOString().split("T")[0] || "",
+            issue_date: issueDate ? dayjs(issueDate).format("YYYY-MM-DD") : "",
             team_id: team ?? "",
             responsible_employee: responsible ?? "",
-            price_date: priceDate?.toISOString().split("T")[0] || "",
+            price_date: priceDate ? dayjs(priceDate).format("YYYY-MM-DD") : "",
             shipping_method: shippingMethod,
             shipping_remark: otherRemark,
-            expected_delivery_date: dateDelivery?.toISOString().split("T")[0] || "",
+            expected_delivery_date: dateDelivery ? dayjs(dateDelivery).format("YYYY-MM-DD") : "",
             place_name: placeName,
             address: address,
             country_id: country!,
@@ -793,7 +794,7 @@ export default function EditInfoQuotation() {
             contact_name: contactPerson,
             contact_email: emailContact,
             contact_phone: telNoContact,
-            expected_closing_date: endDate?.toISOString().split("T")[0] || "",
+            expected_closing_date: endDate ? dayjs(endDate).format("YYYY-MM-DD") : "",
 
         };
         try {

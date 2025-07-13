@@ -281,8 +281,7 @@ export default function SaleOrder() {
         setSearchParams({ page: "1", pageSize });
       }
     },
-   
-  
+    
   ];
   
   
