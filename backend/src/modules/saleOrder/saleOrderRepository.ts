@@ -695,7 +695,7 @@ export const saleOrderRepository = {
         return await prisma.saleOrderStatus.create({
             data:{
                 sale_order_id: sale_order_id,
-                sale_order_status: "การผลิต",
+                sale_order_status: "การจัดส่ง",
                 expected_delivery_date_success: toDate(expected_delivery_date_success),
                 sale_order_status_remark: remark,
                 created_by: employee_id
@@ -722,7 +722,7 @@ export const saleOrderRepository = {
         return await prisma.saleOrderStatus.create({
             data:{
                 sale_order_id: sale_order_id,
-                sale_order_status: "การผลิต",
+                sale_order_status: "ได้รับสินค้า",
                 receipt_date: toDate(receipt_date),
                 sale_order_status_remark: remark,
                 created_by: employee_id
@@ -749,7 +749,7 @@ export const saleOrderRepository = {
         return await prisma.saleOrderStatus.create({
             data:{
                 sale_order_id: sale_order_id,
-                sale_order_status: "การผลิต",
+                sale_order_status: "ได้รับสินค้า",
                 expected_receipt_date: toDate(expected_receipt_date),
                 sale_order_status_remark: remark,
                 created_by: employee_id
@@ -762,42 +762,55 @@ export const saleOrderRepository = {
         remark = remark.trim();
         employee_id = employee_id.trim();
 
-        await prisma.saleOrder.update({
-            where: {sale_order_id, sale_order_status: "ระหว่างดำเนินการ"},
-            data:{
-                sale_order_status: "สำเร็จ",
-                updated_by: employee_id
-            }
+        const checkStatus = await  prisma.saleOrderStatus.findFirst({
+            where: { sale_order_id ,  sale_order_status: "ได้รับสินค้า" , NOT:{ receipt_date: null }} 
         });
-        return await prisma.saleOrderStatus.create({
-            data:{
-                sale_order_id: sale_order_id,
-                sale_order_status: "สำเร็จ",
-                sale_order_status_remark: remark,
-                created_by: employee_id
-            }
-        })
+
+        if(checkStatus){
+            await prisma.saleOrder.update({
+                where: {sale_order_id, sale_order_status: "ระหว่างดำเนินการ"},
+                data:{
+                    sale_order_status: "สำเร็จ",
+                    updated_by: employee_id
+                }
+            });
+            return await prisma.saleOrderStatus.create({
+                data:{
+                    sale_order_id: sale_order_id,
+                    sale_order_status: "สำเร็จ",
+                    sale_order_status_remark: remark,
+                    created_by: employee_id
+                }
+            })
+        }else{ return null }
     },
     rejectSale: async (sale_order_id: string, remark:string, employee_id:string) => {
         sale_order_id = sale_order_id.trim();
         remark = remark.trim();
         employee_id = employee_id.trim();
 
-        await prisma.saleOrder.update({
-            where: {sale_order_id, sale_order_status: "ระหว่างดำเนินการ"},
-            data:{
-                sale_order_status: "ไม่สำเร็จ",
-                updated_by: employee_id
-            }
+        const checkStatus = await  prisma.saleOrderStatus.findFirst({
+            where: { sale_order_id ,  sale_order_status: "ได้รับสินค้า" , NOT:{ receipt_date: null }} 
         });
-        return await prisma.saleOrderStatus.create({
-            data:{
-                sale_order_id: sale_order_id,
-                sale_order_status: "ไม่สำเร็จ",
-                sale_order_status_remark: remark,
-                created_by: employee_id
-            }
-        })
+
+        if(checkStatus){
+            await prisma.saleOrder.update({
+                where: {sale_order_id, sale_order_status: "ระหว่างดำเนินการ"},
+                data:{
+                    sale_order_status: "ไม่สำเร็จ",
+                    updated_by: employee_id
+                }
+            });
+            return await prisma.saleOrderStatus.create({
+                data:{
+                    sale_order_id: sale_order_id,
+                    sale_order_status: "ไม่สำเร็จ",
+                    sale_order_status_remark: remark,
+                    created_by: employee_id
+                }
+            })
+        }else{ return null }
+
     },
 
 }
