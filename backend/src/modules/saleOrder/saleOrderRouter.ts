@@ -201,7 +201,7 @@ export const saleOrderRouter = (() => {
 
   
 
-  router.post("/receipt/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(DeliverySchema),  async (req: Request, res: Response) => {
+  router.post("/receipt/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(ReceiptSchema),  async (req: Request, res: Response) => {
       try {
         const sale_order_id = req.params.sale_order_id;
         const receipt_date = req.body.receipt_date;
