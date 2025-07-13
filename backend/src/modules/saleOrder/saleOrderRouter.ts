@@ -177,7 +177,7 @@ export const saleOrderRouter = (() => {
         const delivery_date_success = req.body.delivery_date_success;
         const sale_order_status_remark = req.body.sale_order_status_remark;
         const employee_id = req.token.payload.uuid;
-        const ServiceResponse = await saleOrderService.manufactureDate(sale_order_id, delivery_date_success , sale_order_status_remark , employee_id);
+        const ServiceResponse = await saleOrderService.deliveryDate(sale_order_id, delivery_date_success , sale_order_status_remark , employee_id);
         handleServiceResponse(ServiceResponse, res);
       } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
@@ -191,7 +191,7 @@ export const saleOrderRouter = (() => {
         const expected_delivery_date_success = req.body.expected_delivery_date_success;
         const sale_order_status_remark = req.body.sale_order_status_remark;
         const employee_id = req.token.payload.uuid;
-        const ServiceResponse = await saleOrderService.expectedManufactureDate(sale_order_id, expected_delivery_date_success , sale_order_status_remark , employee_id);
+        const ServiceResponse = await saleOrderService.expectedDeliveryDate(sale_order_id, expected_delivery_date_success , sale_order_status_remark , employee_id);
         handleServiceResponse(ServiceResponse, res);
       } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
