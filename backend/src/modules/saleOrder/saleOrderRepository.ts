@@ -308,6 +308,7 @@ export const saleOrderRepository = {
                         expected_delivery_date_success: true,
                         receipt_date: true,
                         expected_receipt_date: true,
+                        sale_order_status_remark: true,
                         created_at: true,
                         created_by_employee: { select: { employee_id: true , first_name: true , last_name: true }}
                     },
@@ -594,10 +595,9 @@ export const saleOrderRepository = {
         return deletePayment;
     },
 
-    manufactureDate: async (sale_order_id:string, manufacture_factory_date:string, remark:string, employee_id:string) => {
+    manufactureDate: async (sale_order_id:string, manufacture_factory_date:string, employee_id:string) => {
         sale_order_id = sale_order_id.trim();
         manufacture_factory_date = manufacture_factory_date.trim();
-        remark = remark.trim();
         employee_id = employee_id.trim();
         
         const toDate = (val: unknown): Date | undefined => {
@@ -616,15 +616,13 @@ export const saleOrderRepository = {
                 sale_order_id: sale_order_id,
                 sale_order_status: "การผลิต",
                 manufacture_factory_date: toDate(manufacture_factory_date),
-                sale_order_status_remark: remark,
                 created_by: employee_id
             }
         })
     },
-    expectedManufactureDate: async (sale_order_id:string, expected_manufacture_factory_date:string, remark:string, employee_id:string) => {
+    expectedManufactureDate: async (sale_order_id:string, expected_manufacture_factory_date:string, employee_id:string) => {
         sale_order_id = sale_order_id.trim();
         expected_manufacture_factory_date = expected_manufacture_factory_date.trim();
-        remark = remark.trim();
         employee_id = employee_id.trim();
         
         const toDate = (val: unknown): Date | undefined => {
@@ -643,15 +641,13 @@ export const saleOrderRepository = {
                 sale_order_id: sale_order_id,
                 sale_order_status: "การผลิต",
                 expected_manufacture_factory_date: toDate(expected_manufacture_factory_date),
-                sale_order_status_remark: remark,
                 created_by: employee_id
             }
         })
     },
-    deliveryDate: async (sale_order_id:string, delivery_date_success:string, remark:string, employee_id:string) => {
+    deliveryDate: async (sale_order_id:string, delivery_date_success:string,  employee_id:string) => {
         sale_order_id = sale_order_id.trim();
         delivery_date_success = delivery_date_success.trim();
-        remark = remark.trim();
         employee_id = employee_id.trim();
         
         const toDate = (val: unknown): Date | undefined => {
@@ -670,15 +666,13 @@ export const saleOrderRepository = {
                 sale_order_id: sale_order_id,
                 sale_order_status: "การจัดส่ง",
                 delivery_date_success: toDate(delivery_date_success),
-                sale_order_status_remark: remark,
                 created_by: employee_id
             }
         })
     },
-    expectedDeliveryDate: async (sale_order_id:string, expected_delivery_date_success:string, remark:string, employee_id:string) => {
+    expectedDeliveryDate: async (sale_order_id:string, expected_delivery_date_success:string, employee_id:string) => {
         sale_order_id = sale_order_id.trim();
         expected_delivery_date_success = expected_delivery_date_success.trim();
-        remark = remark.trim();
         employee_id = employee_id.trim();
         
         const toDate = (val: unknown): Date | undefined => {
@@ -697,15 +691,13 @@ export const saleOrderRepository = {
                 sale_order_id: sale_order_id,
                 sale_order_status: "การจัดส่ง",
                 expected_delivery_date_success: toDate(expected_delivery_date_success),
-                sale_order_status_remark: remark,
                 created_by: employee_id
             }
         })
     },
-    receiptDate: async (sale_order_id:string, receipt_date:string, remark:string, employee_id:string) => {
+    receiptDate: async (sale_order_id:string, receipt_date:string, employee_id:string) => {
         sale_order_id = sale_order_id.trim();
         receipt_date = receipt_date.trim();
-        remark = remark.trim();
         employee_id = employee_id.trim();
         
         const toDate = (val: unknown): Date | undefined => {
@@ -724,15 +716,13 @@ export const saleOrderRepository = {
                 sale_order_id: sale_order_id,
                 sale_order_status: "ได้รับสินค้า",
                 receipt_date: toDate(receipt_date),
-                sale_order_status_remark: remark,
                 created_by: employee_id
             }
         })
     },
-    expectedReceiptDate: async (sale_order_id:string, expected_receipt_date:string,  remark:string, employee_id:string) => {
+    expectedReceiptDate: async (sale_order_id:string, expected_receipt_date:string,  employee_id:string) => {
         sale_order_id = sale_order_id.trim();
         expected_receipt_date = expected_receipt_date.trim();
-        remark = remark.trim();
         employee_id = employee_id.trim();
         
         const toDate = (val: unknown): Date | undefined => {
@@ -751,7 +741,6 @@ export const saleOrderRepository = {
                 sale_order_id: sale_order_id,
                 sale_order_status: "ได้รับสินค้า",
                 expected_receipt_date: toDate(expected_receipt_date),
-                sale_order_status_remark: remark,
                 created_by: employee_id
             }
         })

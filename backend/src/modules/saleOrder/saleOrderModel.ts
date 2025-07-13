@@ -189,7 +189,6 @@ export const ManufactureSchema = z.object({
     }),
     body : z.object({
         manufacture_factory_date: z.coerce.date(),
-        sale_order_status_remark: z.string(),
     })
 });
 
@@ -199,7 +198,6 @@ export const ExpectedManufactureSchema = z.object({
     }),
     body : z.object({
         expected_manufacture_factory_date: z.coerce.date(),
-        sale_order_status_remark: z.string(),
     })
 });
 
@@ -209,7 +207,6 @@ export const DeliverySchema = z.object({
     }),
     body : z.object({
         delivery_date_success: z.coerce.date(),
-        sale_order_status_remark: z.string(),
     })
 });
 
@@ -219,7 +216,6 @@ export const ExpectedDeliverySchema = z.object({
     }),
     body : z.object({
         expected_delivery_date_success: z.coerce.date(),
-        sale_order_status_remark: z.string(),
     })
 });
 
@@ -229,7 +225,6 @@ export const ReceiptSchema = z.object({
     }),
     body : z.object({
         receipt_date: z.coerce.date(),
-        sale_order_status_remark: z.string(),
     })
 });
 
@@ -239,7 +234,6 @@ export const ExpectedReceiptSchema = z.object({
     }),
     body : z.object({
         expected_receipt_date: z.coerce.date(),
-        sale_order_status_remark: z.string(),
     })
 });
 
