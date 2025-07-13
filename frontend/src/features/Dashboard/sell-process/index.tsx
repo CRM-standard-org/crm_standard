@@ -194,23 +194,10 @@ export default function SellProcess() {
                 </div>
               ), className: "text-left"
             },
-            {
-              value: (
-                <>
-                  {item.customer_contact
-                    .filter((contact) => contact.main)
-                    .map((contact) => (
-                      <>
-                        <div>{contact.name}</div>
-                        <div className="flex flex-row space-x-1">
-                          {contact.phone}
-                        </div>
-                      </>
-                    ))}
-                </>
-              ), className: "text-left"
-            },
             { value: (<RatingShow value={item.priority} className="w-5 h-5" />), className: "text-left" },
+            {
+              value: "P010111222", className: "text-left"
+            },
             {
               value: "15/2/2024", className: "text-center"
             },
@@ -230,7 +217,7 @@ export default function SellProcess() {
     { label: "หมายเลขการขาย", colSpan: 1, className: "w-auto" },
     { label: "ลูกค้า", colSpan: 1, className: "w-auto" },
     { label: "ความสำคัญ", colSpan: 1, className: "w-auto " },
-    { label: "หมายเลขใบเสนอราคา", colSpan: 1, className: "w-auto" },
+    { label: "หมายเลขใบสั่งขาย", colSpan: 1, className: "w-auto" },
     { label: "วันออกเอกสาร", colSpan: 1, className: "w-auto" },
     { label: "ผู้รับผิดชอบ", colSpan: 1, className: "w-auto" },
     { label: "ทีม", colSpan: 1, className: "w-auto" },
@@ -243,50 +230,27 @@ export default function SellProcess() {
 
   const groupTabs = [
     {
-      name: "รออนุมัติใบเสนอราคา",
+      name: "รอปิดการขายใบเสนอราคา",
       onChange: () => {
-        setFilterGroup("รออนุมัติใบเสนอราคา")
+        setFilterGroup("ระหว่างดำเนินการ")
         setSearchParams({ page: "1", pageSize });
       }
     },
     {
-      name: "ผลใบเสนอราคา",
+      name: "ปิดการขายเรียบร้อย",
       onChange: () => {
-        setFilterGroup("ผลใบเสนอราคา")
+        setFilterGroup("สำเร็จ")
         setSearchParams({ page: "1", pageSize });
       }
     },
     {
-      name: "กำลังผลิต",
+      name: "ปิดการขายไม่สำเร็จ",
       onChange: () => {
-        setFilterGroup("กำลังผลิต")
+        setFilterGroup("ไม่สำเร็จ")
         setSearchParams({ page: "1", pageSize });
       }
 
-    },
-    {
-      name: "กำลังจัดส่ง",
-      onChange: () => {
-        setFilterGroup("กำลังจัดส่ง")
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
-    {
-      name: "รับสินค้าแล้ว",
-      onChange: () => { 
-        setFilterGroup("รับสินค้าแล้ว")
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
-    {
-      name: "ชำระเงินแล้ว",
-      onChange: () => { 
-        setFilterGroup("ชำระเงินแล้ว") 
-        setSearchParams({ page: "1", pageSize });
-      }
-    },
-
-
+    }
   ];
   useEffect(() => {
     if (searchCustomer === "") {
@@ -374,9 +338,7 @@ export default function SellProcess() {
         headers={headers}
         rowData={data}
         totalData={dataCustomer?.responseObject?.totalCount}
-        onCreateBtn={true} // ให้มีปุ่ม create เพิ่มมารป่าว
-        onCreateBtnClick={handleNavCreate}
-        nameCreateBtn="+ เพิ่มลูกค้าใหม่"
+        
         onDropdown={true}
         dropdownItem={dropdown}
         headerTab={true}

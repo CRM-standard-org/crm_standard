@@ -58,6 +58,7 @@ import { useSelectVat } from "@/hooks/useQuotation";
 import { TypeVatResponse } from "@/types/response/response.quotation";
 import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import dayjs from "dayjs";
 
 type dateTableType = {
     className: string;
@@ -105,7 +106,7 @@ export default function CreateQuotation() {
 
 
 
-    const [shippingMethod, setShippingMethod] = useState("delivery");
+    const [shippingMethod, setShippingMethod] = useState("บริการจัดส่ง");
     const [otherRemark, setOtherRemark] = useState("");
     const [dateDelivery, setDateDelivery] = useState<Date | null>(new Date());
     const [placeName, setPlaceName] = useState("");
@@ -688,13 +689,13 @@ export default function CreateQuotation() {
         const payload: PayLoadCreateQuotation = {
             customer_id: customer ?? "",
             priority,
-            issue_date: issueDate?.toISOString().split("T")[0] || "",
+            issue_date: issueDate ? dayjs(issueDate).format("YYYY-MM-DD") : "",
             team_id: team ?? "",
             responsible_employee: responsible ?? "",
-            price_date: priceDate?.toISOString().split("T")[0] || "",
+            price_date: priceDate ? dayjs(priceDate).format("YYYY-MM-DD") : "",
             shipping_method: shippingMethod,
             shipping_remark: otherRemark,
-            expected_delivery_date: dateDelivery?.toISOString().split("T")[0] || "",
+            expected_delivery_date: dateDelivery ? dayjs(dateDelivery).format("YYYY-MM-DD") : "",
             place_name: placeName,
             address: address,
             country_id: country!,
@@ -715,7 +716,7 @@ export default function CreateQuotation() {
             payment_term_name: paymentCondition ?? "",
             payment_method_id: paymentOption ?? "",
             remark: remark ?? "",
-            expected_closing_date: endDate?.toISOString().split("T")[0] || "",
+            expected_closing_date: endDate ? dayjs(endDate).format("YYYY-MM-DD") : "",
             payment_term: payment_term,
             ...(payment_term_day !== undefined && { payment_term_day }),
             ...(payment_term_installment !== undefined && { payment_term_installment }),
@@ -990,6 +991,7 @@ export default function CreateQuotation() {
                         </div>
 
                         <div className="">
+                            
                             <DatePickerComponent
                                 id="date-delivery"
                                 label="วันจัดส่งสินค้า"

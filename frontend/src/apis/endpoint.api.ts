@@ -159,3 +159,13 @@ export const GET_PAYMENT_FILE = "/v1/sale-order/file";
 export const CREATE_PAYMENT_LOG = "/v1/sale-order/payment";
 export const UPDATE_PAYMENT_LOG = "/v1/sale-order/payment-update";
 export const DELETE_PAYMENT_LOG = "/v1/sale-order/delete-payment";
+
+//sale order status
+export const UPDATE_MANUFACTURE = "/v1/sale-order/manufacture";
+export const UPDATE_EXPECT_MANUFACTURE = "/v1/sale-order/expected-manufacture";
+export const UPDATE_DELIVERY = "/v1/sale-order/delivery";
+export const UPDATE_EXPECT_DELIVERY = "/v1/sale-order/expected-delivery";
+export const UPDATE_RECEIPT = "/v1/sale-order/receipt";
+export const UPDATE_EXPECT_RECEIPT = "/v1/sale-order/expected-receipt";
+export const CLOSE_SALE = "/v1/sale-order/close-sale";
+export const REJECT_SALE = "/v1/sale-order/reject-sale";

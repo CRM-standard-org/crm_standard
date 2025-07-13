@@ -72,6 +72,7 @@ export type TypeQuotationStatus = {
     }
 }
 export type TypeQuotationResponse = {
+    quotation_number: string,
     customer: {
         customer_id: string,
         company_name: string,

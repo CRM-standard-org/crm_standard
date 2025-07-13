@@ -95,6 +95,7 @@ export type TypeSaleOrderStatus = {
     }
 }
 export type TypeSaleOrderResponse = {
+    sale_order_number:string,
     customer: {
         customer_id: string,
         company_name: string,

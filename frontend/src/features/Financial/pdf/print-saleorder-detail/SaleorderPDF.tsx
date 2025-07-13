@@ -42,7 +42,7 @@ const SaleorderPDF = ({ saleorder }: { saleorder: TypeSaleOrderResponse }) => {
                         <Text style={styles.label}>{saleorder.address}, {saleorder.district?.district_name}, {saleorder.province?.province_name}, {saleorder.country?.country_name}</Text>
                         <Text >
                             <Text style={styles.label}>เลขประจำตัวผู้เสียภาษี: </Text>
-                            1310200129631
+                            {saleorder.customer.tax_id}
                         </Text>
                         <Text>
                             <Text style={styles.label}>ผู้ติดต่อ / Contact: </Text>
@@ -55,7 +55,7 @@ const SaleorderPDF = ({ saleorder }: { saleorder: TypeSaleOrderResponse }) => {
                         <Text style={styles.titleHighlight}>ใบสั่งขาย</Text>
                         <Text>
                             <Text style={styles.label}>เลขที่: </Text>
-                            QT202507070001
+                            {saleorder.sale_order_number}
 
                         </Text>
                         <Text>
