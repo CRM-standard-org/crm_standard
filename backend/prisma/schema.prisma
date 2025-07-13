@@ -69,21 +69,21 @@ model master_color {
 //--------------------- end test ---------------------
 
 model Company {
-  company_id  String  @id @default(uuid()) @db.Uuid
-  name_th     String  @unique @db.VarChar(50)
-  name_en     String  @unique @db.VarChar(50)
-  address_th  String? @db.VarChar(255)
-  country_th  String? @db.VarChar(50)
-  province_th String? @db.VarChar(50)
-  district_th String? @db.VarChar(50)
-  address_en  String? @db.VarChar(255)
-  country_en  String? @db.VarChar(50)
-  province_en String? @db.VarChar(50)
-  district_en String? @db.VarChar(50)
-  tax_id      String? @db.VarChar(50)
-  phone       String? @db.VarChar(10)
-  email       String? @db.VarChar(50)
-  logo        String? @db.VarChar(255)
+  company_id String  @id @default(uuid()) @db.Uuid
+  name_th    String  @unique @db.VarChar(50)
+  name_en    String  @unique @db.VarChar(50)
+  type       String? @db.VarChar(50)
+  website    String? @db.Text
+  founded    String? @db.Text
+  place_name String? @db.VarChar(100)
+  address    String? @db.Text
+  country    String? @db.VarChar(50)
+  province   String? @db.VarChar(50)
+  district   String? @db.VarChar(50)
+  tax_id     String? @db.VarChar(50)
+  phone      String? @db.VarChar(10)
+  email      String? @db.VarChar(50)
+  logo       String? @db.VarChar(255)
 }
 
 model employees {
@@ -818,7 +818,7 @@ model SaleOrderPaymentLog {
   payment_log_id    String        @id @default(uuid()) @db.Uuid
   sale_order_id     String        @db.Uuid
   // pay_times      Int      @db.Integer
-  payment_date      DateTime      
+  payment_date      DateTime
   payment_term_name String        @db.VarChar(50)
   amount_paid       Decimal       @db.Decimal(10, 2)
   payment_method_id String        @db.Uuid

@@ -373,7 +373,7 @@ export const saleOrderService = {
             );
         }
     },
-    manufactureDate: async (sale_order_id: string , manufacture_factory_date:string, remark:string, employee_id:string ) => {
+    manufactureDate: async (sale_order_id: string , manufacture_factory_date:string, employee_id:string ) => {
         try{
             const check = await saleOrderRepository.findById(sale_order_id);
             if(!check){
@@ -384,7 +384,7 @@ export const saleOrderService = {
                     StatusCodes.BAD_REQUEST
                 );
             }
-            const data = await saleOrderRepository.manufactureDate(sale_order_id,manufacture_factory_date,remark,employee_id);
+            const data = await saleOrderRepository.manufactureDate(sale_order_id,manufacture_factory_date,employee_id);
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Update manufacture success",
@@ -401,7 +401,7 @@ export const saleOrderService = {
             );
         }
     },
-    expectedManufactureDate: async (sale_order_id: string , expected_manufacture_factory_date:string, remark:string, employee_id:string ) => {
+    expectedManufactureDate: async (sale_order_id: string , expected_manufacture_factory_date:string, employee_id:string ) => {
         try{
             const check = await saleOrderRepository.findById(sale_order_id);
             if(!check){
@@ -412,7 +412,7 @@ export const saleOrderService = {
                     StatusCodes.BAD_REQUEST
                 );
             }
-            const data = await saleOrderRepository.expectedManufactureDate(sale_order_id,expected_manufacture_factory_date,remark,employee_id);
+            const data = await saleOrderRepository.expectedManufactureDate(sale_order_id,expected_manufacture_factory_date,employee_id);
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Update expected manufacture success",
@@ -429,7 +429,7 @@ export const saleOrderService = {
             );
         }
     },
-    deliveryDate: async (sale_order_id: string , delivery_date_success:string, remark:string, employee_id:string ) => {
+    deliveryDate: async (sale_order_id: string , delivery_date_success:string, employee_id:string ) => {
         try{
             const check = await saleOrderRepository.findById(sale_order_id);
             if(!check){
@@ -440,7 +440,7 @@ export const saleOrderService = {
                     StatusCodes.BAD_REQUEST
                 );
             }
-            const data = await saleOrderRepository.deliveryDate(sale_order_id,delivery_date_success,remark,employee_id);
+            const data = await saleOrderRepository.deliveryDate(sale_order_id,delivery_date_success,employee_id);
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Update delivery success",
@@ -457,7 +457,7 @@ export const saleOrderService = {
             );
         }
     },
-    expectedDeliveryDate: async (sale_order_id: string , expected_delivery_date_success:string, remark:string, employee_id:string ) => {
+    expectedDeliveryDate: async (sale_order_id: string , expected_delivery_date_success:string, employee_id:string ) => {
         try{
             const check = await saleOrderRepository.findById(sale_order_id);
             if(!check){
@@ -468,7 +468,7 @@ export const saleOrderService = {
                     StatusCodes.BAD_REQUEST
                 );
             }
-            const data = await saleOrderRepository.expectedDeliveryDate(sale_order_id,expected_delivery_date_success,remark,employee_id);
+            const data = await saleOrderRepository.expectedDeliveryDate(sale_order_id,expected_delivery_date_success,employee_id);
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Update expected delivery success",
@@ -485,7 +485,7 @@ export const saleOrderService = {
             );
         }
     },
-    receiptDate: async (sale_order_id: string , receipt_date:string, remark:string, employee_id:string ) => {
+    receiptDate: async (sale_order_id: string , receipt_date:string, employee_id:string ) => {
         try{
             const check = await saleOrderRepository.findById(sale_order_id);
             if(!check){
@@ -496,7 +496,7 @@ export const saleOrderService = {
                     StatusCodes.BAD_REQUEST
                 );
             }
-            const data = await saleOrderRepository.receiptDate(sale_order_id,receipt_date,remark,employee_id);
+            const data = await saleOrderRepository.receiptDate(sale_order_id,receipt_date,employee_id);
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Update receipt success",
@@ -513,7 +513,7 @@ export const saleOrderService = {
             );
         }
     },
-    expectedReceiptDate: async (sale_order_id: string , expected_receipt_date:string, remark:string, employee_id:string ) => {
+    expectedReceiptDate: async (sale_order_id: string , expected_receipt_date:string, employee_id:string ) => {
         try{
             const check = await saleOrderRepository.findById(sale_order_id);
             if(!check){
@@ -524,7 +524,7 @@ export const saleOrderService = {
                     StatusCodes.BAD_REQUEST
                 );
             }
-            const data = await saleOrderRepository.expectedReceiptDate(sale_order_id,expected_receipt_date,remark,employee_id);
+            const data = await saleOrderRepository.expectedReceiptDate(sale_order_id,expected_receipt_date,employee_id);
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Update expected receipt success",
