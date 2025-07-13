@@ -241,13 +241,39 @@ export const saleOrderRouter = (() => {
     }
   );
 
-  router.post("/expected-receipt/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(ExpectedReceiptSchema), handleMulter(upload.array("sale-order", 30)), async (req: Request, res: Response) => {
+  router.post("/expected-receipt/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(ExpectedReceiptSchema), async (req: Request, res: Response) => {
       try {
         const sale_order_id = req.params.sale_order_id;
         const expected_receipt_date = req.body.expected_receipt_date;
         const sale_order_status_remark = req.body.sale_order_status_remark;
         const employee_id = req.token.payload.uuid;
         const ServiceResponse = await saleOrderService.expectedReceiptDate(sale_order_id, expected_receipt_date , sale_order_status_remark , employee_id);
+        handleServiceResponse(ServiceResponse, res);
+      } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+      }
+    }
+  );
+
+  router.put("/close-sale/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(GetByIdSchema), async (req: Request, res: Response) => {
+      try {
+        const sale_order_id = req.params.sale_order_id;
+        const sale_order_status_remark = req.body.sale_order_status_remark;
+        const employee_id = req.token.payload.uuid;
+        const ServiceResponse = await saleOrderService.closeSale(sale_order_id ,sale_order_status_remark ,employee_id);
+        handleServiceResponse(ServiceResponse, res);
+      } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+      }
+    }
+  );
+
+  router.put("/reject-sale/:sale_order_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), validateRequest(GetByIdSchema), async (req: Request, res: Response) => {
+      try {
+        const sale_order_id = req.params.sale_order_id;
+        const sale_order_status_remark = req.body.sale_order_status_remark;
+        const employee_id = req.token.payload.uuid;
+        const ServiceResponse = await saleOrderService.closeSale(sale_order_id ,sale_order_status_remark ,employee_id);
         handleServiceResponse(ServiceResponse, res);
       } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
