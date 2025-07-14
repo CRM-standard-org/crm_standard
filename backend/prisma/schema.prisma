@@ -209,6 +209,11 @@ model employees {
   sale_order_status_create SaleOrderStatus[] @relation("SaleOrderStatusCreatedBy")
   sale_order_file_create   SaleOrderFile[]   @relation("SaleOrderFileCreatedBy")
 
+  // activity
+  activity        Activity[] @relation("Activity")
+  activity_create Activity[] @relation("ActivityCreatedBy")
+  activity_update Activity[] @relation("ActivityUpdatedBy")
+
   @@index([employee_code])
   @@index([username])
   @@index([email])
@@ -291,6 +296,7 @@ model Team {
   customer_team Customer[]  @relation("CustomerTeam")
   quotation     Quotation[] @relation("Quotation")
   sale_order    SaleOrder[] @relation("SaleOrder")
+  activity      Activity[]  @relation("Activity")
 
   // responesible  Responsible[] @relation("Responsible")
 
@@ -392,6 +398,8 @@ model Customer {
 
   quotation  Quotation[] @relation("Quotation")
   sale_order SaleOrder[] @relation("SaleOrder")
+
+  activity Activity[] @relation("Activity")
 
   created_by_employee employees @relation("CustomerCreatedBy", fields: [created_by], references: [employee_id])
   updated_by_employee employees @relation("CustomerUpdatedBy", fields: [updated_by], references: [employee_id])
@@ -959,4 +967,28 @@ model SaleOrderStatus {
   created_by_employee               employees @relation("SaleOrderStatusCreatedBy", fields: [created_by], references: [employee_id])
 
   @@index([sale_order_id])
+}
+
+model Activity {
+  activity_id          String    @id @default(uuid()) @db.Uuid
+  customer_id          String    @db.Uuid
+  issue_date           DateTime
+  activity_time        String    @db.VarChar(30)
+  activity_description String    @db.Text
+  team_id              String    @db.Uuid
+  responsible_id       String    @db.Uuid
+  created_at           DateTime  @default(now())
+  created_by           String    @db.Uuid
+  updated_at           DateTime  @updatedAt
+  updated_by           String    @db.Uuid
+  
+  customer             Customer  @relation("Activity", fields: [customer_id], references: [customer_id])
+  team                 Team      @relation("Activity", fields: [team_id], references: [team_id])
+  responsible          employees @relation("Activity", fields: [responsible_id], references: [employee_id])
+  created_by_employee  employees @relation("ActivityCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee  employees @relation("ActivityUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([customer_id])
+  @@index([team_id])
+  @@index([responsible_id])
 }
