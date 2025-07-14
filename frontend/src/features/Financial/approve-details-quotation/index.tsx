@@ -342,7 +342,7 @@ export default function ApproveDetailsQuotation() {
                                             </div>
                                         )
                                     }
-                                    
+
                                     <div className="">
                                         <LabelWithValue label="ประเภท" value={`${dataQuotation?.country.country_name}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                                     </div>
@@ -616,38 +616,64 @@ export default function ApproveDetailsQuotation() {
                     </div>
                 </div>
 
+        
                 {/* ฝั่งขวา */}
                 <div className="w-full xl:w-[280px] bg-white shadow-lg rounded-lg p-4 self-stretch">
                     <h2 className="text-lg font-semibold mb-3">ประวัติใบเสนอราคา</h2>
 
-                    {dataQuotation?.status.map((status, index) => (
-                        <div
-                            key={index}
-                            className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-2 mb-3"
-                        >
-                            <div className="flex items-start gap-3 mb-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-white text-lg">
-                                    <LuSquareCheckBig />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2 pt-1">
-                                        <span className="text-md font-semibold text-gray-800">สถานะใบเสนอราคา</span>
+                    {dataQuotation?.status.map((status, index) => {
+                        const isLatest = index === dataQuotation.status.length - 1;
+
+                        return (
+                            <div
+                                key={index}
+                                className={`border rounded-lg p-4 space-y-2 mb-3 ${isLatest ? "bg-green-100 border-green-400" : "bg-gray-50 border-gray-200"}`}
+                            >
+                                <div className="flex items-start gap-3 mb-3">
+                                    <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-white text-lg">
+                                        <LuSquareCheckBig />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 pt-1">
+                                            <span className="text-md font-semibold text-gray-800">
+                                                สถานะใบเสนอราคา
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <span
-                                className={`text-xs font-medium rounded px-2 py-0.5 ${getStatusColor(status.quotation_status)}`}
-                            >
-                                {status.quotation_status}
-                            </span>
 
-                            <div className="text-sm text-gray-600">วันที่ดำเนินการ: <span className="font-medium">{status?.created_at
-                                ? new Date(dataQuotation.expected_closing_date).toLocaleDateString("th-TH")
-                                : "-"}</span></div>
-                            <div className="text-sm text-gray-600">ชื่อผู้ดำเนินการ: <span className="font-medium">{status.created_by_employee.first_name} {status.created_by_employee.last_name}</span></div>
-                            <div className="text-sm text-gray-600">หมายเหตุ: <span className="italic text-gray-500">{status.quotation_status_remark || "-"}</span></div>
-                        </div>
-                    ))}
+                                <span
+                                    className={`text-xs font-medium rounded px-2 py-0.5 ${getStatusColor(
+                                        status.quotation_status
+                                    )}`}
+                                >
+                                    {status.quotation_status}
+                                </span>
+
+                                <div className="text-sm text-gray-600">
+                                    วันที่ดำเนินการ:{" "}
+                                    <span className="font-medium">
+                                        {status?.created_at
+                                            ? new Date(status.created_at).toLocaleDateString("th-TH")
+                                            : "-"}
+                                    </span>
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                    ชื่อผู้ดำเนินการ:{" "}
+                                    <span className="font-medium">
+                                        {status.created_by_employee.first_name}{" "}
+                                        {status.created_by_employee.last_name}
+                                    </span>
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                    หมายเหตุ:{" "}
+                                    <span className="italic text-gray-500">
+                                        {status.quotation_status_remark || "-"}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
 
 

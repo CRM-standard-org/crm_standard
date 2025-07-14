@@ -127,7 +127,7 @@ export default function SaleOrder() {
             { value: new Date(item.issue_date).toLocaleDateString("th-TH"), className: "text-center" },
             { value: new Date(item.price_date).toLocaleDateString("th-TH"), className: "text-center" },
             { value: item.grand_total, className: "text-right" },
-            { value: item.payment_status, className: "text-center" },
+            { value: item.payment_status, className: `${item.payment_status == "รอการชำระเงิน" ? "text-red-400" : "text-green-500"} font-bold text-center` },
             { value: item.totalAmountPaid, className: "text-right" },
           ],
           data: item,

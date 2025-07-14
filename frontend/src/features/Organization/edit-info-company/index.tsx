@@ -164,7 +164,7 @@ export default function EditInfoCompany() {
                                 </div>
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="company-name"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
@@ -174,27 +174,27 @@ export default function EditInfoCompany() {
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{up: "capital-location", down: "company-engname" }}
                                     />
                                 </div>
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="company-engname"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
-                                        label="ชื่อย่อ"
+                                        label="ชื่ออังกฤษ"
                                         labelOrientation="horizontal" // vertical mobile screen
                                         onAction={handleConfirm}
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{ up: "company-name", down: "business-type" }}
                                     />
                                 </div>
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="business-type"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
@@ -204,12 +204,12 @@ export default function EditInfoCompany() {
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{ up: "company-engname", down: "website" }}
                                     />
                                 </div>
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="website"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
@@ -219,12 +219,12 @@ export default function EditInfoCompany() {
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{  up: "business-type", down: "year" }}
                                     />
                                 </div>
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="year"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
@@ -234,7 +234,7 @@ export default function EditInfoCompany() {
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{ up: "website", down: "company-address" }}
                                     />
                                 </div>
 
@@ -250,13 +250,13 @@ export default function EditInfoCompany() {
                                         onAction={handleConfirm}
                                         classNameLabel="w-1/2  "
                                         classNameInput="w-full"
-                                        nextFields={{ left: "company-email", right: "company-email", up: "company-placename", down: "company-country" }}
+                                        nextFields={{up: "year", down: "telno" }}
 
                                     />
                                 </div>
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="telno"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
@@ -266,12 +266,12 @@ export default function EditInfoCompany() {
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{ up: "company-address", down: "telno-extension" }}
                                     />
                                 </div>
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="telno-extension"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
@@ -281,12 +281,12 @@ export default function EditInfoCompany() {
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{ up: "telno", down: "taxid" }}
                                     />
                                 </div>
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="taxid"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
@@ -296,7 +296,7 @@ export default function EditInfoCompany() {
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{up: "telno-extension", down: "capital-location" }}
                                     />
                                 </div>
 
@@ -312,7 +312,7 @@ export default function EditInfoCompany() {
 
                                 <div className="">
                                     <InputAction
-                                        id="contact-person"
+                                        id="capital-location"
                                         placeholder=""
                                         onChange={(e) => setFirstContact(e.target.value)}
                                         value={firstContact}
@@ -322,7 +322,7 @@ export default function EditInfoCompany() {
                                         classNameLabel="w-1/2"
                                         classNameInput="w-full"
                                         require="require"
-                                        nextFields={{ left: "email", right: "email", up: "responsible", down: "position" }}
+                                        nextFields={{ up: "taxid", down: "company-name" }}
                                     />
                                 </div>
                             </div>

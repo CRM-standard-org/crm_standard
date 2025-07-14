@@ -363,22 +363,24 @@ export default function EditTeamDetails() {
 
 
 
-                        <div className="space-x-4">
+                        <div className="">
                             <InputAction
-                                id="contact-person"
+                                id="team-name"
                                 placeholder=""
                                 onChange={(e) => setTeamName(e.target.value)}
                                 value={teamName}
                                 label="ชื่อทีม"
-                                labelOrientation="horizontal" // vertical mobile screen
+                                labelOrientation="horizontal"
                                 onAction={handleConfirmTeamDetails}
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
+                                 nextFields={{ up: "team-detail", down: "head-team" }}
                                 require="require"
                             />
                         </div>
-                        <div className="space-x-4 lg:block">
+                        <div className="">
                             <MasterSelectComponent
+                                id="head-team"
                                 onChange={(option) => {
                                     if (option) {
                                         const newHeadId = String(option.value);
@@ -407,13 +409,15 @@ export default function EditTeamDetails() {
                                         label: headName,
                                     } : null
                                 }
+                                nextFields={{ up: "team-name", down: "team-detail" }}
+                                require="require"
                             />
 
 
                         </div>
-                        <div className="space-x-4">
+                        <div className="">
                             <InputAction
-                                id="contact-person"
+                                id="team-detail"
                                 placeholder=""
                                 onChange={(e) => setTeamDescription(e.target.value)}
                                 value={teamDescription}
@@ -422,6 +426,7 @@ export default function EditTeamDetails() {
                                 onAction={handleConfirmTeamDetails}
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
+                                nextFields={{ up: "head-team", down: "team-name" }}
                                 require="require"
                             />
                         </div>

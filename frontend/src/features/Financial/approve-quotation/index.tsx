@@ -14,12 +14,7 @@ import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useColor } from "@/hooks/useColor";
 
-//fetch tag
-import { useTag } from "@/hooks/useCustomerTag";
-import { TypeTagColorResponse } from "@/types/response/response.tagColor";
-import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import RatingShow from "@/components/customs/rating/rating.show.component";
 import { TypeAllQuotationResponse } from "@/types/response/response.quotation";
 import { useAllQuotations } from "@/hooks/useQuotation";
@@ -117,7 +112,10 @@ export default function ApproveQuotation() {
     {
       placeholder: "ผู้รับผิดชอบ",
       fetchData: fetchDataMemberInteam,
-      onChange: (value: string | null) => setResponseId(value),
+      onChange: (value: string | null) => {
+        setResponseId(value)
+        setSearchParams({ page: "1", pageSize });
+      },
       handleChange: handleEmployeeSearch
     },
     {
@@ -137,12 +135,18 @@ export default function ApproveQuotation() {
     {
       placeholder: "dd/mm/yy",
       selectedDate: startDate,
-      onChange: (date: Date | null) => setStartDate(date),
+      onChange: (date: Date | null) => {
+        setStartDate(date)
+        setSearchParams({ page: "1", pageSize });
+      },
     },
     {
       placeholder: "dd/mm/yy",
       selectedDate: endDate,
-      onChange: (date: Date | null) => setEndDate(date),
+      onChange: (date: Date | null) => {
+        setEndDate(date)
+        setSearchParams({ page: "1", pageSize });
+      },
     }
   ];
 
@@ -206,16 +210,32 @@ export default function ApproveQuotation() {
 
   const groupTabs = [
     {
+      name: "ใบเสนอราคาทั้งหมด",
+      onChange: () => {
+        setStatusQuotation(null)
+        setSearchParams({ page: "1", pageSize });
+      }
+    },
+    {
       name: "ใบเสนอราคาที่ยังไม่อนุมัติ",
-      onChange: () => setStatusQuotation("รออนุมัติ")
+      onChange: () => {
+        setStatusQuotation("รออนุมัติ")
+        setSearchParams({ page: "1", pageSize });
+      }
     },
     {
       name: "อนุมัติแล้ว",
-      onChange: () => setStatusQuotation("อนุมัติ")
+      onChange: () => {
+        setStatusQuotation("อนุมัติ")
+        setSearchParams({ page: "1", pageSize });
+      }
     },
     {
       name: "ไม่อนุมัติ",
-      onChange: () => setStatusQuotation("ไม่อนุมัติ")
+      onChange: () => {
+        setStatusQuotation("ไม่อนุมัติ")
+        setSearchParams({ page: "1", pageSize });
+      }
     },
 
 

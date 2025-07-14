@@ -25,23 +25,14 @@ import { Link } from "react-router-dom";
 import { FaPlus } from "react-icons/fa";
 import { FaMinus } from "react-icons/fa";
 
-import TextArea from "@/components/customs/textAreas/textarea.main.component";
-import TagSelectComponent from "@/components/customs/tagCustomer/tagselect.main.component";
-import { OptionColorType } from "@/components/customs/tagCustomer/tagselect.main.component";
 
 //Customer Role
 import { useCustomerRole } from "@/hooks/useCustomerRole";
 import { TypeRoleResponse } from "@/types/response/response.customerRole";
 
-//Character 
-import { useCustomerCharacter } from "@/hooks/useCustomerCharacter";
-import { TypeCharacterResponse } from "@/types/response/response.customerCharacter";
-import Rating from "@/components/customs/rating/rating.main.component";
-import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
-import RatingShow from "@/components/customs/rating/rating.show.component";
-import { LuPencil } from "react-icons/lu";
+
 import { deleteRole } from "@/services/customerRole.service";
-import { useTeamMember } from "@/hooks/useTeam";
+
 import { postTeam } from "@/services/team.service";
 
 
@@ -314,22 +305,24 @@ export default function CreateTeam() {
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
 
-                        <div className="space-x-4">
+                        <div className="">
                             <InputAction
-                                id="contact-person"
+                                id="team-name"
                                 placeholder=""
                                 onChange={(e) => setTeamName(e.target.value)}
                                 value={teamName}
                                 label="ชื่อทีม"
-                                labelOrientation="horizontal" // vertical mobile screen
+                                labelOrientation="horizontal"
                                 onAction={handleConfirm}
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
+                                nextFields={{ up: "team-detail", down: "head-team" }}
                                 require="require"
                             />
                         </div>
-                        <div className="space-x-4 lg:block">
+                        <div className="">
                             <MasterSelectComponent
+                                id="head-team"
                                 onChange={(option) => {
                                     if (option) {
                                         const newHeadId = String(option.value);
@@ -352,13 +345,15 @@ export default function CreateTeam() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full"
+                                nextFields={{ up: "team-name", down: "team-detail" }}
+                                require="require"
                             />
 
 
                         </div>
-                        <div className="space-x-4">
+                        <div className="">
                             <InputAction
-                                id="contact-person"
+                                id="team-detail"
                                 placeholder=""
                                 onChange={(e) => setTeamDescription(e.target.value)}
                                 value={teamDescription}
@@ -367,6 +362,7 @@ export default function CreateTeam() {
                                 onAction={handleConfirm}
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
+                                nextFields={{ up: "head-team", down: "team-name" }}
                                 require="require"
                             />
                         </div>

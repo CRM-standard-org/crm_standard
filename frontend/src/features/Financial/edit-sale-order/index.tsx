@@ -1342,8 +1342,7 @@ export default function EditSaleOrder() {
 
         try {
             const response = await updateExpectManufacture(saleOrderId, {
-                expected_manufacture_factory_date: expectManufactureDate ? dayjs(expectManufactureDate).format("YYYY-MM-DD") : "",
-                sale_order_status_remark: ""
+                expected_manufacture_factory_date: expectManufactureDate ? dayjs(expectManufactureDate).format("YYYY-MM-DD") : ""
             });
 
             if (response.statusCode === 200) {
@@ -1365,8 +1364,7 @@ export default function EditSaleOrder() {
 
         try {
             const response = await updateManufacture(saleOrderId, {
-                manufacture_factory_date: manufactureDate ? dayjs(manufactureDate).format("YYYY-MM-DD") : "",
-                sale_order_status_remark: ""
+                manufacture_factory_date: manufactureDate ? dayjs(manufactureDate).format("YYYY-MM-DD") : ""
             });
 
             if (response.statusCode === 200) {
@@ -1388,8 +1386,7 @@ export default function EditSaleOrder() {
 
         try {
             const response = await updateExpectDelivery(saleOrderId, {
-                expected_delivery_date_success: expectDeliveryDate ? dayjs(expectDeliveryDate).format("YYYY-MM-DD") : "",
-                sale_order_status_remark: ""
+                expected_delivery_date_success: expectDeliveryDate ? dayjs(expectDeliveryDate).format("YYYY-MM-DD") : ""
             });
 
             if (response.statusCode === 200) {
@@ -1411,8 +1408,7 @@ export default function EditSaleOrder() {
 
         try {
             const response = await updateDelivery(saleOrderId, {
-                delivery_date_success: deliveryDate ? dayjs(deliveryDate).format("YYYY-MM-DD") : "",
-                sale_order_status_remark: ""
+                delivery_date_success: deliveryDate ? dayjs(deliveryDate).format("YYYY-MM-DD") : ""
             });
 
             if (response.statusCode === 200) {
@@ -1434,8 +1430,7 @@ export default function EditSaleOrder() {
 
         try {
             const response = await updateExpectReceipt(saleOrderId, {
-                expected_receipt_date: expectReceiptDate ? dayjs(expectReceiptDate).format("YYYY-MM-DD") : "",
-                sale_order_status_remark: ""
+                expected_receipt_date: expectReceiptDate ? dayjs(expectReceiptDate).format("YYYY-MM-DD") : ""
             });
 
             if (response.statusCode === 200) {
@@ -1457,8 +1452,7 @@ export default function EditSaleOrder() {
 
         try {
             const response = await updateReceipt(saleOrderId, {
-                receipt_date: receiptDate ? dayjs(receiptDate).format("YYYY-MM-DD") : "",
-                sale_order_status_remark: ""
+                receipt_date: receiptDate ? dayjs(receiptDate).format("YYYY-MM-DD") : ""
             });
 
             if (response.statusCode === 200) {
@@ -2594,7 +2588,7 @@ export default function EditSaleOrder() {
                                     const labelColor = getStatusColor(status.sale_order_status);
                                     let label = "";
                                     let dateValue = "";
-
+                                    let remark = "";
                                     if (status.expected_manufacture_factory_date) {
                                         label = "วันที่คาดว่าจะผลิตเสร็จ";
                                         dateValue = new Date(status.expected_manufacture_factory_date).toLocaleDateString("th-TH");
@@ -2615,13 +2609,19 @@ export default function EditSaleOrder() {
                                         dateValue = new Date(status.receipt_date).toLocaleDateString("th-TH");
                                     }
 
+                                    if (["สำเร็จ", "ไม่สำเร็จ"].includes(status.sale_order_status)) {
+                                        remark = status.sale_order_status_remark || "-";
+                                    }
+
+
                                     const createdDate = status.created_at
                                         ? new Date(status.created_at).toLocaleDateString("th-TH")
                                         : "-";
                                     const fullName = `${status.created_by_employee.first_name || ""} ${status.created_by_employee.last_name || ""}`.trim();
-
+                                    
                                     return (
                                         <div key={index} className="flex items-start gap-3">
+                                            
                                             <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
                                                 <LuSquareCheckBig />
                                             </div>
@@ -2643,6 +2643,13 @@ export default function EditSaleOrder() {
                                                 <p className="text-sm text-slate-600">
                                                     ชื่อผู้ดำเนินการ: <span className="font-medium ms-1">{fullName || "-"}</span>
                                                 </p>
+                                                {["สำเร็จ", "ไม่สำเร็จ"].includes(status.sale_order_status) && (
+                                                    <div className="text-sm text-slate-700">
+                                                        หมายเหตุ: <span className="font-semibold">{status.sale_order_status_remark || "-"}</span>
+                                                    </div>
+                                                )}
+
+
                                             </div>
                                         </div>
                                     );

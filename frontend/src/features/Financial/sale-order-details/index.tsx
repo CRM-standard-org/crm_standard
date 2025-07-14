@@ -3,8 +3,6 @@ import MasterTableFeature from "@/components/customs/display/master.main.compone
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import Buttons from "@/components/customs/button/button.main.component";
 
-import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
-
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
 import { useToast } from "@/components/customs/alert/ToastContext";
 
@@ -494,7 +492,7 @@ export default function SaleOrderDetails() {
             {/* รายละเอียดการชำระเงิน */}
             <div className="p-7 pb-5 bg-white shadow-lg rounded-lg mt-7" >
                 <div className="w-full max-w-full overflow-x-auto lg:overflow-x-visible">
-                    <h1 className="text-xl font-semibold mb-1">รายละเอียดการชำระเงิน <span className="text-red-500">( {dataSaleOrder?.payment_status} )</span></h1>
+                    <h1 className="text-xl font-semibold mb-1">รายละเอียดการชำระเงิน <span className={`${dataSaleOrder?.payment_status === "รอการชำระเงิน" ? "text-red-500" : "text-green-500"}`}>( {dataSaleOrder?.payment_status} )</span></h1>
                     <div className="border-b-2 border-main mb-6"></div>
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
@@ -741,12 +739,13 @@ export default function SaleOrderDetails() {
 
 
                         {/* ฝั่งขวา */}
-                        <div>
+                        
+                         <div>
                             <h1 className="text-xl font-semibold mb-1">ประวัติเอกสาร</h1>
                             <div className="border-b-2 border-main mb-4"></div>
 
 
-                            <div className="max-h-[500px] overflow-y-auto pr-2 space-y-4">
+                            <div className="max-h-[620px] overflow-y-auto pr-2 space-y-4">
                                 {dataSaleOrder?.status.map((status, index) => {
                                     const getStatusColor = (statusName) => {
                                         if (statusName.includes("การผลิต")) return "bg-green-500 text-white";
@@ -757,7 +756,7 @@ export default function SaleOrderDetails() {
                                     const labelColor = getStatusColor(status.sale_order_status);
                                     let label = "";
                                     let dateValue = "";
-
+                                    let remark = "";
                                     if (status.expected_manufacture_factory_date) {
                                         label = "วันที่คาดว่าจะผลิตเสร็จ";
                                         dateValue = new Date(status.expected_manufacture_factory_date).toLocaleDateString("th-TH");
@@ -778,13 +777,19 @@ export default function SaleOrderDetails() {
                                         dateValue = new Date(status.receipt_date).toLocaleDateString("th-TH");
                                     }
 
+                                    if (["สำเร็จ", "ไม่สำเร็จ"].includes(status.sale_order_status)) {
+                                        remark = status.sale_order_status_remark || "-";
+                                    }
+
+
                                     const createdDate = status.created_at
                                         ? new Date(status.created_at).toLocaleDateString("th-TH")
                                         : "-";
                                     const fullName = `${status.created_by_employee.first_name || ""} ${status.created_by_employee.last_name || ""}`.trim();
-
+                                    
                                     return (
                                         <div key={index} className="flex items-start gap-3">
+                                            
                                             <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
                                                 <LuSquareCheckBig />
                                             </div>
@@ -806,6 +811,13 @@ export default function SaleOrderDetails() {
                                                 <p className="text-sm text-slate-600">
                                                     ชื่อผู้ดำเนินการ: <span className="font-medium ms-1">{fullName || "-"}</span>
                                                 </p>
+                                                {["สำเร็จ", "ไม่สำเร็จ"].includes(status.sale_order_status) && (
+                                                    <div className="text-sm text-slate-700">
+                                                        หมายเหตุ: <span className="font-semibold">{status.sale_order_status_remark || "-"}</span>
+                                                    </div>
+                                                )}
+
+
                                             </div>
                                         </div>
                                     );

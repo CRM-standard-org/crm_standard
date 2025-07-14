@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
-import MasterTableFeature from "@/components/customs/display/master.main.component";
-import DialogComponent from "@/components/customs/dialog/dialog.main.component";
-import { IconButton } from "@radix-ui/themes";
-import { LuPencil } from "react-icons/lu";
+
 import MasterSelectComponent, { OptionType } from "@/components/customs/select/select.main.component";
-import Buttons from "@/components/customs/button/button.main.component";
-import InputAction from "@/components/customs/input/input.main.component";
-import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
+
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
 import {
 
@@ -18,8 +13,8 @@ import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
-import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import { Table, Flex, Box, Text, Select, Tabs } from "@radix-ui/themes";
+import { useNavigate} from "react-router-dom";
+import { Table} from "@radix-ui/themes";
 
 import { Link } from "react-router-dom";
 

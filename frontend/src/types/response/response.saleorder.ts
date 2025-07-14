@@ -86,7 +86,7 @@ export type TypeSaleOrderStatus = {
     expected_delivery_date_success: string | null,
     receipt_date: string | null,
     expected_receipt_date: string | null,
-
+    sale_order_status_remark: string,
     created_at: string,
     created_by_employee: {
         employee_id: string,
@@ -95,7 +95,7 @@ export type TypeSaleOrderStatus = {
     }
 }
 export type TypeSaleOrderResponse = {
-    sale_order_number:string,
+    sale_order_number: string,
     customer: {
         customer_id: string,
         company_name: string,

@@ -16,47 +16,47 @@ export type PayLoadUpdateSaleOrderPayment = {
     remark: string
 }
 export type PayLoadCreateSaleOrderPaymentLog = {
-    payment_date: string, 
-    payment_term_name: string, 
-    amount_paid: number, 
-    payment_method_id: string, 
+    payment_date: string,
+    payment_term_name: string,
+    amount_paid: number,
+    payment_method_id: string,
     payment_remark: string
 }
 export type PayLoadUpdateSaleOrderPaymentLog = {
-    payment_log_id:string,
-    payment_date: string, 
-    payment_term_name: string, 
-    amount_paid: number, 
-    payment_method_id: string, 
+    payment_log_id: string,
+    payment_date: string,
+    payment_term_name: string,
+    amount_paid: number,
+    payment_method_id: string,
     payment_remark: string
 }
 export type PayLoadDeleteSaleOrderPaymentLog = {
-    payment_log_id:string
+    payment_log_id: string
 }
 //จัดการสถานะ
 export type PayLoadUpdateManufactureStatus = {
     manufacture_factory_date: string,
-    sale_order_status_remark: string
+
 }
 export type PayLoadUpdateExpectManufactureStatus = {
     expected_manufacture_factory_date: string,
-    sale_order_status_remark: string
+
 }
 export type PayLoadUpdateDeliveryStatus = {
     delivery_date_success: string,
-    sale_order_status_remark: string
+
 }
 export type PayLoadUpdateExpectDeliveryStatus = {
     expected_delivery_date_success: string,
-    sale_order_status_remark: string
+
 }
 export type PayLoadUpdateReceiptStatus = {
     receipt_date: string,
-    sale_order_status_remark: string
+
 }
 export type PayLoadUpdateExpectReceiptStatus = {
     expected_receipt_date: string,
-    sale_order_status_remark: string
+
 }
 export type PayLoadSaleOrderStatus = {
     sale_order_status_remark: string
@@ -64,7 +64,7 @@ export type PayLoadSaleOrderStatus = {
 
 //filter sale order
 export type PayLoadFilterSaleOrder = {
-    
+
     responsible_id: string | null;
     status: string | null;
     issue_date?: string | null;

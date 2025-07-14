@@ -315,11 +315,11 @@ export default function TeamDetails() {
                                 <LabelWithValue label="รหัสพนักงาน" value={`${dataLeader?.employee_code}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
-                            <div className="space-x-4">
+                            <div className="">
                                 <LabelWithValue label="ชื่อ-นามสกุล" value={`${dataLeader?.first_name} ${dataLeader?.last_name}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
-                            <div className="space-x-4">
+                            <div className="">
                                 <LabelWithValue label="ตำแหน่ง" value={`${dataLeader?.position}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
                         </div>
@@ -329,12 +329,12 @@ export default function TeamDetails() {
 
 
 
-                            <div className="space-x-4 lg:block">
+                            <div className="">
 
                                 <LabelWithValue label="วันเริ่มทำงาน" value={`${dataLeader?.start_date}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
-                            <div className="space-x-4 lg:block">
+                            <div className="">
 
                                 <LabelWithValue label="สถานะ" value={`${dataLeader?.employee_status}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
@@ -350,22 +350,22 @@ export default function TeamDetails() {
                         {/* ฝั่งซ้าย */}
                         <div className="space-y-4">
 
-                            <div className="space-x-4 lg:block">
+                            <div className="">
 
                                 <LabelWithValue label="ประเทศ" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
-                            <div className="space-x-4 lg:block">
+                            <div className="">
 
-                                <LabelWithValue label="ประเทศ" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="จังหวัด" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
-                            <div className="space-x-4 lg:block">
+                            <div className="">
 
                                 <LabelWithValue label="อำเภอ" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
-                            <div className="space-x-4">
+                            <div className="">
 
 
                                 <LabelWithValue label="ที่อยู่" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
@@ -376,15 +376,15 @@ export default function TeamDetails() {
                         {/* ฝั่งขวา */}
                         <div className="space-y-4">
 
-                            <div className="space-x-4">
+                            <div className="">
                                 <LabelWithValue label="เบอร์โทรศัพท์" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
-                            <div className="space-x-4">
+                            <div className="">
                                 <LabelWithValue label="อีเมล" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
-                            <div className="space-x-4 lg:block">
+                            <div className="">
                                 <LabelWithValue label="LINE" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
