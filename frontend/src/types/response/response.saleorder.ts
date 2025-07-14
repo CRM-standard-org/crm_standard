@@ -168,6 +168,7 @@ export type TypeSaleOrderResponse = {
     receipt_date: string | null,
     expected_receipt_date: string | null,
     status: TypeSaleOrderStatus[]
+    totalAmountPaid: number
 }
 export type SaleOrderResponse = {
     success: boolean,

@@ -1466,6 +1466,8 @@ export default function EditSaleOrder() {
             showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
         }
     }
+    const remainingTotal = dataSaleOrder?.grand_total - dataSaleOrder?.totalAmountPaid;
+
     return (
         <>
 
@@ -1985,11 +1987,16 @@ export default function EditSaleOrder() {
             <div className="p-7 pb-5 bg-white shadow-lg rounded-lg mt-7" >
                 <div className="w-full max-w-full overflow-x-auto lg:overflow-x-visible">
 
-                    <h1 className="text-xl font-semibold">
-                        รายละเอียดการชำระเงิน
+                <h1 className="text-xl font-semibold mb-1">
+                        รายละเอียดการชำระเงิน ( 
+                        {remainingTotal === 0 ? (
+                            <span className="text-green-600">ชำระเงินเรียบร้อย</span>
+                        ) : (
+                            <span className="text-red-500">ยอดค้างชำระ {remainingTotal} บาท</span>
+                        )}
+
+                        )
                     </h1>
-
-
 
                     <div className="border-b-2 border-main mb-6"></div>
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -2618,10 +2625,10 @@ export default function EditSaleOrder() {
                                         ? new Date(status.created_at).toLocaleDateString("th-TH")
                                         : "-";
                                     const fullName = `${status.created_by_employee.first_name || ""} ${status.created_by_employee.last_name || ""}`.trim();
-                                    
+
                                     return (
                                         <div key={index} className="flex items-start gap-3">
-                                            
+
                                             <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white text-lg">
                                                 <LuSquareCheckBig />
                                             </div>
@@ -2707,7 +2714,7 @@ export default function EditSaleOrder() {
                             setUpdatePaymentCondition(condition);
 
                             if (condition === "เต็มจำนวน") {
-                                setPaymentValue(netTotal);
+                                setPaymentValue(remainingTotal);
                             }
                         }}
                         fetchDataFromGetAPI={fetchPaymentCondition}
@@ -2807,7 +2814,7 @@ export default function EditSaleOrder() {
                             setUpdatePaymentCondition(condition);
 
                             if (condition === "เต็มจำนวน") {
-                                setPaymentValue(netTotal);
+                                setPaymentValue(remainingTotal);
                             }
                         }}
                         fetchDataFromGetAPI={fetchPaymentCondition}
