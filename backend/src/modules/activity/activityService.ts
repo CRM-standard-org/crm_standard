@@ -34,7 +34,7 @@ export const activityService = {
         try{
             const data = await activityRepository.fineAllAsync(payload , page , limit , search);
             
-            const totalCount = await activityRepository.count(search);
+            const totalCount = await activityRepository.count(payload,search);
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Get all success",

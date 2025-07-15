@@ -556,7 +556,7 @@ export const saleOrderService = {
             if(data == null){
                 return new ServiceResponse(
                     ResponseStatus.Failed,
-                    "Awaiting Receipt",
+                    "Awaiting receipt or full payment",
                     null,
                     StatusCodes.BAD_REQUEST
                 );

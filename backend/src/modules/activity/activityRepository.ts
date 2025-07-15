@@ -4,13 +4,10 @@ import { TypePayloadActivity , Filter } from '@modules/activity/activityModel';
 import { object } from 'zod';
 import e from 'express';
 
-
-
-
 export const activityRepository = {
 
-    count: async (searchText?: string) => {
-        searchText = searchText?.trim();
+    count: async (payload: Filter , searchText: string) => {
+        searchText = searchText.trim();
         return await prisma.activity.count({
             where: {
                 ...(searchText
@@ -25,8 +22,14 @@ export const activityRepository = {
                                 }
                             },
                         ],
-                    })
-            },
+                    }
+                ),
+                AND: [
+                    ...(payload.customer_id ? [{ customer_id: payload.customer_id }] : []),
+                    ...(payload.team_id ? [{ team_id: payload.team_id }] : []),
+                    ...(payload.responsible_id ? [{ responsible_id : payload.responsible_id }] : [])
+                ]
+            }
         });
     },
     findById: async( activity_id : string) => {
@@ -34,7 +37,6 @@ export const activityRepository = {
         return await prisma.activity.findUnique({
             where: { activity_id: activity_id },
             select: {
-                activity_id: true,
                 customer:{ select: { customer_id: true , company_name: true } },
                 issue_date: true,
                 activity_time: true,
@@ -47,12 +49,6 @@ export const activityRepository = {
 
     fineAllAsync : async (payload: Filter , skip: number , take: number , searchText: string) => {
         searchText = searchText.trim();
-        const setForm = Object.fromEntries(
-            Object.entries(payload).map(([key,value]) => [
-                key,
-                typeof value === 'string' ? value.trim() : value    
-            ])
-        ) as Filter;
 
         return await prisma.activity.findMany({
             where: {
@@ -78,12 +74,12 @@ export const activityRepository = {
             take: take,
             select: {
                 activity_id: true,
-                customer_id: true,
+                customer: { select: { customer_id: true , company_name: true }},
                 issue_date: true,
                 activity_time: true,
                 activity_description: true,
-                team_id: true,
-                responsible_id: true,
+                team: { select: { team_id: true , name: true }},
+                responsible: { select: { employee_id: true , first_name: true , last_name: true } },
             },
             orderBy: { created_at: 'desc' },
         });
@@ -108,7 +104,7 @@ export const activityRepository = {
             where: { activity_id: activity_id },
             data: {
                 customer_id: setForm.customer_id,
-                issue_date: setForm.issue_date,
+                issue_date: new Date(setForm.issue_date),
                 activity_time: setForm.activity_time,
                 activity_description: setForm.activity_description,
                 team_id: setForm.team_id,
@@ -132,7 +128,7 @@ export const activityRepository = {
         return await prisma.activity.create({
             data: {
                 customer_id: setForm.customer_id,
-                issue_date: setForm.issue_date,
+                issue_date: new Date(setForm.issue_date),
                 activity_time: setForm.activity_time,
                 activity_description: setForm.activity_description,
                 team_id: setForm.team_id,

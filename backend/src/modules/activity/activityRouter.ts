@@ -21,7 +21,7 @@ export const activityRouter = (() => {
     })
 
 
-    router.get("/get" , authenticateToken , authorizeByName("บันทึกกิจกรรม" , ["A"]) ,validateRequest(GetAllSchema), async (req: Request, res: Response) => {
+    router.post("/get" , authenticateToken , authorizeByName("บันทึกกิจกรรม" , ["A"]) ,validateRequest(GetAllSchema), async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 50;
         const searchText = (req.query.search as string) || "";
