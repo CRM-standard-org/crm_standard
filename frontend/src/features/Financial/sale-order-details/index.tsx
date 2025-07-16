@@ -74,6 +74,8 @@ export default function SaleOrderDetails() {
     const [dataSaleOrder, setDataSaleOrder] = useState<TypeSaleOrderResponse>();
     const [selectedPaymentFiles, setSelectedPaymentFiles] = useState<{ payment_file_url: string }[]>([]);
 
+    //หาสถานะล่าสุด
+    const latestStatus = dataSaleOrder?.status?.[dataSaleOrder.status.length - 1].sale_order_status;
 
     const [saleOrderRemark, setSaleOrderRemark] = useState("");
 
@@ -295,7 +297,7 @@ export default function SaleOrderDetails() {
                 setSaleOrderRemark("");
             }
             else if (res.statusCode === 400) {
-                if (res.message === "Awaiting Receipt") {
+                if (res.message === "Awaiting Receipt or full payment") {
                     showToast("กรุณาระบุวันที่ได้รับสินค้า ", false);
                 }
                 else {
@@ -851,22 +853,28 @@ export default function SaleOrderDetails() {
                 </Buttons>
 
                 <div className="space-x-3">
-                    <Buttons
-                        btnType="submit"
-                        variant="solid"
-                        className="w-30"
-                        onClick={() => handleCloseSaleOpen()}
-                    >
-                        ปิดการขาย
-                    </Buttons>
-                    <Buttons
-                        btnType="delete"
-                        variant="solid"
-                        className="w-30"
-                        onClick={() => handleRejectSaleOpen()}
-                    >
-                        ยกเลิกการขาย
-                    </Buttons>
+                    {latestStatus && !["สำเร็จ", "ไม่สำเร็จ"].includes(latestStatus) && (
+                        <>
+                            
+
+                            <Buttons
+                                btnType="submit"
+                                variant="solid"
+                                className="w-30"
+                                onClick={() => handleCloseSaleOpen()}
+                            >
+                                ปิดการขาย
+                            </Buttons>
+                            <Buttons
+                                btnType="delete"
+                                variant="solid"
+                                className="w-30"
+                                onClick={() => handleRejectSaleOpen()}
+                            >
+                                ยกเลิกการขาย
+                            </Buttons>
+                        </>
+                    )}
 
                     <Link to="/sale-order">
                         <Buttons

@@ -16,6 +16,9 @@ import { TypeColorAllResponse } from "@/types/response/response.color";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useColor } from "@/hooks/useColor";
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
+import { TypeAllActivityResponse } from "@/types/response/response.activity";
+import { useAllActivities } from "@/hooks/useCustomerActivity";
+import { deleteActivity } from "@/services/activity.service";
 
 
 type dateTableType = {
@@ -24,7 +27,7 @@ type dateTableType = {
     value: any;
     className: string;
   }[];
-  // data: TypeColorAllResponse; //ตรงนี้
+  data: TypeAllActivityResponse;
 }[];
 
 //
@@ -37,7 +40,6 @@ export default function CustomerActivity() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  const [selectedItem, setSelectedItem] = useState<TypeColorAllResponse | null>(null);
 
   const { showToast } = useToast();
   //
@@ -45,46 +47,92 @@ export default function CustomerActivity() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = searchParams.get("page") ?? "1";
   const pageSize = searchParams.get("pageSize") ?? "25";
-  const [searchTextDebouce, setSearchTextDebouce] = useState("");
+  const [selectedItem, setSelectedItem] = useState<TypeAllActivityResponse | null>(null);
 
-  const [allQuotation, setAllQuotation] = useState<any[]>([]);
-  const [quotation, setQuotation] = useState<any[]>([]);
-  
+
+  const [customer, setCustomer] = useState<string | null>(null);
+  const [responseId, setResponseId] = useState<string | null>(null);
+  const [teamId, setTeamId] = useState<string | null>(null);
+
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
+  const [searchActivity, setSearchActivity] = useState("");
 
 
-  const { data: dataColor, refetch: refetchColor } = useColor({
+  //fetch quotation
+  const { data: dataActitvities, refetch: refetchActivity } = useAllActivities({
     page: page,
     pageSize: pageSize,
-    searchText: searchTextDebouce,
+    searchText: searchActivity,
+    payload: {
+      customer_id: customer,
+      responsible_id: responseId,
+      team_id: teamId,
+    }
   });
-  // const dataCountry = async () => {
-  //   return {
-  //     responseObject: [
-  //       { id: 1, name: "ไทย" },
-  //       { id: 2, name: "อังกฤษ" },
-  //       { id: 3, name: "ฟิลิปปินส์" },
-  //       { id: 4, name: "ลาว" },
-  //     ],
-  //   };
-  // };
 
-  // useEffect(() => {
-  //   console.log("Data:", dataColor);
-  //   if (dataColor?.responseObject?.data) {
-  //     const formattedData = dataColor.responseObject?.data.map(
-  //       (item: TypeColorAllResponse, index: number) => ({
-  //         className: "",
-  //         cells: [
-  //           { value: index + 1, className: "text-center" },
-  //           { value: item.color_name, className: "text-left" },
-  //         ],
-  //         data: item,
-  //       })
-  //     );
-  //     setData(formattedData);
-  //   }
-  // }, [dataColor]);
+
+  useEffect(() => {
+
+    if (dataActitvities?.responseObject?.data) {
+
+      const formattedData = dataActitvities.responseObject?.data.map(
+        (item: TypeAllActivityResponse) => ({
+          className: "",
+          cells: [
+            {
+              value: (
+                <div className="flex flex-col">
+                  {new Date(item.issue_date).toLocaleDateString("th-TH")}
+                  <div className="">
+
+                    เวลา {item.activity_time} น.
+                  </div>
+                </div>
+              )
+
+
+              , className: "text-left"
+            },
+            {
+              value: <div className="flex flex-col">
+                {item.customer.company_name}
+                <div className="flex flex-row space-x-1">
+                  {item.customer.customer_tags && item.customer.customer_tags.map((tag) => (
+
+                    <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
+                  ))}
+
+                </div>
+              </div>, className: "text-left"
+            },
+            { value: item.activity_description, className: "text-left" },
+            {
+              value: (
+                <div className="flex flex-col">
+                  {item.customer.customer_contact &&
+                    item.customer.customer_contact.map((contact, index) => (
+                      <div key={contact.customer_contact_id ?? index}>
+                        {contact.name}
+                        <div className="flex flex-row space-x-1">
+                          โทร: {contact.phone}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ),
+               className: "text-left"
+            },
+            { value: item.responsible.first_name + "" + item.responsible.last_name, className: "text-center" },
+            { value: item.team.name, className: "text-center" },
+
+          ],
+          data: item,
+        })
+
+      );
+      setData(formattedData);
+    }
+  }, [dataActitvities]);
 
 
   const dropdown = [
@@ -223,23 +271,22 @@ export default function CustomerActivity() {
     }
   ];
   //tabs บน headertable
-  
 
- 
- 
+
+
+
   const groupTabs = [
     {
       name: "บันทึกกิจกรรมลูกค้า",
       onChange: () => setFilterGroup(null)
     }
-   
-  
+
+
   ];
   useEffect(() => {
     if (searchText === "") {
-      setSearchTextDebouce(searchText);
+      setSearchActivity(searchText);
       setSearchParams({ page: "1", pageSize });
-      refetchColor();
     }
   }, [searchText]);
 
@@ -248,10 +295,8 @@ export default function CustomerActivity() {
   }
   //handle
   const handleSearch = () => {
-    setSearchTextDebouce(searchText);
+    setSearchActivity(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchColor();
-    console.log("Search:", { searchText });
   };
 
 
@@ -262,15 +307,15 @@ export default function CustomerActivity() {
     setColorsName("");
     setIsCreateDialogOpen(true);
   };
-  const handleEditOpen = () => {
-    navigate(`/edit-customer-activity/${idPath}`);
+  const handleEditOpen = (item: TypeAllActivityResponse) => {
+    navigate(`/edit-customer-activity/${item.activity_id}`);
   };
-  const handleDeleteOpen = (item: TypeColorAllResponse) => {
+
+  const handleDeleteOpen = (item: TypeAllActivityResponse) => {
     setSelectedItem(item);
     setIsDeleteDialogOpen(true);
 
   };
-
   //ปิด
   const handleCreateClose = () => {
     setIsCreateDialogOpen(false);
@@ -283,85 +328,36 @@ export default function CustomerActivity() {
   };
 
   //ยืนยันไดอะล็อค
-  const handleConfirm = async () => {
-    if (!colorsName) {
-      showToast("กรุณาระบุสี", false);
-      return;
-    }
-    try {
-      const response = await postColor({
-        color_name: colorsName, // ใช้ชื่อ field ที่ตรงกับ type
-      });
 
-      if (response.statusCode === 200) {
-        setColorsName("");
-        handleCreateClose();
-        showToast("สร้างรายการสีเรียบร้อยแล้ว", true);
-        refetchColor();
-      } else {
-        showToast("รายการสีนี้มีอยู่แล้ว", false);
-      }
-    } catch {
-      showToast("ไม่สามารถสร้างรายการสีได้", false);
-    }
-  };
 
-  const handleEditConfirm = async () => {
-    if (!colorsName) {
-      showToast("กรุณาระบุชื่อสี", false);
-      return;
-    }
-    if (!selectedItem) {
-      showToast("กรุณาระบุชื่อสี", false);
-      return;
-    }
-
-    try {
-      const response = await updateColor(selectedItem.color_id, {
-        color_name: colorsName,
-      });
-
-      if (response.statusCode === 200) {
-        showToast("แก้ไขรายการสีเรียบร้อยแล้ว", true);
-        setColorsName("");
-        setIsEditDialogOpen(false);
-        refetchColor();
-      } else {
-        showToast("ข้อมูลนี้มีอยู่แล้ว", false);
-      }
-    } catch (error) {
-      showToast("ไม่สามารถแก้ไขรายการสีได้", false);
-      console.error(error); // Log the error for debugging
-    }
-  };
   const handleDeleteConfirm = async () => {
-    if (!selectedItem || !selectedItem.color_name) {
-      showToast("กรุณาระบุรายการสีที่ต้องการลบ", false);
+    if (!selectedItem || !selectedItem.activity_id) {
+      showToast("กรุณาระบุกิจกรรมที่ต้องการลบ", false);
       return;
     }
 
 
     try {
-      const response = await deleteColor(selectedItem.color_id);
+      const response = await deleteActivity(selectedItem.activity_id);
 
       if (response.statusCode === 200) {
-        showToast("ลบรายการสีเรียบร้อยแล้ว", true);
+        showToast("ลบกิจกรรมเรียบร้อยแล้ว", true);
         setIsDeleteDialogOpen(false);
-        refetchColor();
+        refetchActivity();
       }
       else if (response.statusCode === 400) {
         if (response.message === "Color in quotation") {
-          showToast("ไม่สามารถลบรายการสีได้ เนื่องจากมีใบเสนอราคาอยู่", false);
+          showToast("ไม่สามารถลบกิจกรรมได้", false);
         }
         else {
-          showToast("ไม่สามารถลบรายการสีได้", false);
+          showToast("ไม่สามารถลบกิจกรรมได้", false);
         }
       }
       else {
-        showToast("ไม่สามารถลบรายการสีได้", false);
+        showToast("ไม่สามารถลบกิจกรรมได้", false);
       }
     } catch (error) {
-      showToast("ไม่สามารถลบรายการสีได้", false);
+      showToast("ไม่สามารถลบกิจกรรมได้", false);
     }
   };
 
@@ -384,8 +380,8 @@ export default function CustomerActivity() {
         onEdit={handleEditOpen}
         onDelete={handleDeleteOpen}
         headers={headers}
-        rowData={mockData}
-        totalData={mockData?.length}
+        rowData={data}
+        totalData={dataActitvities?.responseObject?.totalCount}
         onPopCreate={handleCreateOpen}
         onCreateBtn={true} // ให้มีปุ่ม create เพิ่มมารป่าว
         onCreateBtnClick={handleNavCreate}
@@ -396,54 +392,8 @@ export default function CustomerActivity() {
         groupTabs={groupTabs}
       />
 
-      {/* สร้าง */}
-      <DialogComponent
-        isOpen={isCreateDialogOpen}
-        onClose={handleCreateClose}
-        title="สร้างสี"
-        onConfirm={handleConfirm}
-        confirmText="บันทึกข้อมูล"
-        cancelText="ยกเลิก"
-      >
-        <div className="flex flex-col gap-3 items-left">
-          <InputAction
-            id="issue-reason-create"
-            placeholder="ระบุสี"
-            onChange={(e) => setColorsName(e.target.value)}
-            value={colorsName}
-            label="สี"
-            labelOrientation="horizontal"
-            onAction={handleConfirm}
-            classNameLabel="w-20 min-w-20 flex justify-end"
-            classNameInput="w-full"
-          />
-        </div>
-      </DialogComponent>
 
-      {/* แก้ไข */}
-      <DialogComponent
-        isOpen={isEditDialogOpen}
-        onClose={handleEditClose}
-        title="แก้ไขสี"
-        onConfirm={handleEditConfirm}
-        confirmText="บันทึกข้อมูล"
-        cancelText="ยกเลิก"
-      >
-        <div className="flex flex-col gap-3 items-left">
-          <InputAction
-            id="issue-reason-edit"
-            placeholder={colorsName ? colorsName : "ระบุสี"}
-            defaultValue={colorsName}
-            onChange={(e) => setColorsName(e.target.value)}
-            value={colorsName}
-            label="สี"
-            labelOrientation="horizontal"
-            onAction={handleEditConfirm}
-            classNameLabel="w-20 min-w-20 flex justify-end"
-            classNameInput="w-full"
-          />
-        </div>
-      </DialogComponent>
+
 
       {/* ลบ */}
       <DialogComponent
@@ -454,10 +404,8 @@ export default function CustomerActivity() {
         confirmText="ยืนยัน"
         cancelText="ยกเลิก"
       >
-        <p>
-          คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้? <br />
-          สี : <span className="text-red-500">{selectedItem?.color_name} </span>
-        </p>
+        <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการกิจกรรมนี้?</p>
+        <p>ชื่อ : <span className="text-red-500">{selectedItem?.activity_description} </span></p>
       </DialogComponent>
     </div>
   );

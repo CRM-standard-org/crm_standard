@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 
-import MasterSelectComponent from "@/components/customs/select/select.main.component";
+import MasterSelectComponent, { OptionType } from "@/components/customs/select/select.main.component";
 import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
@@ -22,6 +22,14 @@ import { useColor } from "@/hooks/useColor";
 import { Link } from "react-router-dom";
 import TextArea from "@/components/customs/textAreas/textarea.main.component";
 import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
+import { useTeam } from "@/hooks/useTeam";
+import { useResponseToOptions } from "@/hooks/useOptionType";
+import { useSelectResponsible } from "@/hooks/useEmployee";
+import { useAllCustomer } from "@/hooks/useCustomer";
+import { TypeAllCustomerResponse } from "@/types/response/response.customer";
+import DependentSelectComponent from "@/components/customs/select/select.dependent";
+import { postActivity } from "@/services/activity.service";
+import dayjs from "dayjs";
 
 
 type dateTableType = {
@@ -41,74 +49,132 @@ export default function CreateActivity() {
     const [data, setData] = useState<dateTableType>([]);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
+    const [customer, setCustomer] = useState<string | null>(null);
     const [dateActivity, setDateActivity] = useState<Date | null>(null);
     const [hour, setHour] = useState("");
     const [minute, setMinute] = useState("");
     const [activityDetail, setActivityDetail] = useState("");
 
-    const [customer, setCustomer] = useState<string | null>(null);
+
     const [team, setTeam] = useState<string | null>(null);
+    const [teamOptions, setTeamOptions] = useState<OptionType[]>([]);
     const [responsible, setResponsible] = useState<string | null>(null);
+    const [responsibleOptions, setResponsibleOptions] = useState<OptionType[]>([]);
+
+    //searchText control
+    const [searchTeam, setSearchTeam] = useState("");
+    const [searchEmployee, setSearchEmployee] = useState("");
+
+    const [tagId, setTagId] = useState<string | null>(null);
+    const [teamId, setTeamId] = useState<string | null>(null);
+    const [responsibleId, setResponsibleId] = useState<string | null>(null);
 
     const { showToast } = useToast();
     //
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
-    const page = searchParams.get("page") ?? "1";
-    const pageSize = searchParams.get("pageSize") ?? "25";
-    const [searchTextDebouce, setSearchTextDebouce] = useState("");
 
-    const [allQuotation, setAllQuotation] = useState<any[]>([]);
-    const [quotation, setQuotation] = useState<any[]>([]);
-
-    const { data: dataColor, refetch: refetchColor } = useColor({
-        page: page,
-        pageSize: pageSize,
-        searchText: searchTextDebouce,
+    // const personName = async () => {
+    //     return {
+    //         responseObject: [
+    //             { id: 1, name: "นาย A" },
+    //             { id: 2, name: "นาย B" },
+    //             { id: 3, name: "นาย C" },
+    //             { id: 4, name: "นาย D" },
+    //         ],
+    //     };
+    // };
+    //fetch customer
+    const { data: dataCustomer, refetch: refetchCustomer } = useAllCustomer({
+        page: "1",
+        pageSize: "100",
+        searchText: "",
+        payload: {
+            tag_id: tagId,
+            team_id: teamId,
+            responsible_id: responsibleId,
+        }
     });
 
-    const activityDay = async () => {
+    //auto fill by id customer
+    const fetchDataCustomerDropdown = async () => {
+        const customerList = dataCustomer?.responseObject?.data ?? [];
         return {
-            responseObject: [
-                { id: 1, name: "19 ก.พ. 2568" },
-                { id: 2, name: "20 ก.พ. 2568" },
-                { id: 3, name: "21 ก.พ. 2568" },
-                { id: 4, name: "22 ก.พ. 2568" },
-            ],
+            responseObject: customerList.map((item: TypeAllCustomerResponse) => ({
+                id: item.customer_id,
+                name: item.company_name,
+
+            })),
+        }
+    }
+
+    //fetch team 
+
+    const { data: dataTeam, refetch: refetchTeam } = useTeam({
+        page: "1",
+        pageSize: "100",
+        searchText: searchTeam,
+    });
+
+    useEffect(() => {
+        if (dataTeam?.responseObject?.data) {
+            const teamList = dataTeam.responseObject.data;
+            const { options } = useResponseToOptions(teamList, "team_id", "name");
+            setTeamOptions(options);
+        }
+    }, [dataTeam]);
+
+    const fetchDataTeamDropdown = useCallback(async () => {
+        const teamList = dataTeam?.responseObject.data ?? [];
+        return {
+            responseObject: teamList.map(item => ({
+                id: item.team_id,
+                name: item.name,
+            })),
         };
+    }, [dataTeam]);
+
+    const handleTeamSearch = (searchText: string) => {
+        setSearchTeam(searchText);
+        refetchTeam();
     };
 
-    const customerName = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "ลูกค้า A" },
-                { id: 2, name: "ลูกค้า B" },
-                { id: 3, name: "ลูกค้า C" },
-                { id: 4, name: "ลูกค้า D" },
-            ],
-        };
-    };
-    const teamName = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "ทีม A" },
-                { id: 2, name: "ทีม B" },
-                { id: 3, name: "ทีม C" },
-                { id: 4, name: "ทีม D" },
-            ],
-        };
-    };
-    const personName = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "นาย A" },
-                { id: 2, name: "นาย B" },
-                { id: 3, name: "นาย C" },
-                { id: 4, name: "นาย D" },
-            ],
-        };
-    };
+    //fetch Member in team 
+    const { data: dataTeamMember, refetch: refetchTeamMember } = useSelectResponsible({
+        team_id: team ?? "",
+        searchText: searchEmployee,
+    });
 
+    useEffect(() => {
+        // reset ค่าเมื่อ team เปลี่ยน
+        setResponsible(null);
+        setResponsibleOptions([]);
+
+        if (dataTeamMember?.responseObject?.data) {
+            const member = dataTeamMember.responseObject.data;
+            const { options } = useResponseToOptions(
+                member,
+                "employee_id",
+                (item) => `${item.first_name} ${item.last_name || ""}`
+            );
+            setResponsibleOptions(options);
+
+        }
+    }, [team, dataTeamMember]);
+
+    const fetchDataMemberInteam = useCallback(async () => {
+        const member = dataTeamMember?.responseObject?.data ?? [];
+        return {
+            responseObject: member.map(item => ({
+                id: item.employee_id,
+                name: `${item.first_name} ${item.last_name || ""}`,
+            })),
+        };
+    }, [dataTeamMember]);
+
+    const handleEmployeeSearch = (searchText: string) => {
+        setSearchEmployee(searchText);
+        refetchTeamMember();
+    };
 
 
     //   useEffect(() => {
@@ -142,34 +208,45 @@ export default function CreateActivity() {
     ];
 
 
-    useEffect(() => {
-        if (searchText === "") {
-            setSearchTextDebouce(searchText);
-            refetchColor();
-        }
-    }, [searchText]);
 
 
     //ยืนยันไดอะล็อค
     const handleConfirm = async () => {
-        if (!colorsName) {
-            showToast("กรุณาระบุสี", false);
+        const missingFields: string[] = [];
+
+        if (!customer) missingFields.push("ลูกค้า");
+        if (!dateActivity) missingFields.push("วันที่กิจกรรม ");
+        if (!responsible) missingFields.push("ผู้รับผิดชอบ");
+        if (!team) missingFields.push("ทีม");
+        if (!hour) missingFields.push("ชั่วโมง");
+        if (!minute) missingFields.push("นาที");
+        if (!activityDetail) missingFields.push("รายละเอียดกิจกรรม");
+
+
+        if (missingFields.length > 0) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
             return;
         }
+        const time = hour + ":" + minute
         try {
-            const response = await postColor({
-                color_name: colorsName, // ใช้ชื่อ field ที่ตรงกับ type
+            const response = await postActivity({
+                customer_id: customer,
+                issue_date: dateActivity ? dayjs(dateActivity).format("YYYY-MM-DD") : "",
+                activity_time: time,
+                activity_description: activityDetail,
+                team_id: team,
+                responsible_id: responsible
             });
 
             if (response.statusCode === 200) {
-                setColorsName("");
-                showToast("สร้างรายการสีเรียบร้อยแล้ว", true);
-                refetchColor();
+                showToast("สร้างรายการกิจกรรมเรียบร้อยแล้ว", true);
+                navigate("/customer-activity")
+
             } else {
-                showToast("รายการสีนี้มีอยู่แล้ว", false);
+                showToast("รายการกิจกรรมนี้มีอยู่แล้ว", false);
             }
         } catch {
-            showToast("ไม่สามารถสร้างรายการสีได้", false);
+            showToast("ไม่สามารถสร้างรายการกิจกรรมได้", false);
         }
     };
 
@@ -192,7 +269,7 @@ export default function CreateActivity() {
                             <div className="">
                                 <DatePickerComponent
                                     id="doc-date"
-                                    label="วันออกเอกสาร"
+                                    label="วันที่กิจกรรม"
                                     placeholder="dd/mm/yy"
                                     selectedDate={dateActivity}
                                     onChange={(date) => setDateActivity(date)}
@@ -203,20 +280,20 @@ export default function CreateActivity() {
                             </div>
                         </div>
                         <div className="">
-
                             <MasterSelectComponent
                                 id="customer"
                                 onChange={(option) => setCustomer(option ? String(option.value) : null)}
-                                fetchDataFromGetAPI={customerName}
-                                valueKey="master_brand_id"
+                                fetchDataFromGetAPI={fetchDataCustomerDropdown}
+                                valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ลูกค้า"
                                 labelOrientation="horizontal"
-                                classNameLabel="w-1/2"
-                                classNameSelect="w-full"
-                                nextFields={{ left: "date-activity", right: "date-activity", up: "responsible", down: "team" }}
+                                classNameLabel="w-1/2 flex"
+                                classNameSelect="w-full "
+                                nextFields={{ up: "customer-contact", down: "team" }}
+                                require="require"
                             />
                         </div>
                         <div className="flex sm:flex-nowrap sm:items-center gap-2">
@@ -234,6 +311,7 @@ export default function CreateActivity() {
                                 classNameLabel=""
                                 classNameInput="w-full"
                                 nextFields={{ left: "team", right: "minute", up: "date-activity", down: "activity-detail" }}
+                                require="require"
                             />
                             <label>:</label>
                             <InputAction
@@ -247,27 +325,32 @@ export default function CreateActivity() {
                                 classNameLabel=""
                                 classNameInput="w-full"
                                 nextFields={{ left: "hour", right: "team", up: "date-activity", down: "activity-detail" }}
+                                require="require"
                             />
 
                             <label className="">น.</label>
 
                         </div>
                         <div className="">
-
-                            <MasterSelectComponent
+                            <DependentSelectComponent
                                 id="team"
+                                value={teamOptions.find((opt) => opt.value === team) || null}
                                 onChange={(option) => setTeam(option ? String(option.value) : null)}
-                                fetchDataFromGetAPI={teamName}
-                                valueKey="master_brand_id"
+                                onInputChange={handleTeamSearch}
+                                fetchDataFromGetAPI={fetchDataTeamDropdown}
+                                valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ทีมผู้รับผิดชอบ"
                                 labelOrientation="horizontal"
-                                classNameLabel="w-1/2"
-                                classNameSelect="w-full"
-                                nextFields={{ left: "minute", right: "hour", up: "customer", down: "responsible" }}
+                                classNameLabel="w-1/2 "
+                                classNameSelect="w-full "
+                                nextFields={{ up: "province", down: "responsible-telno" }}
+                                require="require"
+
                             />
+
                         </div>
                         <div className="">
 
@@ -282,27 +365,30 @@ export default function CreateActivity() {
                                 classNameInput="w-full"
                                 onMicrophone={true}
                                 nextFields={{ left: "responsible", right: "responsible", up: "hour", down: "date-activity" }}
+                                require="require"
                             />
                         </div>
                         <div className="">
 
-                            <MasterSelectComponent
+                            <DependentSelectComponent
                                 id="responsible"
-                                onChange={(option) => setResponsible(option ? String(option.value) : null)}
-                                fetchDataFromGetAPI={teamName}
-                                valueKey="master_brand_id"
+                                value={responsibleOptions.find((opt) => opt.value === responsible) || null}
+                                onChange={(option) => { setResponsible(option ? String(option.value) : null); }}
+                                onInputChange={handleEmployeeSearch}
+                                fetchDataFromGetAPI={fetchDataMemberInteam}
+                                valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ผู้รับผิดชอบ"
                                 labelOrientation="horizontal"
-                                classNameLabel="w-1/2  "
-                                classNameSelect="w-full"
-                                nextFields={{ left: "activity-detail", right: "activity-detail", up: "team", down: "customer" }}
+                                classNameLabel="w-1/2 "
+                                classNameSelect="w-full "
+                                nextFields={{ up: "responsible-telno", down: "responsible-email" }}
+                                require="require"
 
                             />
                         </div>
-
 
 
 
@@ -315,6 +401,7 @@ export default function CreateActivity() {
                         btnType="primary"
                         variant="outline"
                         className="w-30"
+                        onClick={handleConfirm}
                     >
                         สร้าง
                     </Buttons>

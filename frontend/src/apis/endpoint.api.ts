@@ -101,6 +101,13 @@ export const EDIT_CUSTOMER_ADDRESS = "/v1/customer/update-address";
 export const DELETE_CUSTOMER_CONTACT = "/v1/customer/delete-contact"
 export const DELETE_CUSTOMER_ADDRESS = "/v1/customer/delete-address"
 
+//activity
+export const CREATE_ACTIVITY = "/v1/activity/create";
+export const GET_ALL_ACTIVITY = "/v1/activity/get";
+export const GET_ACTIVITY_BY_ID = "/v1/activity/get";
+export const EDIT_ACTIVITY = "/v1/activity/update";
+export const DELETE_ACTIVITY = "/v1/activity/delete";
+
 //product group
 export const CREATE_GROUP_PRODUCT = "/v1/group-product/create";
 export const SELECT_GROUP_PRODUCT = "/v1/group-product/select";

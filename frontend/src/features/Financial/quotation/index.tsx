@@ -340,13 +340,6 @@ export default function Quotation() {
     setSearchParams({ page: "1", pageSize });
   };
 
-  const handleEdit = (id: any) => {
-    console.log("Edit:", id);
-  };
-
-  const handleDelete = (id: any) => {
-    console.log("Delete:", id);
-  };
   const handleView = (item: TypeAllQuotationResponse) => {
     navigate(`/quotation-details/${item.quotation_id}`);
   }

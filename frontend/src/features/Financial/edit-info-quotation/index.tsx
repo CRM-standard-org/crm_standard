@@ -1095,6 +1095,8 @@ export default function EditInfoQuotation() {
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 nextFields={{ up: "customer-contact", down: "team" }}
+                                defaultValue={{ label: customerName, value: customer }}
+
                                 require="require"
                             />
                         </div>

@@ -154,7 +154,7 @@ const router = createBrowserRouter([
         element: <EditInfoCustomer />,
       },
       {
-        path: "/edit-customer-activity/:customerId",
+        path: "/edit-customer-activity/:activityId",
         element: <EditCustomerActivity />,
       },
       {
