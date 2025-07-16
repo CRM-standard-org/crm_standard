@@ -74,7 +74,28 @@ export const activityRepository = {
             take: take,
             select: {
                 activity_id: true,
-                customer: { select: { customer_id: true , company_name: true }},
+                customer: { 
+                    select: { 
+                        customer_id: true , 
+                        company_name: true ,
+                        customer_tags: {
+                            select: {
+                                customer_tag_id: true,
+                                group_tag:{
+                                    select: { tag_id: true , tag_name: true }
+                                }
+                            }
+                        },
+                        customer_contact:{
+                            where:{ main: true},
+                            select:{
+                                customer_contact_id: true,
+                                name: true,
+                                phone: true
+                            }
+                        }
+                    }
+                },
                 issue_date: true,
                 activity_time: true,
                 activity_description: true,
