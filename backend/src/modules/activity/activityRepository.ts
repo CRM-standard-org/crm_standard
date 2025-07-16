@@ -82,7 +82,7 @@ export const activityRepository = {
                             select: {
                                 customer_tag_id: true,
                                 group_tag:{
-                                    select: { tag_id: true , tag_name: true }
+                                    select: { tag_id: true , tag_name: true , color: true }
                                 }
                             }
                         },
