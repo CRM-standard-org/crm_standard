@@ -1,51 +1,69 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# CRM Standard Prateep Frontend
 
-Currently, two official plugins are available:
+## โครงสร้างโปรเจกต์
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+frontend/
+│
+├── public/                # static files เช่น รูปภาพ โลโก้
+├── font/                  # ฟอนต์ภาษาไทย
+├── src/
+│   ├── components/        # UI components (customs, layouts, ui)
+│   ├── features/          # ฟีเจอร์หลัก เช่น Customer, Financial, Product ฯลฯ
+│   ├── services/          # เรียกใช้งาน API
+│   ├── hooks/             # custom hooks
+│   ├── types/             # type definitions
+│   ├── configs/           # config ต่างๆ ของแอป
+│   ├── lib/               # utility functions
+│   ├── pages/             # หน้าเพจแต่ละส่วน
+│   ├── routes/            # การจัดการ routing
+│   ├── utils/             # ฟังก์ชันช่วยเหลือทั่วไป
+│   ├── zustand/           # state management (Zustand)
+│   └── ...                # โค้ด frontend อื่นๆ
+├── index.html             # entry point
+├── package.json           # dependencies และ script ของ frontend
+├── tailwind.config.ts     # Tailwind CSS config
+├── vite.config.ts         # Vite config
+├── tsconfig.json          # TypeScript config
+└── README.md              # ไฟล์นี้
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## คำอธิบาย
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- **components/**  
+  รวม UI components ที่ใช้ซ้ำได้ เช่น ปุ่ม, ฟอร์ม, layout ฯลฯ
+- **features/**  
+  โค้ดแต่ละฟีเจอร์ เช่น ลูกค้า, การเงิน, สินค้า ฯลฯ
+- **services/**  
+  ฟังก์ชันสำหรับเรียก API ไปยัง backend
+- **hooks/**  
+  custom hooks สำหรับจัดการ state หรือ logic เฉพาะ
+- **types/**  
+  กำหนด type และ interface สำหรับ TypeScript
+- **configs/**  
+  การตั้งค่าต่างๆ ของแอป เช่น config API, theme
+- **lib/** และ **utils/**  
+  ฟังก์ชันช่วยเหลือทั่วไป เช่น format, validate
+- **pages/**  
+  หน้าเพจหลักของแต่ละส่วน
+- **routes/**  
+  การจัดการเส้นทาง (routing) ของแอป
+- **zustand/**  
+  จัดการ global state ด้วย Zustand
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## วิธีเริ่มต้น
+
+1. ติดตั้ง dependencies:
+   ```bash
+   npm install
+   ```
+2. รัน development server:
+   ```bash
+   npm run dev
+   ```
+3. เปิดใช้งานที่ http://localhost:5173
+
+---
+สำหรับรายละเอียดเพิ่มเติม ดูโครงสร้างโปรเจกต์รวมที่ [../README.md](../README.md)
 
