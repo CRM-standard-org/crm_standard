@@ -82,23 +82,20 @@ export default function PaymentMethod() {
     { label: "ลบ", colSpan: 1, className: "min-w-10" },
   ];
 
-  useEffect(() => {
-    if (searchRole === "") {
-      setSearchRole(searchRole);
-      setSearchParams({ page: "1", pageSize });
-      refetchPayment();
-    }
-  }, [searchRole]);
+
 
   //handle
   const handleSearch = () => {
-    setSearchRole(searchRole);
+    setSearchRole(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchPayment();
-
   };
-
-
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchRole(searchText);
+      setSearchParams({ page: "1", pageSize });
+    }
+  }, [searchText]);
+  
   //เปิด
   const handleCreateOpen = () => {
     setPaymentMethodName("");
@@ -219,10 +216,10 @@ export default function PaymentMethod() {
         inputs={[
           {
             id: "search_input",
-            value: searchRole,
+            value: searchText,
             size: "3",
             placeholder: "ค้นหา....",
-            onChange: setSearchRole,
+            onChange: setSearchText,
             onAction: handleSearch,
           },
         ]}
@@ -259,7 +256,7 @@ export default function PaymentMethod() {
             classNameLabel="w-60 flex "
             classNameInput="w-full"
           />
-         
+
         </div>
       </DialogComponent>
 
@@ -285,7 +282,7 @@ export default function PaymentMethod() {
             classNameLabel="w-60 flex "
             classNameInput="w-full"
           />
-         
+
         </div>
       </DialogComponent>
 

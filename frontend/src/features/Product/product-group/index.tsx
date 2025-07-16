@@ -87,7 +87,6 @@ export default function ProductGroup() {
     if (searchText === "") {
       setSearchTextDebouce(searchText);
       setSearchParams({ page: "1", pageSize });
-      refetchGroupProduct();
     }
   }, [searchText]);
 
@@ -95,8 +94,6 @@ export default function ProductGroup() {
   const handleSearch = () => {
     setSearchTextDebouce(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchGroupProduct();
-
   };
 
 

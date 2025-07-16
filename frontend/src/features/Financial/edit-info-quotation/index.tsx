@@ -194,9 +194,7 @@ export default function EditInfoQuotation() {
     const [searchCurrency, setSearchCurrency] = useState("");
     const [searchEmployee, setSearchEmployee] = useState("");
 
-    const [tagId, setTagId] = useState<string | null>(null);
-    const [teamId, setTeamId] = useState<string | null>(null);
-    const [responsibleId, setResponsibleId] = useState<string | null>(null);
+
 
     const [editMode, setEditMode] = useState<boolean>(false);
     const [uploadKey, setUploadKey] = useState(0);
@@ -212,9 +210,9 @@ export default function EditInfoQuotation() {
         pageSize: "100",
         searchText: "",
         payload: {
-            tag_id: tagId,
-            team_id: teamId,
-            responsible_id: responsibleId,
+            tag_id: null,
+            team_id: null,
+            responsible_id: null,
         }
     });
 
@@ -1568,16 +1566,19 @@ export default function EditInfoQuotation() {
 
                                         <Table.Cell className="p-0  h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.price.toString()}
                                                 onChange={(e) => handleChange(index, "price", parseFloat(e.target.value))}
                                                 classNameInput="w-full h-full border-none shadow-none focus-within:bg-sky-100 rounded-none"
                                                 disabled={!(row.isNew || row.isEditing)}
                                             />
+
                                         </Table.Cell>
 
                                         <Table.Cell className="p-0  h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.amount.toString()}
                                                 onChange={(e) => handleChange(index, 'amount', parseFloat(e.target.value))}
@@ -1592,6 +1593,7 @@ export default function EditInfoQuotation() {
 
                                         <Table.Cell className="p-0  h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.discount.toString()}
                                                 onChange={(e) => handleChange(index, 'discount', parseFloat(e.target.value))}
@@ -1602,6 +1604,7 @@ export default function EditInfoQuotation() {
 
                                         <Table.Cell className="p-0  h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.discountPercent.toString()}
                                                 onChange={(e) => handleChange(index, 'discountPercent', parseFloat(e.target.value))}
@@ -1612,6 +1615,7 @@ export default function EditInfoQuotation() {
 
                                         <Table.Cell className="p-0 h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.value.toFixed(2)}
                                                 onChange={(e) => handleChange(index, 'value', parseFloat(e.target.value))}

@@ -185,7 +185,7 @@ export default function ApproveQuotation() {
         (item: TypeAllQuotationResponse) =>
           ["รออนุมัติ", "อนุมัติ", "ไม่อนุมัติ"].includes(item.quotation_status)
       );
-    
+
       const formattedData = filtered.map((item) => ({
         className: "",
         cells: [
@@ -200,10 +200,10 @@ export default function ApproveQuotation() {
         ],
         data: item,
       }));
-    
+
       setData(formattedData);
     }
-    
+
   }, [dataQuotations]);
   //tabs บน headertable
 
@@ -240,26 +240,26 @@ export default function ApproveQuotation() {
 
 
   ];
-  useEffect(() => {
-    if (searchText === "") {
-      setSearchQuotation(searchText);
-      refetchQuotation();
-    }
-  }, [searchText]);
 
- 
+
+
   //handle
   const handleSearch = () => {
     setSearchQuotation(searchText);
-    refetchQuotation();
-    console.log("Search:", { searchText });
+    setSearchParams({ page: "1", pageSize });
   };
-
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchQuotation(searchText);
+      setSearchParams({ page: "1", pageSize });
+    }
+  }, [searchText]);
+  
   const handleView = (item: TypeAllQuotationResponse) => {
     navigate(`/approve-details-quotation/${item.quotation_id}`);
   }
 
- 
+
   return (
     <div>
       <MasterTableFeature

@@ -89,22 +89,21 @@ export default function CustomerCharacter() {
     { label: "ลบ", colSpan: 1, className: "min-w-10" },
   ];
 
-  useEffect(() => {
-    if (searchCharacter === "") {
-      setSearchCharacter(searchCharacter);
-      setSearchParams({ page: "1", pageSize });
-      refetchCharacter();
-    }
-  }, [searchCharacter]);
+
 
   //handle
   const handleSearch = () => {
-    setSearchCharacter(searchCharacter);
+    setSearchCharacter(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchCharacter();
+
   };
 
-
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchCharacter(searchText);
+      setSearchParams({ page: "1", pageSize });
+    }
+  }, [searchText]);
   //เปิด
   const handleCreateOpen = () => {
     setCharacterName("");
@@ -137,13 +136,13 @@ export default function CustomerCharacter() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!characterName || !characterDescription ) {
+    if (!characterName || !characterDescription) {
       showToast("กรุณาระบุให้ครบทุกช่อง", false);
       return;
     }
     console.log(characterName, characterDescription)
     try {
-      const response = await postCharacter({ 
+      const response = await postCharacter({
         character_name: characterName, // ใช้ชื่อ field ที่ตรงกับ type
         character_description: characterDescription,
       });
@@ -164,7 +163,7 @@ export default function CustomerCharacter() {
   };
 
   const handleEditConfirm = async () => {
-    if (!characterName || !characterDescription ) {
+    if (!characterName || !characterDescription) {
       showToast("กรุณาระบุให้ครบทุกช่อง", false);
       return;
     }
@@ -184,7 +183,7 @@ export default function CustomerCharacter() {
         setCharacterName("");
         setCharacterDescription("");
         setIsEditDialogOpen(false);
-        
+
         refetchCharacter();
       } else {
         showToast("ข้อมูลนี้มีอยู่แล้ว", false);
@@ -234,10 +233,10 @@ export default function CustomerCharacter() {
         inputs={[
           {
             id: "search_input",
-            value: searchCharacter,
+            value: searchText,
             size: "3",
             placeholder: "ค้นหา....",
-            onChange: setSearchCharacter,
+            onChange: setSearchText,
             onAction: handleSearch,
           },
         ]}
@@ -273,7 +272,7 @@ export default function CustomerCharacter() {
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
           />
-          
+
           <InputAction
             id="character-detail"
             placeholder="รายละเอียดนิสัย"
@@ -327,7 +326,7 @@ export default function CustomerCharacter() {
       </DialogComponent>
 
       {/* ลบ */}
-      
+
       <DialogComponent
         isOpen={isDeleteDialogOpen}
         onClose={handleDeleteClose}

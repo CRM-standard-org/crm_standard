@@ -19,6 +19,11 @@ import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import { TypeAllActivityResponse } from "@/types/response/response.activity";
 import { useAllActivities } from "@/hooks/useCustomerActivity";
 import { deleteActivity } from "@/services/activity.service";
+import { useTeam } from "@/hooks/useTeam";
+import { TypeTeamResponse } from "@/types/response/response.team";
+import { useSelectResponsible } from "@/hooks/useEmployee";
+import { useAllCustomer } from "@/hooks/useCustomer";
+import { TypeAllCustomerResponse } from "@/types/response/response.customer";
 
 
 type dateTableType = {
@@ -51,11 +56,18 @@ export default function CustomerActivity() {
 
 
   const [customer, setCustomer] = useState<string | null>(null);
-  const [responseId, setResponseId] = useState<string | null>(null);
+  const [responsibleId, setResponsibleId] = useState<string | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
 
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
+
+  //searchText control
+  const [searchCustomer, setSearchCustomer] = useState("");
+  const [searchTeam, setSearchTeam] = useState("");
+  const [searchEmployee, setSearchEmployee] = useState("");
   const [searchActivity, setSearchActivity] = useState("");
+
+ 
 
 
   //fetch quotation
@@ -65,7 +77,7 @@ export default function CustomerActivity() {
     searchText: searchActivity,
     payload: {
       customer_id: customer,
-      responsible_id: responseId,
+      responsible_id: responsibleId,
       team_id: teamId,
     }
   });
@@ -120,7 +132,7 @@ export default function CustomerActivity() {
                     ))}
                 </div>
               ),
-               className: "text-left"
+              className: "text-left"
             },
             { value: item.responsible.first_name + "" + item.responsible.last_name, className: "text-center" },
             { value: item.team.name, className: "text-center" },
@@ -135,41 +147,136 @@ export default function CustomerActivity() {
   }, [dataActitvities]);
 
 
+  // const dropdown = [
+  //   {
+  //     placeholder: "ทีม",
+  //     fetchData: async () => {
+  //       return {
+  //         responseObject: [
+  //           { id: 1, name: "ทีม A" },
+  //           { id: 2, name: "ทีม B" },
+  //         ],
+  //       };
+  //     },
+  //   },
+  //   {
+  //     placeholder: "ผู้รับผิดชอบ",
+  //     fetchData: async () => {
+  //       return {
+  //         responseObject: [
+  //           { id: 1, name: "นาย A" },
+  //           { id: 2, name: "นาย B" },
+  //         ],
+  //       };
+  //     },
+  //   },
+  //   {
+  //     placeholder: "ลูกค้า",
+  //     fetchData: async () => {
+  //       return {
+  //         responseObject: [
+  //           { id: 1, name: "บริษัท A" },
+  //           { id: 2, name: "บริษัท B" },
+  //         ],
+  //       };
+  //     },
+  //   },
+  // ];
+  //item จาก dropdown
+  //fetch customer
+  const { data: dataCustomer, refetch: refetchCustomer } = useAllCustomer({
+    page: "1",
+    pageSize: "100",
+    searchText: "",
+    payload: {
+        tag_id: null,
+        team_id: null,
+        responsible_id: null,
+    }
+});
+
+//auto fill by id customer
+const fetchDataCustomerDropdown = async () => {
+    const customerList = dataCustomer?.responseObject?.data ?? [];
+    return {
+        responseObject: customerList.map((item: TypeAllCustomerResponse) => ({
+            id: item.customer_id,
+            name: item.company_name,
+
+        })),
+    }
+}
+  //fetch team
+  const { data: dataTeam, refetch: refetchTeam } = useTeam({
+    page: "1",
+    pageSize: "100",
+    searchText: searchTeam,
+  })
+  const fetchDataTeamDropdown = async () => {
+    const teamList = dataTeam?.responseObject?.data ?? [];
+    return {
+      responseObject: teamList.map((item: TypeTeamResponse) => ({
+        id: item.team_id,
+        name: item.name,
+      })),
+    };
+  }
+  const handleTeamSearch = (searchText: string) => {
+    setSearchTeam(searchText);
+    refetchTeam();
+  };
+  //fetch Member in team 
+  const { data: dataTeamMember, refetch: refetchTeamMember } = useSelectResponsible({
+    team_id: teamId ?? "",
+    searchText: searchEmployee,
+  });
+
+  const fetchDataMemberInteam = async () => {
+    const member = dataTeamMember?.responseObject.data ?? [];
+    return {
+      responseObject: member.map((item) => ({
+        id: item.employee_id,
+        name: `${item.first_name} ${item.last_name || ""}`,
+      })),
+    };
+  };
+
+  const handleEmployeeSearch = (searchText: string) => {
+    setSearchEmployee(searchText);
+    refetchTeam();
+  };
   const dropdown = [
     {
-      placeholder: "ทีม",
-      fetchData: async () => {
-        return {
-          responseObject: [
-            { id: 1, name: "ทีม A" },
-            { id: 2, name: "ทีม B" },
-          ],
-        };
+      placeholder: "ลูกค้า",
+      fetchData: fetchDataCustomerDropdown,
+      onChange: (value: string | null) => {
+        setCustomer(value)
+        setSearchParams({ page: "1", pageSize });
       },
+      // handleChange: handleTagSearch
+
+    },
+    {
+      placeholder: "ทีม",
+      fetchData: fetchDataTeamDropdown,
+      onChange: (value: string | null) => {
+        setTeamId(value)
+        setSearchParams({ page: "1", pageSize });
+      },
+      handleChange: handleTeamSearch
     },
     {
       placeholder: "ผู้รับผิดชอบ",
-      fetchData: async () => {
-        return {
-          responseObject: [
-            { id: 1, name: "นาย A" },
-            { id: 2, name: "นาย B" },
-          ],
-        };
+      fetchData: fetchDataMemberInteam,
+      onChange: (value: string | null) => {
+        setResponsibleId(value)
+        setSearchParams({ page: "1", pageSize });
       },
+      handleChange: handleEmployeeSearch
     },
-    {
-      placeholder: "ลูกค้า",
-      fetchData: async () => {
-        return {
-          responseObject: [
-            { id: 1, name: "บริษัท A" },
-            { id: 2, name: "บริษัท B" },
-          ],
-        };
-      },
-    },
+   
   ];
+
   //
   const headers = [
     { label: "วันเวลาของกิจกรรม", colSpan: 1, className: "min-w-20" },

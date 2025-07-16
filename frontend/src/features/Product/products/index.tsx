@@ -391,6 +391,7 @@ export default function Products() {
             classNameSelect="w-full"
           />
           <InputAction
+            type="number"
             id="tag-name"
             placeholder=""
             onChange={(e) => setPrice(Number(e.target.value))}

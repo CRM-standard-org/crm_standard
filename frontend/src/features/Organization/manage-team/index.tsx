@@ -126,25 +126,24 @@ export default function ManageTeam() {
     
   
   ];
-  useEffect(() => {
-    if (searchTeam === "") {
-      setSearchTeam(searchTeam);
-      setSearchParams({ page: "1", pageSize });
-
-      refetchTeam();
-    }
-  }, [searchTeam]);
+ 
 
   const handleNavCreate = () => {
     navigate('/create-team');
   }
   //handle
   const handleSearch = () => {
-    setSearchTeam(searchTeam);
+    setSearchTeam(searchText);
     setSearchParams({ page: "1", pageSize });
 
-    refetchTeam();
   };
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchTeam(searchText);
+      setSearchParams({ page: "1", pageSize });
+
+    }
+  }, [searchText]);
 
   const handleView = (item: TypeTeamResponse) => {
     navigate(`/team-details/${item.team_id}`);
@@ -204,10 +203,10 @@ export default function ManageTeam() {
         inputs={[
           {
             id: "search_input",
-            value: searchTeam,
+            value: searchText,
             size: "3",
             placeholder: "ค้นหา....",
-            onChange: setSearchTeam,
+            onChange: setSearchText,
             onAction: handleSearch,
           },
         ]}

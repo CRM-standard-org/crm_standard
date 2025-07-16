@@ -86,21 +86,21 @@ export default function Currency() {
     { label: "ลบ", colSpan: 1, className: "min-w-10" },
   ];
 
-  useEffect(() => {
-    if (searchPayment === "") {
-      setSearchPayment(searchPayment);
-      setSearchParams({ page: "1", pageSize });
-      refetchCurrency();
-    }
-  }, [searchPayment]);
-
+  
   //handle
   const handleSearch = () => {
-    setSearchPayment(searchPayment);
+    setSearchPayment(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchCurrency();
+
 
   };
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchPayment(searchText);
+      setSearchParams({ page: "1", pageSize });
+
+    }
+  }, [searchText]);
 
 
   //เปิด
@@ -224,10 +224,10 @@ export default function Currency() {
         inputs={[
           {
             id: "search_input",
-            value: searchPayment,
+            value: searchText,
             size: "3",
             placeholder: "ค้นหา....",
-            onChange: setSearchPayment,
+            onChange: setSearchText,
             onAction: handleSearch,
           },
         ]}

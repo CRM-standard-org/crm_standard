@@ -95,7 +95,8 @@ const InputAction: React.FC<InputActionProps> = ({
     // ป้องกันการพิมพ์ตัวอักษรพิเศษ (อนุญาตเฉพาะตัวเลข, Backspace, และปุ่มควบคุมอื่น ๆ)
     if (
       (type === "number" || type === "tel") &&
-      !/^[0-9]$/.test(keycode) &&
+      !/^[0-9.]$/.test(keycode) && 
+      keycode !== "Decimal" &&
       keycode !== "Backspace" &&
       keycode !== "Tab" &&
       keycode !== "ArrowUp" &&
@@ -105,9 +106,10 @@ const InputAction: React.FC<InputActionProps> = ({
       keycode !== "Enter"
     ) {
       e.preventDefault();
-      return; // ยกเลิกการทำงานของคีย์ที่ไม่ได้รับอนุญาต
+      return;
     }
-
+    
+    
     if (keycode === "Enter") {
       if (onAction) {
         onAction(); // Call onAction if provided

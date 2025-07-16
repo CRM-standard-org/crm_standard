@@ -82,29 +82,22 @@ export default function CustomerRole() {
     { label: "ลบ", colSpan: 1, className: "min-w-10" },
   ];
 
-  useEffect(() => {
-    if (searchRole === "") {
-      setSearchRole(searchRole);
-      setSearchParams({ page: "1", pageSize });
-      refetchRole();
-    }
-  }, [searchRole]);
+  
 
   //handle
   const handleSearch = () => {
-    setSearchRole(searchRole);
+    setSearchRole(searchText);
     setSearchParams({ page: "1", pageSize });
     refetchRole();
 
   };
-
-  const handleEdit = (id: any) => {
-    console.log("Edit:", id);
-  };
-
-  const handleDelete = (id: any) => {
-    console.log("Delete:", id);
-  };
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchRole(searchText);
+      setSearchParams({ page: "1", pageSize });
+      refetchRole();
+    }
+  }, [searchText]);
 
   //เปิด
   const handleCreateOpen = () => {
@@ -232,10 +225,10 @@ export default function CustomerRole() {
         inputs={[
           {
             id: "search_input",
-            value: searchRole,
+            value: searchText,
             size: "3",
             placeholder: "ค้นหา....",
-            onChange: setSearchRole,
+            onChange: setSearchText,
             onAction: handleSearch,
           },
         ]}

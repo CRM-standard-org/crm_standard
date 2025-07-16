@@ -16,7 +16,7 @@ import TagColorPicker from "@/components/customs/tagCustomer/tagColor";
 //
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTag } from "@/hooks/useCustomerTag";
-import { TypeTagColorResponse,TypeTagAllResponse } from "@/types/response/response.tagColor";
+import { TypeTagColorResponse, TypeTagAllResponse } from "@/types/response/response.tagColor";
 
 
 type dateTableType = {
@@ -99,22 +99,21 @@ export default function CustomerTag() {
     { label: "ลบ", colSpan: 1, className: "min-w-10" },
   ];
 
-  useEffect(() => {
-    if (searchTag === "") {
-      setSearchTag(searchTag);
-      setSearchParams({ page: "1", pageSize });
-      refetchTag();
-    }
-  }, [searchTag]);
+
 
   //handle
   const handleSearch = () => {
-    setSearchTag(searchTag);
+    setSearchTag(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchTag();
+
 
   };
-
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchTag(searchText);
+      setSearchParams({ page: "1", pageSize });
+    }
+  }, [searchText]);
 
   //เปิด
   const handleCreateOpen = () => {
@@ -155,10 +154,10 @@ export default function CustomerTag() {
     }
     console.log(tagName, tagDetails, tagColor)
     try {
-      const response = await postTag({ 
+      const response = await postTag({
         tag_name: tagName, // ใช้ชื่อ field ที่ตรงกับ type
         tag_description: tagDetails,
-        color: tagColor, 
+        color: tagColor,
       });
 
       if (response.statusCode === 200) {
@@ -191,7 +190,7 @@ export default function CustomerTag() {
       const response = await updateTag(selectedItem.tag_id, {
         tag_name: tagName, // ใช้ชื่อ field ที่ตรงกับ type
         tag_description: tagDetails,
-        color: tagColor, 
+        color: tagColor,
       });
 
       if (response.statusCode === 200) {
@@ -249,10 +248,10 @@ export default function CustomerTag() {
         inputs={[
           {
             id: "search_input",
-            value: searchTag,
+            value: searchText,
             size: "3",
             placeholder: "ค้นหา....",
-            onChange: setSearchTag,
+            onChange: setSearchText,
             onAction: handleSearch,
           },
         ]}
@@ -289,7 +288,7 @@ export default function CustomerTag() {
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
           />
-          
+
           <InputAction
             id="tag-detail"
             placeholder="รายละเอียดแท็ก"

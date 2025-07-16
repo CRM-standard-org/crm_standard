@@ -214,7 +214,7 @@ export default function TeamDetails() {
     const handleSearch = () => {
         setSearchTextDebouce(searchText);
         refetchTeamMember();
-        console.log("Search:", { searchText });
+       
     };
     const handleNavCreate = () => {
         navigate('/create-employee');

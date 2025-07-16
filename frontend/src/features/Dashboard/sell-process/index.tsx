@@ -39,6 +39,7 @@ type dateTableType = {
 //
 export default function SellProcess() {
 
+  const [searchText, setSearchText] = useState("");
 
   // const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [data, setData] = useState<dateTableType>([]);
@@ -252,28 +253,26 @@ export default function SellProcess() {
 
     }
   ];
-  useEffect(() => {
-    if (searchCustomer === "") {
-      setSearchCustomer(searchCustomer);
-      setSearchParams({ page: "1", pageSize });
-      refetchCustomer();
-    }
-  }, [searchCustomer]);
+
 
   const handleNavCreate = () => {
     navigate('/create-customer');
   }
   //handle
   const handleSearch = () => {
-    setSearchCustomer(searchCustomer);
+    setSearchCustomer(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchCustomer();
+
   };
 
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchCustomer(searchText);
+      setSearchParams({ page: "1", pageSize });
+    }
+  }, [searchText]);
 
-  const handleView = (item: TypeAllCustomerResponse) => {
-    navigate(`/customer-details/${item.customer_id}`);
-  }
+
   //เปิด
   const handleDeleteOpen = (item: TypeAllCustomerResponse) => {
     setSelectedItem(item);
@@ -327,10 +326,10 @@ export default function SellProcess() {
         inputs={[
           {
             id: "search_input",
-            value: searchCustomer,
+            value: searchText,
             size: "3",
             placeholder: "ค้นหา....",
-            onChange: setSearchCustomer,
+            onChange: setSearchText,
             onAction: handleSearch,
           },
         ]}
@@ -338,7 +337,7 @@ export default function SellProcess() {
         headers={headers}
         rowData={data}
         totalData={dataCustomer?.responseObject?.totalCount}
-        
+
         onDropdown={true}
         dropdownItem={dropdown}
         headerTab={true}

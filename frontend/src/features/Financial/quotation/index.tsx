@@ -322,14 +322,9 @@ export default function Quotation() {
 
   ];
 
- 
 
-  useEffect(() => {
-    if (searchText === "") {
-      setSearchQuotation(searchText);
-      setSearchParams({ page: "1", pageSize });
-    }
-  }, [searchText]);
+
+
 
   const handleNavCreate = () => {
     navigate('/create-quotation');
@@ -339,7 +334,13 @@ export default function Quotation() {
     setSearchQuotation(searchText);
     setSearchParams({ page: "1", pageSize });
   };
-
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchQuotation(searchText);
+      setSearchParams({ page: "1", pageSize });
+    }
+  }, [searchText]);
+  
   const handleView = (item: TypeAllQuotationResponse) => {
     navigate(`/quotation-details/${item.quotation_id}`);
   }

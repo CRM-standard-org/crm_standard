@@ -71,7 +71,7 @@ export default function SaleOrder() {
 
 
   //searchText control
-  const [searchQuotation, setSearchQuotation] = useState("");
+  const [searchSaleOrder, setSearchSaleOrder] = useState("");
   const [searchEmployee, setSearchEmployee] = useState("");
 
 
@@ -100,7 +100,7 @@ export default function SaleOrder() {
   const { data: dataSaleOrders, refetch: refetchSaleOrders } = useAllSaleOrders({
     page: page,
     pageSize: pageSize,
-    searchText: searchQuotation,
+    searchText: searchSaleOrder,
     payload: {
       responsible_id: responseId,
       status:statusSaleOrder ?? null,
@@ -285,24 +285,23 @@ export default function SaleOrder() {
   ];
   
   
-  useEffect(() => {
-    if (searchText === "") {
-      setSearchQuotation(searchText);
-      setSearchParams({ page: "1", pageSize });
-      refetchSaleOrders();
-    }
-  }, [searchText]);
+ 
 
   const handleNavCreate = () => {
     navigate('/create-quotation');
   }
   //handle
   const handleSearch = () => {
-    setSearchQuotation(searchText);
+    setSearchSaleOrder(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchSaleOrders();
+  
   };
-
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchSaleOrder(searchText);
+      setSearchParams({ page: "1", pageSize });
+    }
+  }, [searchText]);
 
   const handleView = (item: TypeAllSaleOrderResponse) => {
     navigate(`/sale-order-details/${item.sale_order_id}`);

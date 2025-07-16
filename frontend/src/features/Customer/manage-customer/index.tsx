@@ -39,6 +39,7 @@ type dateTableType = {
 //
 export default function ManageCustomer() {
 
+  const [searchText, setSearchText] = useState("");
   // const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [data, setData] = useState<dateTableType>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
@@ -54,7 +55,7 @@ export default function ManageCustomer() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = searchParams.get("page") ?? "1";
   const pageSize = searchParams.get("pageSize") ?? "25";
-  
+
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
 
 
@@ -270,7 +271,7 @@ export default function ManageCustomer() {
       onChange: () => {
         setFilterGroup("ลูกค้าเป้าหมาย")
         setSearchParams({ page: "1", pageSize });
-    }
+      }
     },
     {
       name: "ลูกค้าประจำ",
@@ -293,27 +294,25 @@ export default function ManageCustomer() {
         setSearchParams({ page: "1", pageSize });
       }
     },
-   
-  
+
+
   ];
-  useEffect(() => {
-    if (searchCustomer === "") {
-      setSearchCustomer(searchCustomer);
-      setSearchParams({ page: "1", pageSize });
-      refetchCustomer();
-    }
-  }, [searchCustomer]);
+
 
   const handleNavCreate = () => {
     navigate('/create-customer');
   }
   //handle
   const handleSearch = () => {
-    setSearchCustomer(searchCustomer);
+    setSearchCustomer(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchCustomer();
-
   };
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchCustomer(searchText);
+      setSearchParams({ page: "1", pageSize });
+    }
+  }, [searchText]);
 
 
   const handleView = (item: TypeAllCustomerResponse) => {
@@ -372,10 +371,10 @@ export default function ManageCustomer() {
         inputs={[
           {
             id: "search_input",
-            value: searchCustomer,
+            value: searchText,
             size: "3",
             placeholder: "ค้นหา....",
-            onChange: setSearchCustomer,
+            onChange: setSearchText,
             onAction: handleSearch,
           },
         ]}

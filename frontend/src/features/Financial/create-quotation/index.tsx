@@ -172,9 +172,7 @@ export default function CreateQuotation() {
     const [searchCurrency, setSearchCurrency] = useState("");
     const [searchEmployee, setSearchEmployee] = useState("");
 
-    const [tagId, setTagId] = useState<string | null>(null);
-    const [teamId, setTeamId] = useState<string | null>(null);
-    const [responsibleId, setResponsibleId] = useState<string | null>(null);
+
 
 
     const [productRows, setProductRows] = useState<ProductRow[]>([
@@ -188,9 +186,9 @@ export default function CreateQuotation() {
         pageSize: "100",
         searchText: "",
         payload: {
-            tag_id: tagId,
-            team_id: teamId,
-            responsible_id: responsibleId,
+            tag_id: null,
+            team_id: null,
+            responsible_id: null,
         }
     });
 
@@ -983,7 +981,7 @@ export default function CreateQuotation() {
                         </div>
 
                         <div className="">
-                            
+
                             <DatePickerComponent
                                 id="date-delivery"
                                 label="วันจัดส่งสินค้า"
@@ -993,7 +991,7 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "country", down: "province" }}
                                 required
-                                
+
                             />
                         </div>
                         <div className="">
@@ -1010,7 +1008,7 @@ export default function CreateQuotation() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
-                                nextFields={{up: "date-delivery", down: "placename" }}
+                                nextFields={{ up: "date-delivery", down: "placename" }}
                                 require="require"
 
                             />
@@ -1027,7 +1025,7 @@ export default function CreateQuotation() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 require="require"
-                                nextFields={{up: "province", down: "district" }}
+                                nextFields={{ up: "province", down: "district" }}
                             />
                         </div>
                         <div className="">
@@ -1045,7 +1043,7 @@ export default function CreateQuotation() {
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
                                 require="require"
-                                nextFields={{up: "placename", down: "address" }}
+                                nextFields={{ up: "placename", down: "address" }}
                             />
                         </div>
 
@@ -1061,7 +1059,7 @@ export default function CreateQuotation() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 require="require"
-                                nextFields={{up: "district", down: "customer-address" }}
+                                nextFields={{ up: "district", down: "customer-address" }}
                             />
                         </div>
                         <div className="">
@@ -1090,7 +1088,7 @@ export default function CreateQuotation() {
                                 placeholder="กรุณาเลือก..."
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
-                                nextFields={{up: "address", down: "contact-person" }}
+                                nextFields={{ up: "address", down: "contact-person" }}
                             />
                         </div>
 
@@ -1113,7 +1111,7 @@ export default function CreateQuotation() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 require="require"
-                                nextFields={{up: "customer-address", down: "telno-contact" }}
+                                nextFields={{ up: "customer-address", down: "telno-contact" }}
 
                             />
                         </div>
@@ -1128,7 +1126,7 @@ export default function CreateQuotation() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
-                                nextFields={{up: "contact-person", down: "email-contact" }}
+                                nextFields={{ up: "contact-person", down: "email-contact" }}
                                 require="require"
                                 maxLength={10}
                             />
@@ -1144,7 +1142,7 @@ export default function CreateQuotation() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
-                                nextFields={{up: "telno-contact", down: "customer-contact" }}
+                                nextFields={{ up: "telno-contact", down: "customer-contact" }}
                                 require="require"
 
                             />
@@ -1173,7 +1171,7 @@ export default function CreateQuotation() {
                                 placeholder="กรุณาเลือก..."
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
-                                nextFields={{up: "email-contact", down: "customer" }}
+                                nextFields={{ up: "email-contact", down: "customer" }}
                             />
                         </div>
                     </div>
@@ -1273,6 +1271,7 @@ export default function CreateQuotation() {
 
                                         <Table.Cell className="p-0  h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.price.toString()}
                                                 onChange={(e) => handleChange(index, "price", parseFloat(e.target.value))}
@@ -1282,6 +1281,7 @@ export default function CreateQuotation() {
 
                                         <Table.Cell className="p-0  h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.amount.toString()}
                                                 onChange={(e) => handleChange(index, 'amount', parseFloat(e.target.value))}
@@ -1295,6 +1295,7 @@ export default function CreateQuotation() {
 
                                         <Table.Cell className="p-0  h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.discount.toString()}
                                                 onChange={(e) => handleChange(index, 'discount', parseFloat(e.target.value))}
@@ -1304,6 +1305,7 @@ export default function CreateQuotation() {
 
                                         <Table.Cell className="p-0  h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.discountPercent.toString()}
                                                 onChange={(e) => handleChange(index, 'discountPercent', parseFloat(e.target.value))}
@@ -1313,6 +1315,7 @@ export default function CreateQuotation() {
 
                                         <Table.Cell className="p-0 h-[35px] border border-gray-300">
                                             <InputAction
+                                                type="number"
                                                 placeholder=""
                                                 value={row.value.toFixed(2)}
                                                 onChange={(e) => handleChange(index, 'value', parseFloat(e.target.value))}
@@ -1502,7 +1505,7 @@ export default function CreateQuotation() {
                                                 value={payDay.toString()}
                                                 onChange={(e) => setPayDay(Number(e.target.value))}
                                                 classNameInput="w-24"
-                                                
+
                                             />
                                             <label>วัน</label>
                                         </>
