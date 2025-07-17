@@ -175,7 +175,7 @@ export const currencyService = {
             const errorMessage = "Error delete currency :" + (ex as Error).message;
             return new ServiceResponse(
                 ResponseStatus.Failed,
-                errorMessage,
+                (ex as any).code === 'P2003' ? "Deletion failed: this data is still in use" : errorMessage,
                 null,
                 StatusCodes.INTERNAL_SERVER_ERROR
             );

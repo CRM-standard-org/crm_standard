@@ -176,7 +176,7 @@ export const unitService = {
             const errorMessage = "Error delete unit :" + (ex as Error).message;
             return new ServiceResponse(
                 ResponseStatus.Failed,
-                errorMessage,
+                (ex as any).code === 'P2003' ? "Deletion failed: this data is still in use" : errorMessage,
                 null,
                 StatusCodes.INTERNAL_SERVER_ERROR
             );

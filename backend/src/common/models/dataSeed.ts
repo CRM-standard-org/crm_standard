@@ -13,4 +13,4 @@ export const districtData = [
     { name: "เมืองชลบุรี", provinceName: "ชลบุรี" },
 ];
 
-export const vatData =[3,7];
+export const vatData =[0,3,7];
