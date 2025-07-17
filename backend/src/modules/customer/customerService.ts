@@ -173,7 +173,7 @@ export const customerService = {
             const errorMessage = "Error delete customer :" + (ex as Error).message;
             return new ServiceResponse(
                 ResponseStatus.Failed,
-                errorMessage,
+                (ex as any).code === 'P2003' ? "Deletion failed: this data is still in use" : errorMessage,
                 null,
                 StatusCodes.INTERNAL_SERVER_ERROR
             );
