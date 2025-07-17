@@ -726,4 +726,67 @@ export const customerRepository = {
             }
         })
     },
+
+    countActivity: async (customer_id : string) => {
+        customer_id = customer_id?.trim();
+        return await prisma.activity.count({
+            where: { customer: { customer_id }}
+        });
+    },
+
+    activity: async( customer_id : string , skip: number , take: number) => {
+        customer_id = customer_id.trim();
+
+        return await prisma.activity.findMany({
+            where: { customer: { customer_id }},
+            skip: (skip - 1 ) * take,
+            take: take,
+            select: {
+                customer: { 
+                    select: { 
+                        customer_contact:{
+                            where:{ main: true},
+                            select:{
+                                customer_contact_id: true,
+                                name: true,
+                                phone: true
+                            }
+                        }
+                    }
+                },
+                issue_date: true,
+                activity_time: true,
+                activity_description: true,
+                team: { select: { team_id: true , name: true }},
+                responsible: { select: { employee_id: true , first_name: true , last_name: true } },
+            }
+        });
+
+    },
+
+    followQuotation: async( customer_id : string ) => {
+        customer_id = customer_id.trim();
+
+        const result = await prisma.quotation.aggregate({
+            where: { customer_id , NOT: { quotation_status: { in: ["ยกเลิก","สำเร็จ","ไม่สำเร็จ"] } }},
+            _sum: { grand_total: true }
+        });
+
+        return {grandTotal : result._sum.grand_total ?? 0}
+
+    },
+
+    saleTotal: async( customer_id : string ) => {
+        customer_id = customer_id.trim();
+
+        const result = await prisma.quotation.aggregate({
+            where: { customer_id , quotation_status: "สำเร็จ" },
+            _sum: { grand_total: true }
+        });
+
+        return {grandTotal : result._sum.grand_total ?? 0}
+
+    },
+
+
 }

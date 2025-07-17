@@ -47,14 +47,35 @@ export const activityRepository = {
         });
 
         const activityOther = await prisma.activity.findMany({
-            where: { customer: { customer_id : data?.customer.customer_id } },
+            where: { customer: { customer_id : data?.customer.customer_id } , NOT: { activity_id: activity_id }},
             select: {
-                customer:{ select: { customer_id: true , company_name: true } },
+                customer: { 
+                    select: { 
+                        customer_id: true , 
+                        company_name: true ,
+                        customer_tags: {
+                            select: {
+                                customer_tag_id: true,
+                                group_tag:{
+                                    select: { tag_id: true , tag_name: true , color: true }
+                                }
+                            }
+                        },
+                        customer_contact:{
+                            where:{ main: true},
+                            select:{
+                                customer_contact_id: true,
+                                name: true,
+                                phone: true
+                            }
+                        }
+                    }
+                },
                 issue_date: true,
                 activity_time: true,
                 activity_description: true,
-                team: { select: { team_id: true , name: true } },
-                responsible: { select: { employee_id: true , first_name: true, last_name: true } }
+                team: { select: { team_id: true , name: true }},
+                responsible: { select: { employee_id: true , first_name: true , last_name: true } },
             }
         });
 
@@ -192,6 +213,6 @@ export const activityRepository = {
         return await prisma.activity.delete({
             where: { activity_id: activity_id },
         });
-    }
+    },
         
 };
