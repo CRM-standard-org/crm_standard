@@ -122,6 +122,26 @@ export const customerRouter = (() => {
         handleServiceResponse(ServiceResponse, res);
     })
 
+    router.get("/activity/:customer_id?" , authenticateToken , authorizeByName("การจัดการลูกค้า", ["A"]), validateRequest(GetByIdSchema), async (req: Request, res: Response) => {
+        const customer_id = req.params.customer_id;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 50;
+        const ServiceResponse = await customerService.activity(customer_id, page , limit);
+        handleServiceResponse(ServiceResponse, res);
+    })
+
+    router.get("/follow-quotation/:customer_id?" , authenticateToken , authorizeByName("การจัดการลูกค้า", ["A"]), validateRequest(GetByIdSchema), async (req: Request, res: Response) => {
+        const customer_id = req.params.customer_id;
+        const ServiceResponse = await customerService.followQuotation(customer_id);
+        handleServiceResponse(ServiceResponse, res);
+    })
+
+    router.get("/sale-total/:customer_id?" , authenticateToken , authorizeByName("การจัดการลูกค้า", ["A"]), validateRequest(GetByIdSchema), async (req: Request, res: Response) => {
+        const customer_id = req.params.customer_id;
+        const ServiceResponse = await customerService.saleTotal(customer_id);
+        handleServiceResponse(ServiceResponse, res);
+    })
+
 
     return router;
 })();

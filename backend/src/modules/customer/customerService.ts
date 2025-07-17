@@ -541,4 +541,95 @@ export const customerService = {
             );
         }
     },
+
+    activity: async (cust_id : string , page: number , limit: number ) => {
+        try{
+            const checkCustomer = await customerRepository.findById(cust_id);
+            if(!checkCustomer){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Customer not found.",
+                    null,
+                    StatusCodes.NOT_FOUND
+                )
+            }
+            const totalCount = await customerRepository.countActivity(cust_id);
+            const data = await customerRepository.activity(cust_id, page , limit);
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Get all activity success",
+                {
+                    totalCount,
+                    totalPages: Math.ceil(totalCount / limit),
+                    data : data
+                },
+                StatusCodes.OK
+            )
+        }catch (ex){
+            const errorMessage = "Error get all activity :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
+
+    followQuotation: async (cust_id : string ) => {
+        try{
+            const checkCustomer = await customerRepository.findById(cust_id);
+            if(!checkCustomer){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Customer not found",
+                    null,
+                    StatusCodes.NOT_FOUND
+                )
+            }
+            const data = await customerRepository.followQuotation(cust_id);
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Quotation grand total fetched success",
+                data,
+                StatusCodes.OK
+            )
+        }catch (ex){
+            const errorMessage = "Error quotation grand total fetched :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
+    saleTotal: async (cust_id : string ) => {
+        try{
+            const checkCustomer = await customerRepository.findById(cust_id);
+            if(!checkCustomer){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Customer not found",
+                    null,
+                    StatusCodes.NOT_FOUND
+                )
+            }
+            const data = await customerRepository.saleTotal(cust_id);
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Grand Total Sales success",
+                data,
+                StatusCodes.OK
+            )
+        }catch (ex){
+            const errorMessage = "Error grand Total Sales :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
 }
