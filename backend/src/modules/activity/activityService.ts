@@ -9,10 +9,18 @@ export const activityService = {
     
     create: async (payload: TypePayloadActivity, employee_id : string ) => {
         try{
-            await activityRepository.create(
+            const data = await activityRepository.create(
                 payload,
                 employee_id
             );
+            if(data == null){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Time must be between 00:00 and 23:59 only",
+                    null,
+                    StatusCodes.BAD_REQUEST
+                )
+            }
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Create success",
@@ -59,6 +67,14 @@ export const activityService = {
     findById: async (activity_id: string ) => {
         try{
             const data = await activityRepository.findById(activity_id);
+            if(!data){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Activity not found.",
+                    null,
+                    StatusCodes.NOT_FOUND
+                )
+            }
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Get by id success",
@@ -99,15 +115,23 @@ export const activityService = {
             const data = await activityRepository.update(    
                 activity_id , 
                 {
-                    customer_id: customer_id ?? check.customer.customer_id, 
+                    customer_id: customer_id ?? check.activity?.customer.customer_id, 
                     issue_date, 
                     activity_time, 
                     activity_description, 
-                    team_id: team_id ?? check.team.team_id, 
-                    responsible_id: responsible_id ?? check.responsible.employee_id
+                    team_id: team_id ?? check.activity?.team.team_id, 
+                    responsible_id: responsible_id ?? check.activity?.responsible.employee_id
                 },
                 employee_id
             );
+            if(data == null){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Time must be between 00:00 and 23:59 only",
+                    null,
+                    StatusCodes.BAD_REQUEST
+                )
+            }
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Update success",

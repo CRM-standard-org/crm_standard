@@ -34,7 +34,7 @@ export const activityRepository = {
     },
     findById: async( activity_id : string) => {
         activity_id = activity_id.trim();
-        return await prisma.activity.findUnique({
+        const data = await prisma.activity.findUnique({
             where: { activity_id: activity_id },
             select: {
                 customer:{ select: { customer_id: true , company_name: true } },
@@ -45,6 +45,20 @@ export const activityRepository = {
                 responsible: { select: { employee_id: true , first_name: true, last_name: true } }
             }
         });
+
+        const activityOther = await prisma.activity.findMany({
+            where: { customer: { customer_id : data?.customer.customer_id } },
+            select: {
+                customer:{ select: { customer_id: true , company_name: true } },
+                issue_date: true,
+                activity_time: true,
+                activity_description: true,
+                team: { select: { team_id: true , name: true } },
+                responsible: { select: { employee_id: true , first_name: true, last_name: true } }
+            }
+        });
+
+        return { activity: data , activityOther }
     },
 
     fineAllAsync : async (payload: Filter , skip: number , take: number , searchText: string) => {
@@ -121,6 +135,13 @@ export const activityRepository = {
         activity_id = activity_id.trim();
         employee_id = employee_id.trim();
 
+        const [h,m] = setForm.activity_time.split(":");
+        const hours = parseInt(h, 10);
+        const minutes = parseInt(m , 10);
+        if( hours>23 || minutes>59 || isNaN(hours) || isNaN(minutes)){
+            return null;
+        }
+
         return await prisma.activity.update({
             where: { activity_id: activity_id },
             data: {
@@ -145,6 +166,13 @@ export const activityRepository = {
             ])
         ) as TypePayloadActivity;
         employee_id = employee_id.trim();
+
+        const [h,m] = setForm.activity_time.split(":");
+        const hours = parseInt(h, 10);
+        const minutes = parseInt(m , 10);
+        if( hours>23 || minutes>59 || isNaN(hours) || isNaN(minutes)){
+            return null;
+        }
           
         return await prisma.activity.create({
             data: {
