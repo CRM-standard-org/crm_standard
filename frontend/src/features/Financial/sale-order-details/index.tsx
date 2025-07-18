@@ -136,11 +136,11 @@ export default function SaleOrderDetails() {
                         { value: item.product.product_name ?? "-", className: "text-center" },
                         { value: item.group_product.group_product_name ?? "-", className: "text-center" },
                         { value: item.unit.unit_name ?? "-", className: "text-center" },
-                        { value: item.unit_price ?? 0, className: "text-right" },
-                        { value: item.sale_order_item_count ?? 0, className: "text-right" },
-                        { value: item.unit_discount ?? 0, className: "text-right" },
-                        { value: item.unit_discount_percent ?? 0, className: "text-right" },
-                        { value: item.sale_order_item_price ?? 0, className: "text-right" },
+                        { value: Number(item.unit_price).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.sale_order_item_count).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.unit_discount).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.unit_discount_percent).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.sale_order_item_price).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
                     ],
                     data: item,
                 })
@@ -159,10 +159,10 @@ export default function SaleOrderDetails() {
                     cells: [
                         { value: index + 1, className: "text-center" },
                         { value: new Date(item.payment_date).toLocaleDateString("th-TH"), className: "text-center" },
-                        { value: item.amount_paid, className: "text-right" },
+                        { value: Number(item.amount_paid).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
                         { value: item.payment_term_name ?? "-", className: "text-center" },
-                        { value: item.payment_method.payment_method_name ?? 0, className: "text-center" },
-                        { value: item.payment_remark ?? 0, className: "text-center" },
+                        { value: item.payment_method.payment_method_name ?? "-", className: "text-center" },
+                        { value: item.payment_remark ?? "-", className: "text-center" },
                     ],
                     data: item,
                 })
@@ -301,7 +301,7 @@ export default function SaleOrderDetails() {
                     showToast("กรุณาระบุวันที่ได้รับสินค้า ", false);
                 }
                 else {
-                    showToast("ไม่สามารถอัพเดทการชำระได้", false);
+                    showToast("ไม่สามารถปิดการขายได้ เนื่องจากยังชำระเงินไม่ครบ", false);
                 }
             }
             else {
@@ -319,13 +319,18 @@ export default function SaleOrderDetails() {
         <>
             <div className="flex text-2xl font-bold mb-3">
                 <p className="me-2">รายละเอียดใบสั่งขาย</p>
-                <IconButton
-                    variant="ghost"
-                    aria-label="Edit"
-                    onClick={() => navigate(`/edit-sale-order/${saleOrderId}`)}
-                >
-                    <LuPencil style={{ fontSize: "18px" }} /><span>แก้ไข</span>
-                </IconButton>
+                {
+                    latestStatus && !["สำเร็จ", "ไม่สำเร็จ"].includes(latestStatus) && (
+                        <IconButton
+                            variant="ghost"
+                            aria-label="Edit"
+                            onClick={() => navigate(`/edit-sale-order/${saleOrderId}`)}
+                        >
+                            <LuPencil style={{ fontSize: "18px" }} /><span>แก้ไข</span>
+                        </IconButton>
+                    )
+                }
+
             </div>
 
             <div className="p-7 pb-5 bg-white shadow-lg rounded-lg mb-5 ">
@@ -500,7 +505,7 @@ export default function SaleOrderDetails() {
                         {remainingTotal === 0 ? (
                             <span className="text-green-600">ชำระเงินเรียบร้อย</span>
                         ) : (
-                            <span className="text-red-500">ยอดค้างชำระ {remainingTotal} บาท</span>
+                            <span className="text-red-500">ยอดค้างชำระ {remainingTotal.toFixed(2).toLocaleString()} บาท</span>
                         )}
 
                         )
@@ -514,17 +519,17 @@ export default function SaleOrderDetails() {
 
                             <div className="flex justify-between space-x-4">
                                 <label>ราคารวม</label>
-                                <label>{dataSaleOrder?.total_amount}</label>
+                                <label>{Number(dataSaleOrder?.total_amount).toFixed(2).toLocaleString()}</label>
                             </div>
 
                             <div className="flex justify-between space-x-4">
-                                <label>ส่วนลดพิเศษ (<span className="text-main">{dataSaleOrder?.special_discount} บาท</span>)</label>
-                                <label>{dataSaleOrder?.amount_after_discount}</label>
+                                <label>ส่วนลดพิเศษ (<span className="text-main"> {Number(dataSaleOrder?.special_discount).toFixed(2).toLocaleString()} บาท </span>)</label>
+                                <label>{Number(dataSaleOrder?.amount_after_discount).toFixed(2).toLocaleString()}</label>
                             </div>
 
                             <div className="flex justify-between space-x-4">
                                 <label>VAT (%)</label>
-                                <label>{dataSaleOrder?.vat_amount}</label>
+                                <label>{Number(dataSaleOrder?.vat_amount).toFixed(2).toLocaleString()}</label>
                             </div>
 
 
@@ -855,7 +860,7 @@ export default function SaleOrderDetails() {
                 <div className="space-x-3">
                     {latestStatus && !["สำเร็จ", "ไม่สำเร็จ"].includes(latestStatus) && (
                         <>
-                            
+
 
                             <Buttons
                                 btnType="submit"

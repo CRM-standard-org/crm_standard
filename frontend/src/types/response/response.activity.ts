@@ -1,7 +1,7 @@
 export type TypeCustomerTags = {
-    customer_tag_id:string,
+    customer_tag_id: string,
     group_tag: {
-        tag_id:string;
+        tag_id: string;
         tag_name: string;
         color: string
     }
@@ -17,7 +17,7 @@ export type TypeAllActivityResponse = {
         customer_id: string,
         company_name: string,
         customer_tags: TypeCustomerTags[]
-        customer_contact:TypeCustomerContacts[]
+        customer_contact: TypeCustomerContacts[]
     },
     issue_date: string,
     activity_time: string,
@@ -29,7 +29,7 @@ export type TypeAllActivityResponse = {
     responsible: {
         employee_id: string,
         first_name: string,
-        last_name: string| null
+        last_name: string | null
     }
 }
 export type TypeActivity = {
@@ -45,12 +45,12 @@ export type AllActivityResponse = {
     statusCode: number
 }
 //get by id activity
-
-export type TypeActivityResponse = {
+export type TypeOtherActivityResponse = {
     customer: {
         customer_id: string,
         company_name: string,
-        
+        customer_tags: TypeCustomerTags[],
+        customer_contact: TypeCustomerContacts[],
     },
     issue_date: string,
     activity_time: string,
@@ -62,8 +62,32 @@ export type TypeActivityResponse = {
     responsible: {
         employee_id: string,
         first_name: string,
-        last_name: string| null
+        last_name: string|null
     }
+
+}
+export type TypeActivityResponse = {
+    activity: {
+
+        customer: {
+            customer_id: string,
+            company_name: string,
+
+        },
+        issue_date: string,
+        activity_time: string,
+        activity_description: string,
+        team: {
+            team_id: string,
+            name: string
+        },
+        responsible: {
+            employee_id: string,
+            first_name: string,
+            last_name: string | null
+        }
+    },
+    activityOther: TypeOtherActivityResponse[]
 }
 export type ActivityResponse = {
     success: boolean,

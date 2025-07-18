@@ -194,6 +194,7 @@ export default function TeamDetails() {
     //tabs บน headertable
     const groupTabs = [
         {
+            id: "all",
             name: "งานที่รับผิดชอบ",
             onChange: () => setFilterGroup(null)
         },

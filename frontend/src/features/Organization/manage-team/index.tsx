@@ -116,6 +116,7 @@ export default function ManageTeam() {
 
   const groupTabs = [
     {
+      id: "all",
       name: "ทีม",
       onChange: () => {
         setFilterGroup("ทีม");

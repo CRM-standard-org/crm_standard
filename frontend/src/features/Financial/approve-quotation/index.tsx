@@ -196,7 +196,7 @@ export default function ApproveQuotation() {
           { value: item.responsible.first_name + " " + item.responsible.last_name, className: "text-left" },
           { value: new Date(item.issue_date).toLocaleDateString("th-TH"), className: "text-center" },
           { value: new Date(item.price_date).toLocaleDateString("th-TH"), className: "text-center" },
-          { value: item.grand_total, className: "text-right" },
+          { value: Number(item.grand_total).toFixed(2).toLocaleString(), className: "text-right" },
         ],
         data: item,
       }));
@@ -210,6 +210,7 @@ export default function ApproveQuotation() {
 
   const groupTabs = [
     {
+      id: "all",
       name: "ใบเสนอราคาทั้งหมด",
       onChange: () => {
         setStatusQuotation(null)
@@ -217,6 +218,7 @@ export default function ApproveQuotation() {
       }
     },
     {
+      id: "request-approve",
       name: "ใบเสนอราคาที่ยังไม่อนุมัติ",
       onChange: () => {
         setStatusQuotation("รออนุมัติ")
@@ -224,6 +226,7 @@ export default function ApproveQuotation() {
       }
     },
     {
+      id: "approve",
       name: "อนุมัติแล้ว",
       onChange: () => {
         setStatusQuotation("อนุมัติ")
@@ -231,6 +234,7 @@ export default function ApproveQuotation() {
       }
     },
     {
+      id: "not-approve",
       name: "ไม่อนุมัติ",
       onChange: () => {
         setStatusQuotation("ไม่อนุมัติ")

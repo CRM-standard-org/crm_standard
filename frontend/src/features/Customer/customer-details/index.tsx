@@ -25,8 +25,8 @@ import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import CheckboxMainComponent from "@/components/customs/checkboxs/checkbox.main.component";
 import RadioComponent from "@/components/customs/radios/radio.component";
 import { LabelWithValue } from "@/components/ui/label";
-import { useCustomerById } from "@/hooks/useCustomer";
-import { TypeCustomerAddress, TypeCustomerContacts, TypeCustomerResponse } from "@/types/response/response.customer";
+import { useCustomerAllActivity, useCustomerById, useFollowQuotation, useFollowSaleTotal } from "@/hooks/useCustomer";
+import { TypeCustomerAddress, TypeCustomerAllActivity, TypeCustomerAllActivityResponse, TypeCustomerContacts, TypeCustomerResponse } from "@/types/response/response.customer";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import RatingShow from "@/components/customs/rating/rating.show.component";
@@ -50,7 +50,7 @@ type dateTableType = {
         value: any;
         className: string;
     }[];
-    data: TypeColorAllResponse; //ตรงนี้
+    data: TypeCustomerAllActivityResponse; //ตรงนี้
 }[];
 
 
@@ -127,6 +127,14 @@ export default function CustomerDetails() {
 
     const [filterGroup, setFilterGroup] = useState<string | null>(null);
 
+    //fetch follow quotation
+    const { data: dataFollowQuotation} = useFollowQuotation({
+        customerId
+    });
+    //fetch follow sale total
+    const { data: dataFollowSaleTotal} = useFollowSaleTotal({
+        customerId
+    }); 
     // fetch customer role
     const { data: dataCustomerRole, refetch: refetchRole } = useSelectCustomerRole({
         searchText: searchRole,
@@ -311,6 +319,7 @@ export default function CustomerDetails() {
     //tabs บน headertable
     const groupTabs = [
         {
+            id: "customer-activity",
             name: "ประวัติกิจกรรมของลูกค้า",
             onChange: () => setFilterGroup(null)
         },
@@ -326,7 +335,63 @@ export default function CustomerDetails() {
         { label: "ผู้รับผิดชอบ", colSpan: 1, className: "w-auto" },
         { label: "ทีม", colSpan: 1, className: "w-auto" },
     ];
+    // fetch customer all activity
+    const { data: dataActitvities, refetch: refetchActivity } = useCustomerAllActivity({
+        page: page,
+        pageSize: pageSize,
+        searchText: "",
+        customerId
+    });
+    useEffect(() => {
 
+        if (dataActitvities?.responseObject?.data) {
+
+            const formattedData = dataActitvities.responseObject?.data.map(
+                (item: TypeCustomerAllActivityResponse) => ({
+                    className: "",
+                    cells: [
+                        {
+                            value: (
+                                <div className="flex flex-col">
+                                    {new Date(item.issue_date).toLocaleDateString("th-TH")}
+                                    <div className="">
+
+                                        เวลา {item.activity_time} น.
+                                    </div>
+                                </div>
+                            )
+
+
+                            , className: "text-left"
+                        },
+                        { value: item.activity_description, className: "text-left" },
+                        {
+                            value: (
+                                <div className="flex flex-col">
+                                    {item.customer.customer_contact &&
+                                        item.customer.customer_contact.map((contact, index) => (
+                                            <div key={contact.customer_contact_id ?? index}>
+                                                {contact.name}
+                                                <div className="flex flex-row space-x-1">
+                                                    โทร: {contact.phone}
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            ),
+                            className: "text-left"
+                        },
+                        { value: item.responsible.first_name + "" + item.responsible.last_name, className: "text-center" },
+                        { value: item.team.name, className: "text-center" },
+
+                    ],
+                    data: item,
+                })
+
+            );
+            setData(formattedData);
+        }
+    }, [dataActitvities]);
     //เปิด
     const handleCreateContactOpen = () => {
         setFirstContact("");
@@ -502,7 +567,7 @@ export default function CustomerDetails() {
                 setContactDetail("");
                 setContactNameOption("");
                 handleEditContactClose();
-                
+
                 refetchCustomer();
             } else {
                 showToast("ข้อมูลนี้มีอยู่แล้ว", false);
@@ -774,7 +839,7 @@ export default function CustomerDetails() {
                 <div className="lg:col-start-3 bg-white rounded-xl shadow-md">
                     <div className="flex flex-col p-5">
                         <label className="text-end">ติดตามใบเสนอราคา</label>
-                        <h1 className="text-end font-semibold">THB 0.00</h1>
+                        <h1 className="text-end font-semibold">THB {Number(dataFollowQuotation?.responseObject?.grandTotal).toLocaleString()}</h1>
 
                     </div>
                 </div>
@@ -783,7 +848,7 @@ export default function CustomerDetails() {
                 <div className="lg:col-start-3 lg:row-start-2 bg-white rounded-xl shadow-md">
                     <div className="flex flex-col p-5">
                         <label className="text-end">ยอดขายรวม</label>
-                        <h1 className="text-end font-semibold">THB 0.00</h1>
+                        <h1 className="text-end font-semibold">THB {Number(dataFollowSaleTotal?.responseObject?.grandTotal).toLocaleString()}</h1>
                     </div>
                 </div>
 
@@ -973,8 +1038,8 @@ export default function CustomerDetails() {
                         title=""
                         hideTitleBtn={true}
                         headers={headers}
-                        rowData={mockData}
-                        totalData={mockData.length}
+                        rowData={data}
+                        totalData={dataActitvities?.responseObject?.totalCount}
                         headerTab={true}
                         groupTabs={groupTabs}
                     />

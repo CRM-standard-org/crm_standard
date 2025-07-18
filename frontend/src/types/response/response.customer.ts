@@ -1,6 +1,6 @@
 export type TypeCustomerTags = {
     group_tag: {
-        tag_id:string;
+        tag_id: string;
         tag_name: string;
         color: string
     }
@@ -109,7 +109,7 @@ export type CustomerResponse = {
 export type AllCustomerContacts = {
     name: string;
     phone: string;
-    main:boolean;
+    main: boolean;
     customer_role: {
         name: string
     }
@@ -138,5 +138,54 @@ export type AllCustomerResponse = {
     success: boolean;
     message: string;
     responseObject: TypeAllCustomer;
+    statusCode: number
+}
+// get all customer activity
+
+export type TypeCustomerAllActivityResponse = {
+    customer: {
+        customer_contact: TypeCustomerContacts[]
+    },
+    issue_date: string,
+    activity_time: string,
+    activity_description: string,
+    team: {
+        team_id: string,
+        name: string
+    },
+    responsible: {
+        employee_id: string,
+        first_name: string,
+        last_name: string | null
+    }
+}
+export type TypeCustomerAllActivity = {
+    totalCount: number;
+    totalPages: number;
+    data: TypeCustomerAllActivityResponse[];
+}
+export type CustomerActivityResponse = {
+    success: boolean;
+    message: string;
+    responseObject: TypeCustomerAllActivity;
+    statusCode: number
+}
+
+// follow quotation
+export type FollowQuotationResponse = {
+    success: boolean;
+    message: string;
+    responseObject: {
+        grandTotal:string
+    };
+    statusCode: number
+}
+// follow sale total
+export type FollowSaleTotalResponse = {
+    success: boolean;
+    message: string;
+    responseObject: {
+        grandTotal:string
+    };
     statusCode: number
 }

@@ -125,7 +125,7 @@ export default function Quotation() {
             { value: item.responsible.first_name + " " + item.responsible.last_name, className: "text-left" },
             { value: new Date(item.issue_date).toLocaleDateString("th-TH"), className: "text-center" },
             { value: new Date(item.price_date).toLocaleDateString("th-TH"), className: "text-center" },
-            { value: item.grand_total, className: "text-right" },
+            { value: Number(item.grand_total).toFixed(2).toLocaleString(), className: "text-right" },
           ],
           data: item,
         })
@@ -250,6 +250,7 @@ export default function Quotation() {
   //tabs บน headertable
   const groupTabs = [
     {
+      id: "all",
       name: "ใบเสนอราคาทั้งหมด",
       onChange: () => {
         setStatusQuotation(null)
@@ -257,6 +258,7 @@ export default function Quotation() {
       }
     },
     {
+      id: "pending",
       name: "ระหว่างดำเนินการ",
       onChange: () => {
         setStatusQuotation("ระหว่างดำเนินการ")
@@ -264,6 +266,7 @@ export default function Quotation() {
       }
     },
     {
+      id: "request-approve",
       name: "รออนุมัติ",
       onChange: () => {
         setStatusQuotation("รออนุมัติ")
@@ -271,6 +274,7 @@ export default function Quotation() {
       }
     },
     {
+      id:"cancel-approve",
       name: "ยกเลิกคำขออนุมัติ",
       onChange: () => {
         setStatusQuotation("ยกเลิกคำขออนุมัติ")
@@ -278,6 +282,7 @@ export default function Quotation() {
       }
     },
     {
+      id:"not-approve",
       name: "ไม่อนุมัติ",
       onChange: () => {
         setStatusQuotation("ไม่อนุมัติ")
@@ -285,6 +290,7 @@ export default function Quotation() {
       }
     },
     {
+      id: "approve",
       name: "อนุมัติ",
       onChange: () => {
         setStatusQuotation("อนุมัติ")
@@ -292,6 +298,7 @@ export default function Quotation() {
       }
     },
     {
+      id: "edit",
       name: "ปรับปรุง",
       onChange: () => {
         setStatusQuotation("ปรับปรุง")
@@ -299,6 +306,7 @@ export default function Quotation() {
       }
     },
     {
+      id: "success",
       name: "สำเร็จ",
       onChange: () => {
         setStatusQuotation("สำเร็จ")
@@ -306,6 +314,7 @@ export default function Quotation() {
       }
     },
     {
+      id: "not-success",
       name: "ไม่สำเร็จ",
       onChange: () => {
         setStatusQuotation("ไม่สำเร็จ")
@@ -313,6 +322,7 @@ export default function Quotation() {
       }
     },
     {
+      id: "cancel",
       name: "ยกเลิก",
       onChange: () => {
         setStatusQuotation("ยกเลิก")

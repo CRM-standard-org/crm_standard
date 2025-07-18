@@ -130,7 +130,7 @@ export default function ProductGroup() {
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
     if (!groupProduct) {
-      showToast("กรุณาระบุบทบาท", false);
+      showToast("กรุณาระบุกลุ่มสินค้า", false);
       return;
     }
     try {
@@ -141,24 +141,24 @@ export default function ProductGroup() {
       if (response.statusCode === 200) {
         setGroupProduct("");
         handleCreateClose();
-        showToast("สร้างรายการสีเรียบร้อยแล้ว", true);
+        showToast("สร้างกลุ่มสินค้าเรียบร้อยแล้ว", true);
         setSearchParams({ page: "1", pageSize });
         refetchGroupProduct();
       } else {
-        showToast("รายการสีนี้มีอยู่แล้ว", false);
+        showToast("กลุ่มสินค้านี้มีอยู่แล้ว", false);
       }
     } catch {
-      showToast("ไม่สามารถสร้างรายการสีได้", false);
+      showToast("ไม่สามารถสร้างกลุ่มสินค้าได้", false);
     }
   };
 
   const handleEditConfirm = async () => {
     if (!groupProduct) {
-      showToast("กรุณาระบุชื่อสี", false);
+      showToast("กรุณาระบุกลุ่มสินค้า", false);
       return;
     }
     if (!selectedItem) {
-      showToast("กรุณาระบุชื่อสี", false);
+      showToast("กรุณาระบุกลุ่มสินค้า", false);
       return;
     }
 
@@ -169,12 +169,12 @@ export default function ProductGroup() {
       });
 
       if (response.statusCode === 200) {
-        showToast("แก้ไขรายการสีเรียบร้อยแล้ว", true);
+        showToast("แก้ไขกลุ่มสินค้าเรียบร้อยแล้ว", true);
         setGroupProduct("");
         setIsEditDialogOpen(false);
         refetchGroupProduct();
       } else {
-        showToast("ข้อมูลนี้มีอยู่แล้ว", false);
+        showToast("กลุ่มสินค้านี้มีอยู่แล้ว", false);
       }
     } catch (error) {
       showToast("ไม่สามารถแก้ไขรายการสีได้", false);
@@ -192,7 +192,7 @@ export default function ProductGroup() {
       const response = await deleteGroupProduct(selectedItem.group_product_id);
 
       if (response.statusCode === 200) {
-        showToast("ลบรายการสีเรียบร้อยแล้ว", true);
+        showToast("ลบกลุ่มสินค้าเรียบร้อยแล้ว", true);
         setIsDeleteDialogOpen(false);
         setSearchParams({ page: "1", pageSize });
 
@@ -200,17 +200,17 @@ export default function ProductGroup() {
       }
       else if (response.statusCode === 400) {
         if (response.message === "Color in quotation") {
-          showToast("ไม่สามารถลบรายการสีได้ เนื่องจากมีใบเสนอราคาอยู่", false);
+          showToast("ไม่สามารถลบกลุ่มสินค้าได้ เนื่องจากมีใบเสนอราคาอยู่", false);
         }
         else {
-          showToast("ไม่สามารถลบรายการสีได้", false);
+          showToast("ไม่สามารถลบกลุ่มสินค้าได้", false);
         }
       }
       else {
-        showToast("ไม่สามารถลบรายการสีได้", false);
+        showToast("ไม่สามารถลบกลุ่มสินค้าได้", false);
       }
     } catch (error) {
-      showToast("ไม่สามารถลบรายการสีได้", false);
+      showToast("ไม่สามารถลบกลุ่มสินค้าได้", false);
     }
   };
 

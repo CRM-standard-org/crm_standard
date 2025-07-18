@@ -62,6 +62,7 @@ interface MasterTableFeatureProps {
   headers: Array<{ label: string; colSpan?: number; className?: string }>; // Table header configuration (supports nested headers and custom classes)
   headerTab?: boolean //จะให้มี tabs บน header รึป่าว
   groupTabs?: {
+    id: string;
     name: string;
     onChange: () => void;
   }[];
@@ -162,7 +163,7 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
   //ให้ตัวแรกของ tab ใน group tabs ตัวแรกเสมอ
   useEffect(() => {
     if (groupTabs && groupTabs.length > 0 && !filterGroup) {
-      setFilterGroup(groupTabs[0].name);
+      setFilterGroup(groupTabs[0].id);
     }
   }, [groupTabs]);
 
@@ -382,17 +383,15 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
             <div className="w-full overflow-x-auto whitespace-nowrap bg-sky-100 rounded-t-md">
               {groupTabs && groupTabs.map((group) => (
                 <button
-                  key={group.name}
-
+                  key={group.id}
                   onClick={() => {
-                    setFilterGroup(group.name);
+                    setFilterGroup(group.id);
                     group.onChange();
                   }}
                   className={`inline-block px-4 py-2 rounded-t-md text-sm font-medium 
-                  ${filterGroup === group.name
+      ${filterGroup === group.id
                       ? "bg-main text-white border-b-2"
-                      : "bg-sky-100 text-[#3a5673] hover:bg-[#cde7fd]"}
-                  }`}
+                      : "bg-sky-100 text-[#3a5673] hover:bg-[#cde7fd]"}`}
                 >
                   {group.name}
                 </button>

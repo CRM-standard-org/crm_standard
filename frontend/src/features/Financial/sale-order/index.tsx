@@ -126,9 +126,9 @@ export default function SaleOrder() {
             { value: item.responsible.first_name + " " + item.responsible.last_name, className: "text-left" },
             { value: new Date(item.issue_date).toLocaleDateString("th-TH"), className: "text-center" },
             { value: new Date(item.price_date).toLocaleDateString("th-TH"), className: "text-center" },
-            { value: item.grand_total, className: "text-right" },
+            { value: Number(item.grand_total).toFixed(2).toLocaleString(), className: "text-right" },
             { value: item.payment_status, className: `${item.payment_status == "รอการชำระเงิน" ? "text-red-400" : "text-green-500"} font-bold text-center` },
-            { value: item.totalAmountPaid, className: "text-right" },
+            { value: Number(item.totalAmountPaid).toFixed(2).toLocaleString(), className: "text-right" },
           ],
           data: item,
         })
@@ -251,6 +251,7 @@ export default function SaleOrder() {
   //tabs บน headertable
   const groupTabs = [
     {
+      id: "all",
       name: "ใบสั่งขายทั้งหมด",
       onChange: () => {
         setStatusSaleOrder(null)
@@ -260,6 +261,7 @@ export default function SaleOrder() {
 
     },
     {
+      id: "pending",
       name: "ระหว่างดำเนินการ",
       onChange: () => {
         setStatusSaleOrder("ระหว่างดำเนินการ")
@@ -267,6 +269,7 @@ export default function SaleOrder() {
       }
     },
     {
+      id: "success",
       name: "สำเร็จ",
       onChange: () => {
         setStatusSaleOrder("สำเร็จ")
@@ -275,6 +278,7 @@ export default function SaleOrder() {
         
     },
     {
+      id: "not-success",
       name: "ไม่สำเร็จ",
       onChange: () => {
         setStatusSaleOrder("ไม่สำเร็จ")

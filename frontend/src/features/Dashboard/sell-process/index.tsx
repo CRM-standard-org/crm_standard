@@ -231,6 +231,7 @@ export default function SellProcess() {
 
   const groupTabs = [
     {
+      id: "pending",
       name: "รอปิดการขายใบเสนอราคา",
       onChange: () => {
         setFilterGroup("ระหว่างดำเนินการ")
@@ -238,6 +239,7 @@ export default function SellProcess() {
       }
     },
     {
+      id: "close-sale",
       name: "ปิดการขายเรียบร้อย",
       onChange: () => {
         setFilterGroup("สำเร็จ")
@@ -245,6 +247,7 @@ export default function SellProcess() {
       }
     },
     {
+      id: "reject-sale",
       name: "ปิดการขายไม่สำเร็จ",
       onChange: () => {
         setFilterGroup("ไม่สำเร็จ")

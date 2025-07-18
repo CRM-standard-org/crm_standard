@@ -264,26 +264,28 @@ export default function CreateActivity() {
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
-                        <div className="">
 
-                            <div className="">
-                                <DatePickerComponent
-                                    id="doc-date"
-                                    label="วันที่กิจกรรม"
-                                    placeholder="dd/mm/yy"
-                                    selectedDate={dateActivity}
-                                    onChange={(date) => setDateActivity(date)}
-                                    classNameLabel="w-1/2"
-                                    classNameInput="w-full"
-                                    required
-                                />
-                            </div>
+
+                        <div className="">
+                            <DatePickerComponent
+                                id="doc-date"
+                                label="วันที่กิจกรรม"
+                                placeholder="dd/mm/yy"
+                                selectedDate={dateActivity}
+                                onChange={(date) => setDateActivity(date)}
+                                onAction={handleConfirm}
+                                classNameLabel="w-1/2"
+                                classNameInput="w-full"
+                                required
+                            />
                         </div>
+
                         <div className="">
                             <MasterSelectComponent
                                 id="customer"
                                 onChange={(option) => setCustomer(option ? String(option.value) : null)}
                                 fetchDataFromGetAPI={fetchDataCustomerDropdown}
+                                onAction={handleConfirm}
                                 valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."
@@ -305,7 +307,12 @@ export default function CreateActivity() {
                                 placeholder="hh"
                                 label=""
                                 labelOrientation="horizontal"
-                                onChange={(e) => setHour(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    // จำกัดให้เป็นตัวเลข และไม่เกิน 23
+                                    const number = Math.min(parseInt(val || "0"), 23);
+                                    setHour(isNaN(number) ? "" : String(number));
+                                }}
                                 value={hour}
                                 onAction={handleConfirm}
                                 classNameLabel=""
@@ -319,7 +326,12 @@ export default function CreateActivity() {
                                 placeholder="mm"
                                 label=""
                                 labelOrientation="horizontal"
-                                onChange={(e) => setMinute(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    // จำกัดไม่เกิน 59
+                                    const number = Math.min(parseInt(val || "0"), 59);
+                                    setMinute(isNaN(number) ? "" : String(number));
+                                }}
                                 value={minute}
                                 onAction={handleConfirm}
                                 classNameLabel=""
@@ -338,12 +350,15 @@ export default function CreateActivity() {
                                 onChange={(option) => setTeam(option ? String(option.value) : null)}
                                 onInputChange={handleTeamSearch}
                                 fetchDataFromGetAPI={fetchDataTeamDropdown}
+                                onAction={handleConfirm}
+
                                 valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ทีมผู้รับผิดชอบ"
                                 labelOrientation="horizontal"
+
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
                                 nextFields={{ up: "province", down: "responsible-telno" }}
@@ -359,6 +374,7 @@ export default function CreateActivity() {
                                 placeholder=""
                                 onChange={(e) => setActivityDetail(e.target.value)}
                                 value={activityDetail}
+                                onAction={handleConfirm}
                                 label="รายละเอียดกิจกรรม"
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 "
@@ -376,6 +392,7 @@ export default function CreateActivity() {
                                 onChange={(option) => { setResponsible(option ? String(option.value) : null); }}
                                 onInputChange={handleEmployeeSearch}
                                 fetchDataFromGetAPI={fetchDataMemberInteam}
+                                onAction={handleConfirm}
                                 valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."

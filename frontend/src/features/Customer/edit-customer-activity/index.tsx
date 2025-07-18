@@ -30,8 +30,9 @@ import { TypeAllCustomerResponse } from "@/types/response/response.customer";
 import { useTeam } from "@/hooks/useTeam";
 import { useResponseToOptions } from "@/hooks/useOptionType";
 import { useSelectResponsible } from "@/hooks/useEmployee";
-import { TypeAllActivityResponse } from "@/types/response/response.activity";
+import { TypeAllActivityResponse, TypeOtherActivityResponse } from "@/types/response/response.activity";
 import { useActivityById } from "@/hooks/useCustomerActivity";
+import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 
 
 type dateTableType = {
@@ -40,7 +41,7 @@ type dateTableType = {
         value: any;
         className: string;
     }[];
-    data: TypeAllActivityResponse; //ตรงนี้
+    data: TypeOtherActivityResponse; //ตรงนี้
 }[];
 
 //
@@ -48,7 +49,7 @@ export default function EditCustomerActivity() {
 
     // const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const { activityId } = useParams<{ activityId: string }>();
-
+    const [data, setData] = useState<dateTableType>([]);
 
 
     const { showToast } = useToast();
@@ -61,7 +62,7 @@ export default function EditCustomerActivity() {
     const [dateActivity, setDateActivity] = useState<Date | null>(null);
     const [hour, setHour] = useState("");
     const [minute, setMinute] = useState("");
-    const [activityDetail, setActivityDetail] = useState("");
+    const [activityDesciption, setActivityDesciption] = useState("");
 
 
     const [team, setTeam] = useState<string | null>(null);
@@ -88,30 +89,88 @@ export default function EditCustomerActivity() {
 
     useEffect(() => {
         fetchDataActivity();
-        
+
     }, [activityDetails])
 
     const fetchDataActivity = async () => {
-        if (activityDetails?.responseObject) {
-            const timeString = activityDetails?.responseObject?.activity_time ?? "";
+        if (activityDetails?.responseObject.activity) {
+            const timeString = activityDetails?.responseObject?.activity.activity_time ?? "";
             const [hr, min] = timeString.split(":");
 
-            
-
-            setCustomer(activityDetails?.responseObject?.customer.customer_id ?? "");
-            setCustomerName(activityDetails?.responseObject?.customer.company_name ?? "");
-            setActivityDetail(activityDetails?.responseObject.activity_description)
-            setDateActivity(activityDetails?.responseObject?.issue_date ?
-                new Date(activityDetails?.responseObject?.issue_date)
+            setCustomer(activityDetails?.responseObject?.activity?.customer.customer_id ?? "");
+            setCustomerName(activityDetails?.responseObject?.activity?.customer.company_name ?? "");
+            setActivityDesciption(activityDetails?.responseObject.activity?.activity_description)
+            setDateActivity(activityDetails?.responseObject?.activity?.issue_date ?
+                new Date(activityDetails?.responseObject?.activity?.issue_date)
                 : null
             );
             setHour(hr);
             setMinute(min);
-            setTeam(activityDetails?.responseObject?.team.team_id ?? "");
-            setResponsible(activityDetails?.responseObject?.responsible.employee_id)
+            setTeam(activityDetails?.responseObject?.activity?.team.team_id ?? "");
+            setResponsible(activityDetails?.responseObject?.activity?.responsible.employee_id)
 
         }
     }
+    useEffect(() => {
+
+        if (activityDetails?.responseObject?.activityOther) {
+
+            const formattedData = activityDetails.responseObject?.activityOther.map(
+                (item: TypeOtherActivityResponse) => ({
+                    className: "",
+                    cells: [
+                        {
+                            value: (
+                                <div className="flex flex-col">
+                                    {new Date(item.issue_date).toLocaleDateString("th-TH")}
+                                    <div className="">
+
+                                        เวลา {item.activity_time} น.
+                                    </div>
+                                </div>
+                            )
+                            , className: "text-left"
+                        },
+                        {
+                            value: <div className="flex flex-col">
+                              {item.customer.company_name}
+                              <div className="flex flex-row space-x-1">
+                                {item.customer.customer_tags && item.customer.customer_tags.map((tag) => (
+              
+                                  <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
+                                ))}
+              
+                              </div>
+                            </div>, className: "text-left"
+                          },
+                        { value: item.activity_description, className: "text-left" },
+                        {
+                            value: (
+                                <div className="flex flex-col">
+                                    {item.customer.customer_contact &&
+                                        item.customer.customer_contact.map((contact, index) => (
+                                            <div key={contact.customer_contact_id ?? index}>
+                                                {contact.name}
+                                                <div className="flex flex-row space-x-1">
+                                                    โทร: {contact.phone}
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            ),
+                            className: "text-left"
+                        },
+                        { value: item.responsible.first_name + "" + item.responsible.last_name, className: "text-center" },
+                        { value: item.team.name, className: "text-center" },
+                    ],
+                    data: item,
+                })
+
+            );
+            setData(formattedData);
+        }
+    }, [activityDetails]);
+
 
     //fetch customer
     const { data: dataCustomer, refetch: refetchCustomer } = useAllCustomer({
@@ -251,8 +310,11 @@ export default function EditCustomerActivity() {
 
     const groupTabs = [
         {
-            name: "บันทึกกิจกรรมของลูกค้า: บริษัทจอมมี่จำกัด",
-            onChange: () => setFilterGroup(null)
+            id: "customer-activity",
+            name: `บันทึกกิจกรรมของลูกค้า: ${customerName}`,
+            onChange: () => {
+                setFilterGroup(null)
+            }
         },
 
 
@@ -278,6 +340,7 @@ export default function EditCustomerActivity() {
     //
     const headers = [
         { label: "วันเวลาของกิจกรรม", colSpan: 1, className: "w-auto" },
+        { label: "ลูกค้า", colSpan: 1, className: "w-auto" },
         { label: "รายละเอียดกิจกรรม", colSpan: 1, className: "w-auto" },
         { label: "รายละเอียดผู้ติดต่อ", colSpan: 1, className: "w-auto " },
         { label: "ผู้รับผิดชอบ", colSpan: 1, className: "w-auto" },
@@ -296,7 +359,7 @@ export default function EditCustomerActivity() {
         if (!team) missingFields.push("ทีม");
         if (!hour) missingFields.push("ชั่วโมง");
         if (!minute) missingFields.push("นาที");
-        if (!activityDetail) missingFields.push("รายละเอียดกิจกรรม");
+        if (!activityDesciption) missingFields.push("รายละเอียดกิจกรรม");
 
 
         if (missingFields.length > 0) {
@@ -309,7 +372,7 @@ export default function EditCustomerActivity() {
                 customer_id: customer,
                 issue_date: dateActivity ? dayjs(dateActivity).format("YYYY-MM-DD") : "",
                 activity_time: time,
-                activity_description: activityDetail,
+                activity_description: activityDesciption,
                 team_id: team,
                 responsible_id: responsible
             });
@@ -327,8 +390,8 @@ export default function EditCustomerActivity() {
         }
     };
     //เปิด
-    const handleEditOpen = () => {
-        navigate('/edit-customer-activity');
+    const handleEditOpen = (item: TypeOtherActivityResponse) => {
+        // navigate(`/edit-customer-activity/${item.}`);
     };
 
 
@@ -374,21 +437,26 @@ export default function EditCustomerActivity() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
-                                defaultValue={{label:customerName, value:customer ?? ""}}
+                                defaultValue={{ label: customerName, value: customer ?? "" }}
                                 nextFields={{ up: "customer-contact", down: "team" }}
                                 require="require"
                             />
                         </div>
                         <div className="flex sm:flex-nowrap sm:items-center gap-2">
 
-                            <label className="whitespace-nowrap w-1/2">เวลาของกิจกรรม</label>
+                            <label className="whitespace-nowrap w-1/2">เวลาของกิจกรรม<span style={{ color: "red" }}>*</span></label>
 
-                            <InputAction
+                             <InputAction
                                 id="hour"
                                 placeholder="hh"
                                 label=""
                                 labelOrientation="horizontal"
-                                onChange={(e) => setHour(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    // จำกัดให้เป็นตัวเลข และไม่เกิน 23
+                                    const number = Math.min(parseInt(val || "0"), 23);
+                                    setHour(isNaN(number) ? "" : String(number));
+                                }}
                                 value={hour}
                                 onAction={handleConfirm}
                                 classNameLabel=""
@@ -402,7 +470,12 @@ export default function EditCustomerActivity() {
                                 placeholder="mm"
                                 label=""
                                 labelOrientation="horizontal"
-                                onChange={(e) => setMinute(e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    // จำกัดไม่เกิน 59
+                                    const number = Math.min(parseInt(val || "0"), 59);
+                                    setMinute(isNaN(number) ? "" : String(number));
+                                }}
                                 value={minute}
                                 onAction={handleConfirm}
                                 classNameLabel=""
@@ -410,6 +483,7 @@ export default function EditCustomerActivity() {
                                 nextFields={{ left: "hour", right: "team", up: "date-activity", down: "activity-detail" }}
                                 require="require"
                             />
+
 
                             <label className="">น.</label>
 
@@ -440,8 +514,8 @@ export default function EditCustomerActivity() {
                             <TextArea
                                 id="activity-detail"
                                 placeholder=""
-                                onChange={(e) => setActivityDetail(e.target.value)}
-                                value={activityDetail}
+                                onChange={(e) => setActivityDesciption(e.target.value)}
+                                value={activityDesciption}
                                 label="รายละเอียดกิจกรรม"
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 "
@@ -451,7 +525,7 @@ export default function EditCustomerActivity() {
                                 require="require"
                             />
                         </div>
-                    
+
                         <div className="">
 
                             <DependentSelectComponent
@@ -502,6 +576,17 @@ export default function EditCustomerActivity() {
                 </div>
 
             </div>
+            <MasterTableFeature
+                title=""
+                hideTitleBtn={true}
+                headers={headers}
+                rowData={data}
+                totalData={activityDetails?.responseObject?.activityOther?.length}
+                onEdit={handleEditOpen}
+                headerTab={true}
+                groupTabs={groupTabs}
+                hidePagination={false}
+            />
         </>
 
     );

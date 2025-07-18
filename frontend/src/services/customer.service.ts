@@ -13,13 +13,16 @@ import {
     DELETE_CUSTOMER_ADDRESS,
     EDIT_CUSTOMER,
     SELECT_CUSTOMER_CONTACT,
-    SELECT_CUSTOMER_ADDRESS
+    SELECT_CUSTOMER_ADDRESS,
+    GET_ALL_CUSTOMER_ACTIVITY,
+    FOLLOW_QUOTATION,
+    FOLLOW_SALE_TOTAL
 } from "@/apis/endpoint.api";
 
 import mainApi from "@/apis/main.api";
 import { PayLoadCreateCustomer, PayLoadCreateCustomerAddress, PayLoadCreateCustomerContact, PayLoadDeleteAddress, PayLoadDeleteContact, PayLoadEditAddress, PayLoadEditContact, PayLoadEditCustomer, PayLoadEditMainAddress, PayLoadEditMainContact, PayLoadFilterCustomer } from "@/types/requests/request.customer";
 import { APIResponseType } from "@/types/response";
-import { AllCustomerResponse, CustomerResponse, TypeCustomerAddress, TypeCustomerContacts } from "@/types/response/response.customer";
+import { AllCustomerResponse, CustomerActivityResponse, CustomerResponse, FollowQuotationResponse, FollowSaleTotalResponse, TypeCustomerAddress, TypeCustomerContacts } from "@/types/response/response.customer";
 
 export const getAllCustomer = async (page: string, pageSize: string, searchText: string, payload?: PayLoadFilterCustomer) => {
     try {
@@ -42,6 +45,48 @@ export const getCustomer = async (customerId: string) => {
 
         const { data: response } = await mainApi.get<CustomerResponse>(
             `${GET_CUSTOMER_BY_ID}/${encodedCustomerId}`
+        );
+        return response;
+    } catch (error) {
+        console.error("Error get Customer by Id", error);
+        throw error;
+    }
+}
+//get all customer activity
+export const getCustomerAllActivity= async (page: string, pageSize: string, searchText: string,customerId: string) => {
+    try {
+        const encodedCustomerId = encodeURIComponent(customerId);
+        const { data: response } = await mainApi.get<CustomerActivityResponse>(
+            `${GET_ALL_CUSTOMER_ACTIVITY}/${encodedCustomerId}?page=${page}&limit=${pageSize}&search=${searchText}`
+        );
+        
+        return response;
+    } catch (error) {
+        console.error("Error get Customer by Id", error);
+        throw error;
+    }
+}
+//follow quotation
+export const getFollowQuotation = async (customerId: string) => {
+    try {
+        const encodedCustomerId = encodeURIComponent(customerId);
+
+        const { data: response } = await mainApi.get<FollowQuotationResponse>(
+            `${FOLLOW_QUOTATION}/${encodedCustomerId}`
+        );
+        return response;
+    } catch (error) {
+        console.error("Error get Customer by Id", error);
+        throw error;
+    }
+}
+//follow sale total
+export const getFollowSaleTotal = async (customerId: string) => {
+    try {
+        const encodedCustomerId = encodeURIComponent(customerId);
+
+        const { data: response } = await mainApi.get<FollowSaleTotalResponse>(
+            `${FOLLOW_SALE_TOTAL}/${encodedCustomerId}`
         );
         return response;
     } catch (error) {

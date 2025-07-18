@@ -260,6 +260,7 @@ export default function ManageCustomer() {
   //tabs บน headertable
   const groupTabs = [
     {
+      id: "all",
       name: "ลูกค้าทั้งหมด",
       onChange: () => {
         setFilterGroup(null)
@@ -267,6 +268,7 @@ export default function ManageCustomer() {
       }
     },
     {
+      id: "target",
       name: "ลูกค้าเป้าหมาย",
       onChange: () => {
         setFilterGroup("ลูกค้าเป้าหมาย")
@@ -274,6 +276,7 @@ export default function ManageCustomer() {
       }
     },
     {
+      id: "regular",
       name: "ลูกค้าประจำ",
       onChange: () => {
         setFilterGroup("ลูกค้าประจำ")
@@ -281,6 +284,7 @@ export default function ManageCustomer() {
       }
     },
     {
+      id: "new",
       name: "ลูกค้าใหม่",
       onChange: () => {
         setFilterGroup("ลูกค้าใหม่")
@@ -288,6 +292,7 @@ export default function ManageCustomer() {
       }
     },
     {
+      id: "ghost",
       name: "ลูกค้าห่างหาย",
       onChange: () => {
         setFilterGroup("ลูกค้าห่างหาย")

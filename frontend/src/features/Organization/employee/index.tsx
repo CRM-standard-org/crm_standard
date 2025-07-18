@@ -172,6 +172,7 @@ export default function Employee() {
 
   const groupTabs = [
     {
+      id: "regular",
       name: "พนักงานประจำ",
       onChange: () => {
         setFilterGroup("พนักงานประจำ")
@@ -180,6 +181,7 @@ export default function Employee() {
       }
     },
     {
+      id: "part-time",
       name: "พนักงานรายวัน",
       onChange: () => {
         setFilterGroup("พนักงานรายวัน")

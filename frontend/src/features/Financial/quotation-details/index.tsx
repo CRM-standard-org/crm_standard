@@ -107,11 +107,11 @@ export default function QuotationDetails() {
                         { value: item.product.product_name ?? "-", className: "text-center" },
                         { value: item.group_product.group_product_name ?? "-", className: "text-center" },
                         { value: item.unit.unit_name ?? "-", className: "text-center" },
-                        { value: item.unit_price ?? 0, className: "text-right" },
-                        { value: item.quotation_item_count ?? 0, className: "text-right" },
-                        { value: item.unit_discount ?? 0, className: "text-right" },
-                        { value: item.unit_discount_percent ?? 0, className: "text-right" },
-                        { value: item.quotation_item_price ?? 0, className: "text-right" },
+                        { value: Number(item.unit_price).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.quotation_item_count).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.unit_discount).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.unit_discount_percent).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.quotation_item_price).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
                     ],
                     data: item,
                 })
@@ -512,17 +512,17 @@ export default function QuotationDetails() {
 
                                     <div className="flex justify-between space-x-4">
                                         <label>ราคารวม</label>
-                                        <label>{dataQuotation?.total_amount}</label>
+                                        <label>{Number(dataQuotation?.total_amount).toFixed(2).toLocaleString()}</label>
                                     </div>
 
                                     <div className="flex justify-between space-x-4">
-                                        <label>ส่วนลดพิเศษ (<span className="text-main">{dataQuotation?.special_discount} บาท</span>)</label>
-                                        <label>{dataQuotation?.amount_after_discount}</label>
+                                        <label>ส่วนลดพิเศษ (<span className="text-main"> {Number(dataQuotation?.special_discount).toFixed(2).toLocaleString()} บาท </span>)</label>
+                                        <label>{Number(dataQuotation?.amount_after_discount).toFixed(2).toLocaleString()}</label>
                                     </div>
 
                                     <div className="flex justify-between space-x-4">
                                         <label>VAT (%)</label>
-                                        <label>{dataQuotation?.vat_amount}</label>
+                                        <label>{Number(dataQuotation?.vat_amount).toFixed(2).toLocaleString()}</label>
                                     </div>
 
 
@@ -531,7 +531,7 @@ export default function QuotationDetails() {
 
                                     <div className="flex justify-between space-x-4">
                                         <label>ยอดรวมทั้งหมด</label>
-                                        <label>{dataQuotation?.grand_total}</label>
+                                        <label>{Number(dataQuotation?.grand_total).toFixed(2).toLocaleString()}</label>
                                     </div>
 
                                     <div className="border-b-2 border-main mb-6 "></div>

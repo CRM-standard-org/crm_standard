@@ -269,11 +269,11 @@ export default function EditSaleOrder() {
                         { value: item.product.product_name ?? "-", className: "text-center" },
                         { value: item.group_product.group_product_name ?? "-", className: "text-center" },
                         { value: item.unit.unit_name ?? "-", className: "text-center" },
-                        { value: item.unit_price ?? 0, className: "text-right" },
-                        { value: item.sale_order_item_count ?? 0, className: "text-right" },
-                        { value: item.unit_discount ?? 0, className: "text-right" },
-                        { value: item.unit_discount_percent ?? 0, className: "text-right" },
-                        { value: item.sale_order_item_price ?? 0, className: "text-right" },
+                        { value: Number(item.unit_price).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.sale_order_item_count).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.unit_discount).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.unit_discount_percent).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: Number(item.sale_order_item_price).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
                     ],
                     data: item,
                 })
@@ -290,10 +290,10 @@ export default function EditSaleOrder() {
                     cells: [
                         { value: index + 1, className: "text-center" },
                         { value: new Date(item.payment_date).toLocaleDateString("th-TH") ?? "-", className: "text-center" },
-                        { value: item.amount_paid ?? "-", className: "text-right" },
-                        { value: item.payment_term_name ?? 0, className: "text-center" },
-                        { value: item.payment_method.payment_method_name ?? 0, className: "text-center" },
-                        { value: item.payment_remark ?? 0, className: "text-center" },
+                        { value: Number(item.amount_paid).toFixed(2).toLocaleString() ?? 0, className: "text-right" },
+                        { value: item.payment_term_name ?? "-", className: "text-center" },
+                        { value: item.payment_method.payment_method_name ?? "-", className: "text-center" },
+                        { value: item.payment_remark ?? "-", className: "text-center" },
                     ],
                     data: item,
                 })
@@ -1123,6 +1123,12 @@ export default function EditSaleOrder() {
     };
     //เปิด
     const handlePaymentOpen = () => {
+        setPaymentDate(new Date());
+        setUpdatePaymentCondition(null);
+        setPaymentValue(0);
+        setUpdatePaymentOption(null);
+        setUploadedProve([]);
+        setUploadKey(prev => prev + 1);
         setIsPaymentDialogOpen(true);
     }
 
@@ -1155,7 +1161,6 @@ export default function EditSaleOrder() {
         );
 
         setUploadedProve(fetchedFiles);
-        console.log(uploadedProve)
         setIsEditDialogOpen(true);
     };
 
@@ -1206,6 +1211,11 @@ export default function EditSaleOrder() {
 
         if (missingFields.length > 0) {
             showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
+            return;
+        }
+
+        if (paymentValue > remainingTotal) {
+            showToast("จำนวนเงินที่ชำระมากกว่ายอดคงเหลือ", false);
             return;
         }
 
@@ -1265,6 +1275,10 @@ export default function EditSaleOrder() {
             showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
             return;
         }
+        if (paymentValue > remainingTotal) {
+            showToast("จำนวนเงินที่ชำระมากกว่ายอดคงเหลือ", false);
+            return;
+        }
 
         const payload: PayLoadUpdateSaleOrderPaymentLog = {
             payment_log_id: paymentLogId,
@@ -1296,6 +1310,7 @@ export default function EditSaleOrder() {
             else if (response.statusCode === 400) {
                 if (response.message === "Color in quotation") {
                     showToast("ไม่สามารถอัพเดทการชำระได้ ", false);
+
                 }
                 else {
                     showToast("ไม่สามารถอัพเดทการชำระได้", false);
@@ -1987,12 +2002,12 @@ export default function EditSaleOrder() {
             <div className="p-7 pb-5 bg-white shadow-lg rounded-lg mt-7" >
                 <div className="w-full max-w-full overflow-x-auto lg:overflow-x-visible">
 
-                <h1 className="text-xl font-semibold mb-1">
-                        รายละเอียดการชำระเงิน ( 
+                    <h1 className="text-xl font-semibold mb-1">
+                        รายละเอียดการชำระเงิน (
                         {remainingTotal === 0 ? (
                             <span className="text-green-600">ชำระเงินเรียบร้อย</span>
                         ) : (
-                            <span className="text-red-500">ยอดค้างชำระ {remainingTotal} บาท</span>
+                            <span className="text-red-500">ยอดค้างชำระ {remainingTotal.toFixed(2).toLocaleString()} บาท</span>
                         )}
 
                         )
@@ -2006,7 +2021,7 @@ export default function EditSaleOrder() {
 
                             <div className="flex justify-between space-x-4">
                                 <label>ราคารวม</label>
-                                <label>{totalAmount.toFixed(2)}</label>
+                                <label>{Number(totalAmount).toFixed(2).toLocaleString()}</label>
                             </div>
 
                             {/* <div className="flex justify-between space-x-4">
@@ -2026,8 +2041,8 @@ export default function EditSaleOrder() {
                                 <label>{amountAfterDiscount.toFixed(2)}</label>
                             </div> */}
                             <div className="flex justify-between space-x-4">
-                                <label>ส่วนลดพิเศษ (<span className="text-main">{saleOrderDetails?.responseObject?.special_discount} บาท</span>)</label>
-                                <label>{dataSaleOrder?.amount_after_discount}</label>
+                                <label>ส่วนลดพิเศษ (<span className="text-main">{Number(saleOrderDetails?.responseObject?.special_discount).toFixed(2).toLocaleString()} บาท</span>)</label>
+                                <label>{Number(dataSaleOrder?.amount_after_discount).toFixed(2).toLocaleString()}</label>
                             </div>
 
                             {/* <div className="flex justify-between space-x-4">
@@ -2056,14 +2071,14 @@ export default function EditSaleOrder() {
                             </div> */}
                             <div className="flex justify-between space-x-4">
                                 <label>VAT (%)</label>
-                                <label>{dataSaleOrder?.vat_amount}</label>
+                                <label>{Number(dataSaleOrder?.vat_amount).toFixed(2).toLocaleString()}</label>
                             </div>
 
                             <div className="border-b-2 border-main mb-6"></div>
 
                             <div className="flex justify-between space-x-4">
                                 <label>ยอดรวมทั้งหมด</label>
-                                <label>{netTotal.toFixed(2)}</label>
+                                <label>{Number(netTotal).toFixed(2).toLocaleString()}</label>
                             </div>
 
                             <div className="border-b-2 border-main mb-6"></div>
@@ -2967,7 +2982,6 @@ export default function EditSaleOrder() {
                 cancelText="ยกเลิก"
             >
                 <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?</p>
-                <p>ชื่อ : <span className="text-red-500">{selectedPaymentLogItem?.payment_log_id} </span></p>
             </DialogComponent>
         </>
 

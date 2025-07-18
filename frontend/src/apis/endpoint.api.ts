@@ -98,8 +98,11 @@ export const CHANGE_MAIN_ADDRESS = "/v1/customer/main-address";
 export const EDIT_CUSTOMER = "/v1/customer/update";
 export const EDIT_CUSTOMER_CONTACT = "/v1/customer/update-contact";
 export const EDIT_CUSTOMER_ADDRESS = "/v1/customer/update-address";
-export const DELETE_CUSTOMER_CONTACT = "/v1/customer/delete-contact"
-export const DELETE_CUSTOMER_ADDRESS = "/v1/customer/delete-address"
+export const DELETE_CUSTOMER_CONTACT = "/v1/customer/delete-contact";
+export const DELETE_CUSTOMER_ADDRESS = "/v1/customer/delete-address";
+export const GET_ALL_CUSTOMER_ACTIVITY = "/v1/customer/activity";
+export const FOLLOW_QUOTATION = "/v1/customer/follow-quotation";
+export const FOLLOW_SALE_TOTAL = "/v1/customer/sale-total";
 
 //activity
 export const CREATE_ACTIVITY = "/v1/activity/create";

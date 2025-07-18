@@ -70,7 +70,7 @@ export default function CustomerActivity() {
  
 
 
-  //fetch quotation
+  //fetch all activity
   const { data: dataActitvities, refetch: refetchActivity } = useAllActivities({
     page: page,
     pageSize: pageSize,
@@ -384,6 +384,7 @@ const fetchDataCustomerDropdown = async () => {
 
   const groupTabs = [
     {
+      id: "customer-activity",
       name: "บันทึกกิจกรรมลูกค้า",
       onChange: () => setFilterGroup(null)
     }
