@@ -2829,7 +2829,8 @@ export default function EditSaleOrder() {
                             setUpdatePaymentCondition(condition);
 
                             if (condition === "เต็มจำนวน") {
-                                setPaymentValue(remainingTotal);
+                                const newValue = paymentValue + remainingTotal
+                                setPaymentValue(newValue);
                             }
                         }}
                         fetchDataFromGetAPI={fetchPaymentCondition}

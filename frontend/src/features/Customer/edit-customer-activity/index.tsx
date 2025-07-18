@@ -85,7 +85,7 @@ export default function EditCustomerActivity() {
         throw Error;
     }
     const { data: activityDetails, refetch: refetchActivity } = useActivityById({ activityId });
-    //fetch quotation detail
+
 
     useEffect(() => {
         fetchDataActivity();
@@ -391,7 +391,7 @@ export default function EditCustomerActivity() {
     };
     //เปิด
     const handleEditOpen = (item: TypeOtherActivityResponse) => {
-        // navigate(`/edit-customer-activity/${item.}`);
+        navigate(`/edit-customer-activity/${item.activity_id}`);
     };
 
 

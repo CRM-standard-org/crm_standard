@@ -46,6 +46,7 @@ export type AllActivityResponse = {
 }
 //get by id activity
 export type TypeOtherActivityResponse = {
+    activity_id: string,
     customer: {
         customer_id: string,
         company_name: string,
