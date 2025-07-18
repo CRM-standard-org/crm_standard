@@ -49,6 +49,7 @@ export const activityRepository = {
         const activityOther = await prisma.activity.findMany({
             where: { customer: { customer_id : data?.customer.customer_id } , NOT: { activity_id: activity_id }},
             select: {
+                activity_id: true,
                 customer: { 
                     select: { 
                         customer_id: true , 
