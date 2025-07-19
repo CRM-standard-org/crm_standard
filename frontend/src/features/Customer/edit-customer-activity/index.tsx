@@ -133,16 +133,16 @@ export default function EditCustomerActivity() {
                         },
                         {
                             value: <div className="flex flex-col">
-                              {item.customer.company_name}
-                              <div className="flex flex-row space-x-1">
-                                {item.customer.customer_tags && item.customer.customer_tags.map((tag) => (
-              
-                                  <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
-                                ))}
-              
-                              </div>
+                                {item.customer.company_name}
+                                <div className="flex flex-row space-x-1">
+                                    {item.customer.customer_tags && item.customer.customer_tags.map((tag) => (
+
+                                        <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
+                                    ))}
+
+                                </div>
                             </div>, className: "text-left"
-                          },
+                        },
                         { value: item.activity_description, className: "text-left" },
                         {
                             value: (
@@ -409,21 +409,20 @@ export default function EditCustomerActivity() {
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
-                        <div className="">
 
-                            <div className="">
-                                <DatePickerComponent
-                                    id="doc-date"
-                                    label="วันที่กิจกรรม"
-                                    placeholder="dd/mm/yy"
-                                    selectedDate={dateActivity}
-                                    onChange={(date) => setDateActivity(date)}
-                                    classNameLabel="w-1/2"
-                                    classNameInput="w-full"
-                                    required
-                                />
-                            </div>
+                        <div className="">
+                            <DatePickerComponent
+                                id="doc-date"
+                                label="วันที่กิจกรรม"
+                                placeholder="dd/mm/yy"
+                                selectedDate={dateActivity}
+                                onChange={(date) => setDateActivity(date)}
+                                classNameLabel="w-1/2"
+                                classNameInput="w-full"
+                                required
+                            />
                         </div>
+
                         <div className="">
                             <MasterSelectComponent
                                 id="customer"
@@ -442,11 +441,12 @@ export default function EditCustomerActivity() {
                                 require="require"
                             />
                         </div>
+
                         <div className="flex sm:flex-nowrap sm:items-center gap-2">
 
                             <label className="whitespace-nowrap w-1/2">เวลาของกิจกรรม<span style={{ color: "red" }}>*</span></label>
 
-                             <InputAction
+                            <InputAction
                                 id="hour"
                                 placeholder="hh"
                                 label=""

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
@@ -27,6 +27,10 @@ import Buttons from "@/components/customs/button/button.main.component";
 import { useSelectTag } from "@/hooks/useCustomerTag";
 import { TypeTagColorResponse } from "@/types/response/response.tagColor";
 import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
+import { FiPrinter } from "react-icons/fi";
+import SummarySalePDF from "../pdf/print-summary-sale/SummarySalePDF";
+import { pdf } from "@react-pdf/renderer";
+import html2canvas from "html2canvas";
 
 type dateTableType = {
   className: string;
@@ -55,12 +59,33 @@ export default function SummarySale() {
   //
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const page = searchParams.get("page") ?? "1";
-  const pageSize = searchParams.get("pageSize") ?? "25";
+
 
 
   //searchText control
   const [searchTag, setSearchTag] = useState("");
+
+  const chartRef1 = useRef<HTMLDivElement>(null); // สำหรับกราฟกิจกรรม/ลูกค้า
+  const chartRef2 = useRef<HTMLDivElement>(null); // สำหรับกราฟมูลค่าการขาย
+
+
+  const handleOpenPdf = async () => {
+    if (chartRef1.current && chartRef2.current) {
+      const canvas1 = await html2canvas(chartRef1.current);
+      const canvas2 = await html2canvas(chartRef2.current);
+
+      const image1 = canvas1.toDataURL("image/png");
+      const image2 = canvas2.toDataURL("image/png");
+
+
+      const blob = await pdf(
+        <SummarySalePDF chartImage1={image1} chartImage2={image2} />
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    }
+  };
 
   //fetch ข้อมูล tag ลูกค้า
 
@@ -77,7 +102,7 @@ export default function SummarySale() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-  
+
   const fetchDataTagDropdown = async () => {
     const tagList = dataTag?.responseObject?.data ?? [];
     return {
@@ -247,83 +272,88 @@ export default function SummarySale() {
 
           {/* กราฟกิจกรรมและลูกค้า */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5">
-
-            {/* กราฟกิจกรรม */}
-            <div className="w-full h-[300px]">
+            <div>
               <p className="text-lg font-semibold mb-2 text-gray-700">กิจกรรมและลูกค้า</p>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
-                  data={activityCustomer}
-                  margin={isSmallScreen
-                    ? { top: 10, right: 30, left: 30, bottom: 40 }
-                    : { top: 10, right: 100, left: 50, bottom: 10 }
-                  }
-                  barSize={isSmallScreen ? 40 : 20}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  {isSmallScreen ? (
-                    <>
-                      <XAxis dataKey="label" />
-                      <YAxis tickFormatter={(v) => v.toLocaleString()} width={20} />
-                    </>
-                  ) : (
-                    <>
-                      <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
-                      <YAxis type="category" dataKey="label" width={120} />
-                    </>
-                  )}
-                  <Tooltip formatter={(v) => v.toLocaleString()} />
-                  <Bar dataKey="value">
-                    <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(v: number) => v.toLocaleString()} />
-                    {activityCustomer.map((data, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={colorActivityCustomer[index % colorActivityCustomer.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+
+              {/* กราฟกิจกรรม */}
+              <div ref={chartRef1} className="w-full h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
+                    data={activityCustomer}
+                    margin={isSmallScreen
+                      ? { top: 10, right: 30, left: 30, bottom: 40 }
+                      : { top: 10, right: 100, left: 50, bottom: 10 }
+                    }
+                    barSize={isSmallScreen ? 40 : 20}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    {isSmallScreen ? (
+                      <>
+                        <XAxis dataKey="label" />
+                        <YAxis tickFormatter={(v) => v.toLocaleString()} width={20} />
+                      </>
+                    ) : (
+                      <>
+                        <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
+                        <YAxis type="category" dataKey="label" width={120} />
+                      </>
+                    )}
+                    <Tooltip formatter={(v) => v.toLocaleString()} />
+                    <Bar dataKey="value">
+                      <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(v: number) => v.toLocaleString()} />
+                      {activityCustomer.map((data, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={colorActivityCustomer[index % colorActivityCustomer.length]}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* กราฟมูลค่า */}
-            <div className="w-full h-[300px]">
+            <div>
               <p className="text-lg font-semibold mb-2 text-gray-700">มูลค่าการขาย</p>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
-                  data={saleValue}
-                  margin={isSmallScreen
-                    ? { top: 10, right: 30, left: 30, bottom: 40 }
-                    : { top: 10, right: 100, left: 110, bottom: 10 }
-                  }
-                  barSize={isSmallScreen ? 40 : 20}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  {isSmallScreen ? (
-                    <>
-                      <XAxis dataKey="label" />
-                      <YAxis tickFormatter={(v) => v.toLocaleString()} />
-                    </>
-                  ) : (
-                    <>
-                      <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
-                      <YAxis type="category" dataKey="label" width={120} />
-                    </>
-                  )}
-                  <Tooltip formatter={(v) => v.toLocaleString()} />
-                  <Bar dataKey="value">
-                    <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(v: number) => v.toLocaleString()} />
-                    {saleValue.map((data, index) => (
-                      <Cell
-                        key={`cell-sale-${index}`}
-                        fill={colorSaleValue[index % colorSaleValue.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div ref={chartRef2} className="w-full h-[300px]">
+
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
+                    data={saleValue}
+                    margin={isSmallScreen
+                      ? { top: 10, right: 30, left: 30, bottom: 40 }
+                      : { top: 10, right: 100, left: 110, bottom: 10 }
+                    }
+                    barSize={isSmallScreen ? 40 : 20}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    {isSmallScreen ? (
+                      <>
+                        <XAxis dataKey="label" />
+                        <YAxis tickFormatter={(v) => v.toLocaleString()} />
+                      </>
+                    ) : (
+                      <>
+                        <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
+                        <YAxis type="category" dataKey="label" width={120} />
+                      </>
+                    )}
+                    <Tooltip formatter={(v) => v.toLocaleString()} />
+                    <Bar dataKey="value">
+                      <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(v: number) => v.toLocaleString()} />
+                      {saleValue.map((data, index) => (
+                        <Cell
+                          key={`cell-sale-${index}`}
+                          fill={colorSaleValue[index % colorSaleValue.length]}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
@@ -345,6 +375,24 @@ export default function SummarySale() {
             data={employees}
           />
         </div>
+      </div>
+      <div className="flex justify-between space-x-5 mt-5">
+
+        <Buttons
+          btnType="primary"
+          variant="outline"
+          className="w-30"
+          onClick={handleOpenPdf}
+        >
+          <FiPrinter style={{ fontSize: 18 }} />
+
+          พิมพ์
+        </Buttons>
+
+
+
+
+
       </div>
     </div>
   );

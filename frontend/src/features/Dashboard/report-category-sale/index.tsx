@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
@@ -36,6 +36,10 @@ import { useResponseToOptions } from "@/hooks/useOptionType";
 import { useTeam, useTeamMember } from "@/hooks/useTeam";
 import DependentSelectComponent from "@/components/customs/select/select.dependent";
 import { SummaryTable } from "@/components/customs/display/sumTable.component";
+import { pdf } from "@react-pdf/renderer";
+import ReportCategoryPDF from "../pdf/print-report-category-sale/ReportCategoryPDF";
+import { FiPrinter } from "react-icons/fi";
+import html2canvas from "html2canvas";
 
 
 type dateTableType = {
@@ -76,6 +80,28 @@ export default function ReportCategorySale() {
   const [searchTeam, setSearchTeam] = useState("");
   const [searchYear, setSearchYear] = useState("");
 
+
+
+  const chartRef1 = useRef<HTMLDivElement>(null);
+  const chartRef2 = useRef<HTMLDivElement>(null);
+  const chartRef3 = useRef<HTMLDivElement>(null);
+
+
+  const handleOpenPdf = async () => {
+
+    if (chartRef2.current) {
+      const canvas1 = await html2canvas(chartRef1.current);
+      const canvas2 = await html2canvas(chartRef2.current);
+      const canvas3 = await html2canvas(chartRef3.current);
+      const image1 = canvas1.toDataURL("image/png");
+      const image2 = canvas2.toDataURL("image/png");
+      const image3 = canvas3.toDataURL("image/png");
+
+      const blob = await pdf(<ReportCategoryPDF chartImage1={image1} chartImage2={image2} chartImage3={image3} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+  };
   //fetch ข้อมูล tag ลูกค้า
 
   const { data: dataTag, refetch: refetchTag } = useSelectTag({
@@ -235,52 +261,52 @@ export default function ReportCategorySale() {
 
             />
           </div>
-        
-
-        {/* พนักงานขาย */}
-
-        <div className="flex flex-col w-full">
-          <label className="text-md mb-1">พนักงานขาย</label>
-          <DependentSelectComponent
-            id="responsible"
-            value={responsibleOptions.find((opt) => opt.value === responsible) || null}
-            onChange={(option) => setResponsible(option ? String(option.value) : null)}
-            onInputChange={handleTeamSearch}
-            fetchDataFromGetAPI={fetchDataMemberInteam}
-            valueKey="id"
-            labelKey="name"
-            placeholder="รายชื่อบุคลากร"
-            isClearable
-            label=""
-            labelOrientation="horizontal"
-            classNameLabel=""
-            classNameSelect="w-full "
-            nextFields={{ left: "responsible-email", right: "responsible-email", up: "team", down: "contact-person" }}
-          />
-        </div>
-
-        {/* หมวดหมู่สินค้า */}
-        <div className="flex flex-col w-full">
-          <label className="text-md mb-1">หมวดหมู่สินค้า</label>
-          <MasterSelectComponent
-            id="category"
-            onChange={(option) => setTagId(option ? String(option.value) : null)}
-            fetchDataFromGetAPI={fetchDataTagDropdown}
-            onInputChange={handleTagSearch}
-            valueKey="id"
-            labelKey="name"
-            placeholder="รายชื่อหมวดหมู่สินค้า"
-            isClearable
-            label=""
-            labelOrientation="horizontal"
-            classNameLabel=""
-            classNameSelect="w-full "
-          />
-        </div>
 
 
-        {/* วันที่เริ่ม */}
-        <div className="flex flex-col w-full">
+          {/* พนักงานขาย */}
+
+          <div className="flex flex-col w-full">
+            <label className="text-md mb-1">พนักงานขาย</label>
+            <DependentSelectComponent
+              id="responsible"
+              value={responsibleOptions.find((opt) => opt.value === responsible) || null}
+              onChange={(option) => setResponsible(option ? String(option.value) : null)}
+              onInputChange={handleTeamSearch}
+              fetchDataFromGetAPI={fetchDataMemberInteam}
+              valueKey="id"
+              labelKey="name"
+              placeholder="รายชื่อบุคลากร"
+              isClearable
+              label=""
+              labelOrientation="horizontal"
+              classNameLabel=""
+              classNameSelect="w-full "
+              nextFields={{ left: "responsible-email", right: "responsible-email", up: "team", down: "contact-person" }}
+            />
+          </div>
+
+          {/* หมวดหมู่สินค้า */}
+          <div className="flex flex-col w-full">
+            <label className="text-md mb-1">หมวดหมู่สินค้า</label>
+            <MasterSelectComponent
+              id="category"
+              onChange={(option) => setTagId(option ? String(option.value) : null)}
+              fetchDataFromGetAPI={fetchDataTagDropdown}
+              onInputChange={handleTagSearch}
+              valueKey="id"
+              labelKey="name"
+              placeholder="รายชื่อหมวดหมู่สินค้า"
+              isClearable
+              label=""
+              labelOrientation="horizontal"
+              classNameLabel=""
+              classNameSelect="w-full "
+            />
+          </div>
+
+
+          {/* วันที่เริ่ม */}
+          <div className="flex flex-col w-full">
             <label className="text-md mb-1">วันที่เริ่ม</label>
             <DatePickerComponent
               id="start-date"
@@ -305,16 +331,16 @@ export default function ReportCategorySale() {
             />
           </div>
 
-        <div className="sm:col-span-1 md:col-span-3 lg:col-span-5 flex justify-end">
-          <Buttons
-            btnType="primary"
-            variant="outline"
-            className="w-full sm:w-auto sm:min-w-[100px]"
-          >
-            ค้นหา
-          </Buttons>
+          <div className="sm:col-span-1 md:col-span-3 lg:col-span-5 flex justify-end">
+            <Buttons
+              btnType="primary"
+              variant="outline"
+              className="w-full sm:w-auto sm:min-w-[100px]"
+            >
+              ค้นหา
+            </Buttons>
+          </div>
         </div>
-      </div>
       </div>
       <div className=" bg-white shadow-md rounded-lg pb-5">
         <div className="p-2 bg-sky-100 rounded-t-lg">
@@ -368,7 +394,7 @@ export default function ReportCategorySale() {
           </Table.Root>
           <div className="grid grid-cols-1 lg:grid-cols-2 pt-5">
 
-            <div className="w-full h-[500px]">
+            <div ref={chartRef1} className="w-full h-[500px]">
 
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -394,59 +420,84 @@ export default function ReportCategorySale() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 pt-5 gap-4">
             {/* Actual Pie */}
-            <div className="flex flex-col items-center space-y-4">
-              <p className="font-semibold mb-2">สัดส่วนในเสนอราคาจริง แบ่งตามความสำคัญ</p>
-              <PieChart width={250} height={250}>
-                <Pie
-                  data={pieDataActual}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  label
+            <div>
+              <p className="font-semibold text-center mb-2">สัดส่วนในเสนอราคาจริง แบ่งตามความสำคัญ</p>
+              <div ref={chartRef2} className="flex flex-col items-center space-y-4">
+                <PieChart width={250} height={250}>
+                  <Pie
+                    data={pieDataActual}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={120}
+                    label
 
-                >
-                  {pieDataActual.map((entry, index) => (
-                    <Cell key={`cell-a-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-              <SummaryTable
-                title=""
-                columns={HeaderColumns}
-                data={realValues}
-              />
+                  >
+                    {pieDataActual.map((entry, index) => (
+                      <Cell key={`cell-a-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+
+              </div>
+              <div className="flex flex-col items-center">
+
+                <SummaryTable
+                  title=""
+                  columns={HeaderColumns}
+                  data={realValues}
+                />
+              </div>
             </div>
-
             {/* Forecast Pie */}
-            <div className="flex flex-col items-center space-y-4">
-              <p className="font-semibold mb-2">สัดส่วนในเสนอราคาคาดการณ์ แบ่งตามความสำคัญ</p>
-              <PieChart width={250} height={250}>
-                <Pie
-                  data={pieDataForecast}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  label
-                >
-                  {pieDataForecast.map((entry, index) => (
-                    <Cell key={`cell-f-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-              <SummaryTable
-                title=""
-                columns={HeaderColumns}
-                data={predictValues}
-              />
+            <div>
+              <p className="font-semibold text-center mb-2">สัดส่วนในเสนอราคาคาดการณ์ แบ่งตามความสำคัญ</p>
+              <div ref={chartRef3} className="flex flex-col items-center space-y-4">
+                <PieChart width={250} height={250}>
+                  <Pie
+                    data={pieDataForecast}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={120}
+                    label
+                  >
+                    {pieDataForecast.map((entry, index) => (
+                      <Cell key={`cell-f-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+
+              </div>
+              <div className="flex flex-col items-center">
+
+                <SummaryTable
+                  title=""
+                  columns={HeaderColumns}
+                  data={predictValues}
+                />
+              </div>
             </div>
+
           </div>
 
 
         </div>
+      </div>
+      <div className="flex justify-between space-x-5 mt-5">
+
+        <Buttons
+          btnType="primary"
+          variant="outline"
+          className="w-30"
+          onClick={handleOpenPdf}
+        >
+          <FiPrinter style={{ fontSize: 18 }} />
+
+          พิมพ์
+        </Buttons>
       </div>
     </div>
   );

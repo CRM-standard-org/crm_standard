@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
 import {
   BarChart,
@@ -20,7 +20,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import SalesForecastTable from "@/components/customs/display/forcast.main.component";
 
 import { TypeAllCustomerResponse } from "@/types/response/response.customer";
-import  { OptionType } from "@/components/customs/select/select.main.component";
+import { OptionType } from "@/components/customs/select/select.main.component";
 
 import { Table } from "@radix-ui/themes";
 import { useSelectTag } from "@/hooks/useCustomerTag";
@@ -31,6 +31,10 @@ import { useTeam, useTeamMember } from "@/hooks/useTeam";
 import { useResponseToOptions } from "@/hooks/useOptionType";
 import DependentSelectComponent from "@/components/customs/select/select.dependent";
 import { SummaryTable } from "@/components/customs/display/sumTable.component";
+import { FiPrinter } from "react-icons/fi";
+import { pdf } from "@react-pdf/renderer";
+import ForcastSalePDF from "../pdf/print-forcast-sale/ForcastSalePDF";
+import html2canvas from "html2canvas";
 
 type dateTableType = {
   className: string;
@@ -70,6 +74,27 @@ export default function ForcastSale() {
   const [searchTeam, setSearchTeam] = useState("");
   const [searchYear, setSearchYear] = useState("");
 
+
+
+  const chartRef1 = useRef<HTMLDivElement>(null);
+  const chartRef2 = useRef<HTMLDivElement>(null);
+  const chartRef3 = useRef<HTMLDivElement>(null);
+
+  const handleOpenPdf = async () => {
+    if (chartRef1.current && chartRef2.current && chartRef3.current) {
+      const canvas1 = await html2canvas(chartRef1.current);
+      const canvas2 = await html2canvas(chartRef2.current);
+      const canvas3 = await html2canvas(chartRef3.current);
+
+      const image1 = canvas1.toDataURL("image/png");
+      const image2 = canvas2.toDataURL("image/png");
+      const image3 = canvas3.toDataURL("image/png");
+
+      const blob = await pdf(<ForcastSalePDF chartImage1={image1} chartImage2={image2} chartImage3={image3} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+  };
   //fetch ข้อมูล tag ลูกค้า
 
   const { data: dataTag, refetch: refetchTag } = useSelectTag({
@@ -357,7 +382,7 @@ export default function ForcastSale() {
           <p className="text-lg font-semibold mb-2 text-gray-700">
             เป้าหมายยอดขายสะสม เทียบ ยอดขายสะสมคาดการณ์
           </p>
-          <div className="w-full h-[500px] border-b-2 mb-3">
+          <div ref={chartRef1} className="w-full h-[500px] border-b-2 mb-3">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={saleData}
@@ -417,16 +442,16 @@ export default function ForcastSale() {
           {/* 2 chart */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-5">
             {/* กราฟรวมยอดสะสม */}
-            <div className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
+            <div ref={chartRef2} className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
+                <BarChart
                   data={summaryTotal}
                   margin={{ bottom: 20, left: 50 }}
                   barSize={40}
-                  
+
                 >
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} />
-                  <YAxis tickFormatter={(v) => v.toLocaleString()}  />
+                  <YAxis tickFormatter={(v) => v.toLocaleString()} />
                   <Tooltip
                     formatter={(v) => `${Number(v).toLocaleString()} บาท`}
                     wrapperStyle={{ maxWidth: 150, whiteSpace: 'normal' }}
@@ -446,7 +471,7 @@ export default function ForcastSale() {
             </div>
 
             {/* กราฟเฉลี่ยรายเดือน */}
-            <div className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
+            <div ref={chartRef3} className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={summaryMonthlyAverage}
@@ -489,6 +514,19 @@ export default function ForcastSale() {
             />
           </div>
         </div>
+      </div>
+      <div className="flex justify-between space-x-5 mt-5">
+
+        <Buttons
+          btnType="primary"
+          variant="outline"
+          className="w-30"
+          onClick={handleOpenPdf}
+        >
+          <FiPrinter style={{ fontSize: 18 }} />
+
+          พิมพ์
+        </Buttons>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
@@ -24,6 +24,10 @@ import { FaMoneyCheckDollar } from "react-icons/fa6";
 import { VscExtensions } from "react-icons/vsc";
 import { FaCheck } from "react-icons/fa";
 import { IoCloseCircle } from "react-icons/io5";
+import { FiPrinter } from "react-icons/fi";
+import ReportCustomerPDF from "../pdf/print-report-customer/ReportCustomerPDF";
+import { pdf } from "@react-pdf/renderer";
+import html2canvas from "html2canvas";
 
 type dateTableType = {
   className: string;
@@ -52,12 +56,25 @@ export default function ReportCustomers() {
   //
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const page = searchParams.get("page") ?? "1";
-  const pageSize = searchParams.get("pageSize") ?? "25";
+
 
   //searchText control
   const [searchTag, setSearchTag] = useState("");
 
+
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenPdf = async () => {
+    if (chartRef.current) {
+      const canvas = await html2canvas(chartRef.current);
+      const imageData = canvas.toDataURL("image/png");
+
+      const blob = await pdf(<ReportCustomerPDF chartImage={imageData} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+  };
+  
   //fetch ข้อมูล tag ลูกค้า
 
   const { data: dataTag, refetch: refetchTag } = useSelectTag({
@@ -295,7 +312,7 @@ export default function ReportCustomers() {
 
           {/* Chart */}
           <p className="text-center font-semibold mb-4">จำนวนการสั่งซื้อของลูกค้าประจำเดือน มกราคม</p>
-          <div className="w-full h-[300px] sm:h-[400px] md:h-[500px] max-w-6xl mx-auto">
+          <div ref={chartRef} className="w-full h-[300px] sm:h-[400px] md:h-[500px] max-w-6xl mx-auto">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={orderData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -421,6 +438,19 @@ export default function ReportCustomers() {
         </div>
 
 
+      </div>
+      <div className="flex justify-between space-x-5 mt-5">
+
+        <Buttons
+          btnType="primary"
+          variant="outline"
+          className="w-30"
+          onClick={handleOpenPdf}
+        >
+          <FiPrinter style={{ fontSize: 18 }} />
+
+          พิมพ์
+        </Buttons>
       </div>
     </div>
   );

@@ -27,13 +27,18 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { TypeAllCustomerResponse } from "@/types/response/response.customer";
 import MasterSelectComponent from "@/components/customs/select/select.main.component";
-import { FiLayers } from "react-icons/fi";
+import { FiLayers, FiPrinter } from "react-icons/fi";
 import { HiOutlineUserGroup } from "react-icons/hi2";
 import { MdOutlinePerson } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
 import { Button } from "@radix-ui/themes";
 import Buttons from "@/components/customs/button/button.main.component";
 import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
+import { pdf } from "@react-pdf/renderer";
+import ReportYearPDF from "../pdf/print-report-year/ReportYearPDF";
+
+import html2canvas from "html2canvas";
+import { useRef } from "react";
 
 type dateTableType = {
   className: string;
@@ -60,8 +65,18 @@ export default function ReportYears() {
   //
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const page = searchParams.get("page") ?? "1";
-  const pageSize = searchParams.get("pageSize") ?? "25";
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenPdf = async () => {
+    if (chartRef.current) {
+      const canvas = await html2canvas(chartRef.current);
+      const imageData = canvas.toDataURL("image/png");
+
+      const blob = await pdf(<ReportYearPDF chartImage={imageData} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+  };
 
 
 
@@ -240,15 +255,16 @@ export default function ReportYears() {
           <p className="font-semibold mt-5">กราฟเปรียบเทียบสถิติยอดขายภายใน ปี 2023 และ ปี 2024</p>
           {/* chart */}
           <div className="pb-5 w-full">
-            
+
             <div className="pt-5">
-              
-              <div className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
+
+              <div ref={chartRef} className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
                 <ResponsiveContainer width="100%" height="100%">
+
                   <ComposedChart
                     data={salesData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
-                    barSize={40} 
+                    barSize={40}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
@@ -263,14 +279,29 @@ export default function ReportYears() {
                     <Line dataKey="sales2023" stroke="#f97316" strokeWidth={2} name="ยอดขาย 2023 (THB)" dot={{ r: 2 }} />
                     <Line dataKey="sales2024" stroke="#0ea5e9" strokeWidth={2} name="ยอดขาย 2024 (THB)" dot={{ r: 2 }} />
                   </ComposedChart>
+
                 </ResponsiveContainer>
               </div>
             </div>
           </div>
 
 
+
         </div>
       </div>
-    </div>
+      <div className="flex justify-between space-x-5 mt-5">
+
+        <Buttons
+          btnType="primary"
+          variant="outline"
+          className="w-30"
+          onClick={handleOpenPdf}
+        >
+          <FiPrinter style={{ fontSize: 18 }} />
+
+          พิมพ์
+        </Buttons>
+      </div>
+    </div >
   );
 }

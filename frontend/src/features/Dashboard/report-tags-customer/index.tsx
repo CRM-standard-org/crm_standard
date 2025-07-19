@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
@@ -29,6 +29,10 @@ import { useSelectTag } from "@/hooks/useCustomerTag";
 import { TypeTagColorResponse } from "@/types/response/response.tagColor";
 import Buttons from "@/components/customs/button/button.main.component";
 import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
+import { pdf } from "@react-pdf/renderer";
+import ReportTagCustomerPDF from "../pdf/print-report-tag-customer/ReportTagCustomerPDF";
+import { FiPrinter } from "react-icons/fi";
+import html2canvas from "html2canvas";
 
 type dateTableType = {
   className: string;
@@ -57,9 +61,36 @@ export default function ReportTagsCustomer() {
   //
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const page = searchParams.get("page") ?? "1";
-  const pageSize = searchParams.get("pageSize") ?? "25";
 
+  const chartRef1 = useRef<HTMLDivElement>(null);
+  const chartRef2 = useRef<HTMLDivElement>(null);
+  const chartRef3 = useRef<HTMLDivElement>(null);
+  const chartRef4 = useRef<HTMLDivElement>(null);
+
+  const handleOpenPdf = async () => {
+    if (chartRef1.current && chartRef2.current && chartRef3.current && chartRef4.current) {
+      const canvas1 = await html2canvas(chartRef1.current);
+      const canvas2 = await html2canvas(chartRef2.current);
+      const canvas3 = await html2canvas(chartRef3.current);
+      const canvas4 = await html2canvas(chartRef4.current);
+
+      const image1 = canvas1.toDataURL("image/png");
+      const image2 = canvas2.toDataURL("image/png");
+      const image3 = canvas3.toDataURL("image/png");
+      const image4 = canvas4.toDataURL("image/png");
+
+      const blob = await pdf(
+        <ReportTagCustomerPDF
+          chartImage1={image1}
+          chartImage2={image2}
+          chartImage3={image3}
+          chartImage4={image4}
+        />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+  };
   //searchText control
   const [searchTag, setSearchTag] = useState("");
 
@@ -240,158 +271,182 @@ export default function ReportTagsCustomer() {
           </div>
           {/* chart */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5">
-            <div className="w-full h-[300px]">
-              {/* ลูกค้า */}
+
+            {/* ลูกค้า */}
+            <div>
               <div className="flex flex-col lg:flex-row lg:justify-between items-start sm:items-center mb-2">
                 <p className="text-lg font-semibold text-gray-700">จอมปราชญ์ รักโลก</p>
                 <p className="text-sm text-gray-700">1 มกราคม 2024 - 31 มกราคม 2024</p>
               </div>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
-                  data={customerData}
-                  margin={isSmallScreen
-                    ? { top: 10, right: 30, left: 30, bottom: 40 }
-                    : { top: 10, right: 100, left: 50, bottom: 10 }
-                  }
-                  barSize={isSmallScreen ? 40 : 20}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  {isSmallScreen ? (
-                    <>
-                      <XAxis dataKey="label" />
-                      <YAxis tickFormatter={(v) => v.toLocaleString()} width={20} />
-                    </>
-                  ) : (
-                    <>
-                      <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
-                      <YAxis type="category" dataKey="label" width={120} />
-                    </>
-                  )}
-                  <Tooltip formatter={(value) => value.toLocaleString()} />
-                  <Bar dataKey="value">
-                    <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(value: number) => value.toLocaleString()} />
-                    {customerData.map((data, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={colorCustomerData[index % colorCustomerData.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div ref={chartRef1} className="w-full h-[300px]">
+
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
+                    data={customerData}
+                    margin={isSmallScreen
+                      ? { top: 10, right: 30, left: 30, bottom: 40 }
+                      : { top: 10, right: 100, left: 50, bottom: 10 }
+                    }
+                    barSize={isSmallScreen ? 40 : 20}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    {isSmallScreen ? (
+                      <>
+                        <XAxis dataKey="label" />
+                        <YAxis tickFormatter={(v) => v.toLocaleString()} width={20} />
+                      </>
+                    ) : (
+                      <>
+                        <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
+                        <YAxis type="category" dataKey="label" width={120} />
+                      </>
+                    )}
+                    <Tooltip formatter={(value) => value.toLocaleString()} />
+                    <Bar dataKey="value">
+                      <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(value: number) => value.toLocaleString()} />
+                      {customerData.map((data, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={colorCustomerData[index % colorCustomerData.length]}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-
             {/* กิจกรรมการขายแยกตามแท็กลูกค้า  */}
-            <div className="w-full h-[300px]">
+            <div>
               <p className="text-lg font-semibold mb-2 text-gray-700">
                 กิจกรรมการขายแบ่งตามแท็กลูกค้า เดือนมกราคม
               </p>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={tagActivityData}
-                  margin={{ top: 10, right: 30, left: 20, bottom: 20 }}
-                  barSize={20}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis
-                    allowDecimals={false}
-                    domain={[0, 300]}
-                    ticks={[0, 100, 200, 300]}
-                    tickFormatter={(value) => value.toLocaleString()}
-                    width={20}
-                  />
-                  <Tooltip formatter={(value) => value.toLocaleString()} />
-                  <Legend />
-                  <Bar dataKey="value" name="สำนักงานใหญ่" fill="#3b82f6" />
-                  <Bar dataKey="storage" name="คลัง" fill="#ef4444" />
-                  <Bar dataKey="createAmount" name="การผลิต" fill="#22c55e" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div ref={chartRef2} className="w-full h-[300px]">
+
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={tagActivityData}
+                    margin={{ top: 10, right: 30, left: 20, bottom: 20 }}
+                    barSize={20}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis
+                      allowDecimals={false}
+                      domain={[0, 300]}
+                      ticks={[0, 100, 200, 300]}
+                      tickFormatter={(value) => value.toLocaleString()}
+                      width={20}
+                    />
+                    <Tooltip formatter={(value) => value.toLocaleString()} />
+                    <Legend />
+                    <Bar dataKey="value" name="สำนักงานใหญ่" fill="#3b82f6" />
+                    <Bar dataKey="storage" name="คลัง" fill="#ef4444" />
+                    <Bar dataKey="createAmount" name="การผลิต" fill="#22c55e" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
             </div>
-
-
             {/* จำนวนกิจกรรมการขายแบ่งตามแท็กลูกค้า */}
-            <div className="w-full h-[260px] mt-5">
+            <div>
+
+
               <p className="text-lg font-semibold mb-2 text-gray-700">จำนวนกิจกรรมการขายแบ่งตามแท็กลูกค้า</p>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
-                  data={countActivityData}
-                  margin={isSmallScreen
-                    ? { top: 10, right: 30, left: 30, bottom: 40 }
-                    : { top: 10, right: 100, left: 50, bottom: 10 }
-                  }
-                  barSize={isSmallScreen ? 40 : 20}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  {isSmallScreen ? (
-                    <>
-                      <XAxis dataKey="label" />
-                      <YAxis tickFormatter={(v) => v.toLocaleString()} width={20} />
-                    </>
-                  ) : (
-                    <>
-                      <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
-                      <YAxis type="category" dataKey="label" width={120} />
-                    </>
-                  )}
-                  <Tooltip formatter={(value) => value.toLocaleString()} />
-                  <Bar dataKey="value">
-                    <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(value: number) => value.toLocaleString()} />
-                    {countActivityData.map((data, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={colorData[index % colorData.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div ref={chartRef3} className="w-full h-[260px] mt-5">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
+                    data={countActivityData}
+                    margin={isSmallScreen
+                      ? { top: 10, right: 30, left: 30, bottom: 40 }
+                      : { top: 10, right: 100, left: 50, bottom: 10 }
+                    }
+                    barSize={isSmallScreen ? 40 : 20}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    {isSmallScreen ? (
+                      <>
+                        <XAxis dataKey="label" />
+                        <YAxis tickFormatter={(v) => v.toLocaleString()} width={20} />
+                      </>
+                    ) : (
+                      <>
+                        <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
+                        <YAxis type="category" dataKey="label" width={120} />
+                      </>
+                    )}
+                    <Tooltip formatter={(value) => value.toLocaleString()} />
+                    <Bar dataKey="value">
+                      <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(value: number) => value.toLocaleString()} />
+                      {countActivityData.map((data, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={colorData[index % colorData.length]}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* ยอดขายแบ่งตามแท็กลูกค้า */}
-            <div className="w-full h-[260px] mt-5">
+            <div>
               <p className="text-lg font-semibold mb-2 text-gray-700">ยอดขายแบ่งตามแท็กลูกค้า (THB)</p>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
-                  data={saleTagData}
-                  margin={isSmallScreen
-                    ? { top: 10, right: 30, left: 30, bottom: 40 }
-                    : { top: 10, right: 100, left: 50, bottom: 10 }
-                  }
-                  barSize={isSmallScreen ? 40 : 20}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  {isSmallScreen ? (
-                    <>
-                      <XAxis dataKey="label" />
-                      <YAxis tickFormatter={(v) => v.toLocaleString()} width={20} />
-                    </>
-                  ) : (
-                    <>
-                      <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
-                      <YAxis type="category" dataKey="label" width={120} />
-                    </>
-                  )}
-                  <Tooltip formatter={(value) => value.toLocaleString()} />
-                  <Bar dataKey="value">
-                    <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(value: number) => value.toLocaleString()} />
-                    {saleTagData.map((data, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={colorData[index % colorData.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div ref={chartRef4} className="w-full h-[260px] mt-5">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout={isSmallScreen ? "horizontal" : "vertical"} //เช็คหน้าจอ
+                    data={saleTagData}
+                    margin={isSmallScreen
+                      ? { top: 10, right: 30, left: 30, bottom: 40 }
+                      : { top: 10, right: 100, left: 50, bottom: 10 }
+                    }
+                    barSize={isSmallScreen ? 40 : 20}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    {isSmallScreen ? (
+                      <>
+                        <XAxis dataKey="label" />
+                        <YAxis tickFormatter={(v) => v.toLocaleString()} width={20} />
+                      </>
+                    ) : (
+                      <>
+                        <XAxis type="number" tickFormatter={(v) => v.toLocaleString()} />
+                        <YAxis type="category" dataKey="label" width={120} />
+                      </>
+                    )}
+                    <Tooltip formatter={(value) => value.toLocaleString()} />
+                    <Bar dataKey="value">
+                      <LabelList dataKey="value" position={isSmallScreen ? "top" : "right"} formatter={(value: number) => value.toLocaleString()} />
+                      {saleTagData.map((data, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={colorData[index % colorData.length]}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+      <div className="flex justify-between space-x-5 mt-5">
+
+        <Buttons
+          btnType="primary"
+          variant="outline"
+          className="w-30"
+          onClick={handleOpenPdf}
+        >
+          <FiPrinter style={{ fontSize: 18 }} />
+
+          พิมพ์
+        </Buttons>
       </div>
     </div>
 
