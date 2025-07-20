@@ -69,21 +69,27 @@ model master_color {
 //--------------------- end test ---------------------
 
 model Company {
-  company_id String  @id @default(uuid()) @db.Uuid
-  name_th    String  @unique @db.VarChar(50)
-  name_en    String  @unique @db.VarChar(50)
-  type       String? @db.VarChar(50)
-  website    String? @db.Text
-  founded    String? @db.Text
-  place_name String? @db.VarChar(100)
-  address    String? @db.Text
-  country    String? @db.VarChar(50)
-  province   String? @db.VarChar(50)
-  district   String? @db.VarChar(50)
-  tax_id     String? @db.VarChar(50)
-  phone      String? @db.VarChar(10)
-  email      String? @db.VarChar(50)
-  logo       String? @db.VarChar(255)
+  company_id          String    @id @default(uuid()) @db.Uuid
+  name_th             String    @unique @db.VarChar(100)
+  name_en             String    @unique @db.VarChar(100)
+  type                String?   @db.VarChar(100)
+  website             String?   @db.Text
+  founded_date        DateTime?
+  place_name          String?   @db.VarChar(100)
+  address             String?   @db.Text
+  country_id          String?   @db.Uuid
+  province_id         String?   @db.Uuid
+  district_id         String?   @db.Uuid
+  phone               String?   @db.VarChar(20)
+  fax_number          String?   @db.VarChar(50)
+  tax_id              String?   @db.VarChar(50)
+  logo                String?   @db.Text
+  updated_at          DateTime?  @updatedAt
+  updated_by          String?    @db.Uuid
+  country             Country?  @relation("Company", fields: [country_id], references: [country_id])
+  province            Province? @relation("Company", fields: [province_id], references: [province_id])
+  district            District? @relation("Company", fields: [district_id], references: [district_id])
+  updated_by_employee employees? @relation("CompanyUpdatedBy", fields: [updated_by], references: [employee_id])
 }
 
 model employees {
@@ -119,6 +125,8 @@ model employees {
   employee_status employeeStatus? @relation("EmployeeStatus", fields: [status_id], references: [status_id])
   team_employee   Team?           @relation("EmployeeTeam", fields: [team_id], references: [team_id])
   role            roles           @relation(fields: [role_id], references: [role_id])
+
+  company_update Company[] @relation("CompanyUpdatedBy")
 
   // test
   master_color_create master_color[] @relation("ColorCreatedBy")
@@ -487,6 +495,7 @@ model Country {
   customer     Customer[]  @relation("Customer")
   quotation    Quotation[] @relation("Quotation")
   sale_order   SaleOrder[] @relation("SaleOrder")
+  company      Company[]   @relation("Company")
 
   @@index([country_name])
 }
@@ -502,6 +511,7 @@ model Province {
   customer   Customer[]  @relation("Customer")
   quotation  Quotation[] @relation("Quotation")
   sale_order SaleOrder[] @relation("SaleOrder")
+  company    Company[]   @relation("Company")
 
   @@index([province_name])
 }
@@ -516,6 +526,7 @@ model District {
   customer   Customer[]  @relation("Customer")
   quotation  Quotation[] @relation("Quotation")
   sale_order SaleOrder[] @relation("SaleOrder")
+  company    Company[]   @relation("Company")
 
   @@unique([province_id, district_name], name: "province_id_name")
   @@index([district_name])
@@ -970,23 +981,23 @@ model SaleOrderStatus {
 }
 
 model Activity {
-  activity_id          String    @id @default(uuid()) @db.Uuid
-  customer_id          String    @db.Uuid
+  activity_id          String   @id @default(uuid()) @db.Uuid
+  customer_id          String   @db.Uuid
   issue_date           DateTime
-  activity_time        String    @db.VarChar(30)
-  activity_description String    @db.Text
-  team_id              String    @db.Uuid
-  responsible_id       String    @db.Uuid
-  created_at           DateTime  @default(now())
-  created_by           String    @db.Uuid
-  updated_at           DateTime  @updatedAt
-  updated_by           String    @db.Uuid
-  
-  customer             Customer  @relation("Activity", fields: [customer_id], references: [customer_id])
-  team                 Team      @relation("Activity", fields: [team_id], references: [team_id])
-  responsible          employees @relation("Activity", fields: [responsible_id], references: [employee_id])
-  created_by_employee  employees @relation("ActivityCreatedBy", fields: [created_by], references: [employee_id])
-  updated_by_employee  employees @relation("ActivityUpdatedBy", fields: [updated_by], references: [employee_id])
+  activity_time        String   @db.VarChar(30)
+  activity_description String   @db.Text
+  team_id              String   @db.Uuid
+  responsible_id       String   @db.Uuid
+  created_at           DateTime @default(now())
+  created_by           String   @db.Uuid
+  updated_at           DateTime @updatedAt
+  updated_by           String   @db.Uuid
+
+  customer            Customer  @relation("Activity", fields: [customer_id], references: [customer_id])
+  team                Team      @relation("Activity", fields: [team_id], references: [team_id])
+  responsible         employees @relation("Activity", fields: [responsible_id], references: [employee_id])
+  created_by_employee employees @relation("ActivityCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("ActivityUpdatedBy", fields: [updated_by], references: [employee_id])
 
   @@index([customer_id])
   @@index([team_id])

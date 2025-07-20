@@ -10,6 +10,7 @@ import { StatusCodes } from 'http-status-codes';
 const uploadDirQuotation = path.join(__dirname, '../../uploads/quotation');
 const uploadDirSaleOrder = path.join(__dirname, '../../uploads/sale-order');
 const uploadDirSaleOrderPayment = path.join(__dirname, '../../uploads/sale-order/payment');
+const uploadDirCompany = path.join(__dirname, '../../uploads/company');
 
 if( !fs.existsSync(uploadDirQuotation)){
     fs.mkdirSync(uploadDirQuotation, { recursive: true });
@@ -19,6 +20,9 @@ if( !fs.existsSync(uploadDirSaleOrder)){
 }
 if( !fs.existsSync(uploadDirSaleOrderPayment)){
     fs.mkdirSync(uploadDirSaleOrderPayment, { recursive: true });
+}
+if( !fs.existsSync(uploadDirCompany)){
+    fs.mkdirSync(uploadDirCompany, { recursive: true });
 }
 
 const storage = multer.diskStorage({
@@ -31,6 +35,9 @@ const storage = multer.diskStorage({
     }
     if(file.fieldname === 'payment'){
       cb(null, uploadDirSaleOrderPayment); // Save to /uploads folder
+    }
+    if(file.fieldname === 'company'){
+      cb(null, uploadDirCompany); // Save to /uploads folder
     }
   },
   filename: (req, file, cb) => {
@@ -67,7 +74,7 @@ export const handleMulter = (multerMiddleware: any) => {
         return res.status(StatusCodes.BAD_REQUEST).json(
           new ServiceResponse(
             ResponseStatus.Failed,
-            "Upload error: " + err.message,
+            "Upload file error: " + err.message,
             null,
             StatusCodes.BAD_REQUEST
           )

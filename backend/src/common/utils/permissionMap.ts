@@ -207,5 +207,13 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
+  บริษัท: {
+    Admin: "A",
+    Owner: "N",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
+  },
   
 };

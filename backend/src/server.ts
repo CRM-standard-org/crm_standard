@@ -27,6 +27,7 @@ import { vatRouter } from "@modules/vat/vatRouter";
 import { quotationRouter } from "@modules/quotation/quotationRouter";
 import { saleOrderRouter } from "@modules/saleOrder/saleOrderRouter";
 import { activityRouter } from "@modules/activity/activityRouter";
+import { companyRouter } from "@modules/company/companyRouter";
 
 // test case
 import { colorRouter } from "@modules/ms_color/colorRouter";
@@ -64,6 +65,7 @@ app.use("/v1/vat", vatRouter);
 app.use("/v1/quotation", quotationRouter);
 app.use("/v1/sale-order", saleOrderRouter);
 app.use("/v1/activity", activityRouter);
+app.use("/v1/company", companyRouter);
 
 app.use("/v1/color", colorRouter);
 app.use("/v1/role", roleRouter);
