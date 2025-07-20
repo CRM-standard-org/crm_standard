@@ -140,7 +140,7 @@ export const SELECT_VAT = "/v1/vat/select";
 export const GET_ALL_QUOTATION = "/v1/quotation/get";
 export const GET_QUOTATION_BY_ID = "/v1/quotation/get";
 export const CREATE_QUOTATION = "/v1/quotation/create";
-export const UPDATE_COMPANY = "/v1/quotation/update-company";
+export const UPDATE_QUOTATION_COMPANY = "/v1/quotation/update-company";
 export const UPDATE_ITEM = "/v1/quotation/update-item";
 export const DELETE_ITEM = "/v1/quotation/delete-item";
 export const ADD_ITEM = "/v1/quotation/add-item";
@@ -179,3 +179,7 @@ export const UPDATE_RECEIPT = "/v1/sale-order/receipt";
 export const UPDATE_EXPECT_RECEIPT = "/v1/sale-order/expected-receipt";
 export const CLOSE_SALE = "/v1/sale-order/close-sale";
 export const REJECT_SALE = "/v1/sale-order/reject-sale";
+
+//company
+export const GET_COMPANY = "/v1/company/get";
+export const UPDATE_COMPANY = "/v1/company/update";

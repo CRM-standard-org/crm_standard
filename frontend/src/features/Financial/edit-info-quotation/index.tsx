@@ -52,7 +52,7 @@ import { ProductByIdResponse, TypeGroupProductResponse, TypeProductResponse, Typ
 import MasterSelectTableComponent from "@/components/customs/select/selectTable.main.component";
 import { useAllCustomer, useCustomerById, useSelectCustomerAddress, useSelectCustomerContact } from "@/hooks/useCustomer";
 import { TypeAllCustomerResponse, TypeCustomerAddress, TypeCustomerContacts, TypeCustomerResponse } from "@/types/response/response.customer";
-import { addFileInQuotation, addItemInQuotation, deleteFileInQuotation, deleteItemInQuotation, postQuotation, updateCompany, updateItemInQuotation, updatePaymentQuotation } from "@/services/quotation.service";
+import { addFileInQuotation, addItemInQuotation, deleteFileInQuotation, deleteItemInQuotation, postQuotation, updateItemInQuotation, updatePaymentQuotation, updateQuotationCompany } from "@/services/quotation.service";
 import { PayLoadAddItemQuotation, PayLoadCreateQuotation, PayLoadUpdateCompany, PayLoadUpdateItemQuotation, PayLoadUpdatePayment } from "@/types/requests/request.quotation";
 import { getProductById } from "@/services/product.service";
 import { useQuotationById, useSelectVat } from "@/hooks/useQuotation";
@@ -808,7 +808,7 @@ export default function EditInfoQuotation() {
 
         };
         try {
-            const response = await updateCompany(quotationId, payload);
+            const response = await updateQuotationCompany(quotationId, payload);
 
             if (response.statusCode === 200) {
                 showToast("แก้ไขข้อมูลเรียบร้อยแล้ว", true);
@@ -1857,6 +1857,7 @@ export default function EditInfoQuotation() {
 
                                     return (
                                         <div key={file.quotation_file_id} className="relative w-40 h-40 border rounded shadow flex-shrink-0">
+                                            
                                             {/* ปุ่มลบ */}
                                             <button
                                                 onClick={() => handleDeleteFile(file.quotation_file_id)}

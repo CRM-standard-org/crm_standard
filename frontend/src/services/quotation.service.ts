@@ -15,7 +15,7 @@ import {
     REQUEST_APPROVE,
     REQUEST_EDIT,
     SELECT_VAT,
-    UPDATE_COMPANY,
+    UPDATE_QUOTATION_COMPANY,
     UPDATE_ITEM,
     UPDATE_PAYMENT,
 
@@ -87,11 +87,11 @@ export const postQuotation = async (
 };
 
 // update company data in quotation
-export const updateCompany = async (quotationId: string, payload: PayLoadUpdateCompany) => {
+export const updateQuotationCompany = async (quotationId: string, payload: PayLoadUpdateCompany) => {
     try {
         const encodedQuotationId = encodeURIComponent(quotationId);
 
-        const { data: response } = await mainApi.put(`${UPDATE_COMPANY}/${encodedQuotationId}`, payload);
+        const { data: response } = await mainApi.put(`${UPDATE_QUOTATION_COMPANY}/${encodedQuotationId}`, payload);
         return response;
     } catch (error) {
         console.error("Error update company quotation", error);

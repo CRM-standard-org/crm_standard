@@ -25,6 +25,9 @@ import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import CheckboxMainComponent from "@/components/customs/checkboxs/checkbox.main.component";
 import RadioComponent from "@/components/customs/radios/radio.component";
 import { LabelWithValue } from "@/components/ui/label";
+import { useCompany } from "@/hooks/useCompany";
+import { TypeCompanyResponse } from "@/types/response/response.company";
+import { appConfig } from "@/configs/app.config";
 
 type dateTableType = {
     className: string;
@@ -42,7 +45,7 @@ export default function ManageInfoCompany() {
     const [colorsName, setColorsName] = useState("");
     // const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [data, setData] = useState<dateTableType>([]);
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [dataCompany, setDataCompany] = useState<TypeCompanyResponse>();
 
     const [active, setActive] = useState<'contact' | 'address'>('contact');
     const { showToast } = useToast();
@@ -56,6 +59,12 @@ export default function ManageInfoCompany() {
     const [allQuotation, setAllQuotation] = useState<any[]>([]);
     const [quotation, setQuotation] = useState<any[]>([]);
 
+    const { data: companyDetails, refetch: refetchCompany } = useCompany();
+    useEffect(() => {
+        if (companyDetails?.responseObject) {
+            setDataCompany(companyDetails.responseObject)
+        }
+    })
     const mockData = [
         {
             className: "",
@@ -139,7 +148,10 @@ export default function ManageInfoCompany() {
         }
     };
 
-
+    const logoUrl = dataCompany?.logo
+    ? `${appConfig.baseApi}${dataCompany.logo}`
+    : null;
+    console.log(logoUrl)
     return (
         <>
             <div className="flex  text-2xl font-bold mb-3">
@@ -147,7 +159,7 @@ export default function ManageInfoCompany() {
                 <IconButton
                     variant="ghost"
                     aria-label="Edit"
-                    onClick={() => navigate(`/edit-info-company/${"1"}`)}
+                    onClick={() => navigate(`/edit-info-company/${dataCompany.company_id}`)}
                 >
                     <LuPencil style={{ fontSize: "18px" }} /><span>แก้ไข</span>
                 </IconButton>
@@ -158,22 +170,49 @@ export default function ManageInfoCompany() {
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                         <div>
 
-                            <h1 className="text-xl font-semibold mb-1">ข้อมูลลูกค้า</h1>
+                            <h1 className="text-xl font-semibold mb-1">ข้อมูลบริษัท</h1>
                             <div className="border-b-2 border-main mb-6"></div>
 
                             <div className="space-y-3">
                                 <div className="flex items-center space-x-4">
-                                    <div className="bg-blue-400 text-white text-center rounded-full w-28 h-28 flex items-center justify-center">Logo</div>
+                                    {dataCompany?.logo ? (
+                                        <img
+                                            src={logoUrl}
+                                            alt="Company Logo"
+                                            crossOrigin="anonymous"
+                                            className="w-40 h-40 rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="bg-gray-200 text-white text-center rounded-full w-40 h-40 flex items-center justify-center">
+                                            Logo
+                                        </div>
+                                    )}
                                 </div>
-                                <LabelWithValue label="ชื่อบริษัท" value="CRM manager" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="ชื่อย่อ" value="CRM" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="ประเภทธุรกิจ" value="ส่งออกสินค้า" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="เว็บไซต์" value="-" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="ปีที่ก่อตั้ง" value="15 ก.พ. 2023" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="ที่ตั้งสำนักงานใหญ่" value="เลขที่.. แขวง.. เขต.. กทม. 10220" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="เบอร์โทรศัพท์" value="-" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="เบอร์โทรสาร" value="-" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="เลขประจำตัวผู้เสียภาษี" value="999-999-999" classNameLabel="sm:w-1/2" classNameValue="w-full" />
+
+
+
+
+                                <LabelWithValue label="ชื่อบริษัท" value={`${dataCompany?.name_th || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="ชื่ออังกฤษ" value={`${dataCompany?.name_en || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="ประเภทธุรกิจ" value={`${dataCompany?.type || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="เว็บไซต์" value={`${dataCompany?.website || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue
+                                    label="ปีที่ก่อตั้ง"
+                                    value={
+                                        dataCompany?.founded_date
+                                            ? new Date(dataCompany.founded_date).toLocaleDateString("th-TH")
+                                            : "-"
+                                    }
+                                    classNameLabel="sm:w-1/2"
+                                    classNameValue="w-full"
+                                />
+                                <LabelWithValue label="ชื่อสถานที่" value={`${dataCompany?.place_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="ที่ตั้งสำนักงานใหญ่" value={`${dataCompany?.address || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="ประเทศ" value={`${dataCompany?.country.country_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="จังหวัด" value={`${dataCompany?.province.province_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="อำเภอ" value={`${dataCompany?.district.district_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+
+                                <LabelWithValue label="เลขประจำตัวผู้เสียภาษี" value={`${dataCompany?.tax_id || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
 
                             </div>
 
@@ -184,10 +223,11 @@ export default function ManageInfoCompany() {
                             <h1 className="text-xl font-semibold mb-1">ข้อมูลติดต่อ</h1>
                             <div className="border-b-2 border-main mb-6"></div>
                             <div className="space-y-3 text-gray-700">
-
-                                <LabelWithValue label="สำนักงานใหญ่" value="ช่องทางการติดต่อที่ 1" classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="เบอร์โทรศัพท์" value={`${dataCompany?.phone || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="เบอร์โทรสาร" value={`${dataCompany?.fax_number || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                {/* <LabelWithValue label="สำนักงานใหญ่" value="ช่องทางการติดต่อที่ 1" classNameLabel="sm:w-1/2" classNameValue="w-full" />
                                 <LabelWithValue label="" value="ช่องทางการติดต่อที่ 2" classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="" value="ช่องทางการติดต่อที่ 3" classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="" value="ช่องทางการติดต่อที่ 3" classNameLabel="sm:w-1/2" classNameValue="w-full" /> */}
 
 
                             </div>
