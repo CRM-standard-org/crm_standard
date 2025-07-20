@@ -11,6 +11,7 @@ const uploadDirQuotation = path.join(__dirname, '../../uploads/quotation');
 const uploadDirSaleOrder = path.join(__dirname, '../../uploads/sale-order');
 const uploadDirSaleOrderPayment = path.join(__dirname, '../../uploads/sale-order/payment');
 const uploadDirCompany = path.join(__dirname, '../../uploads/company');
+const uploadDirEmployee = path.join(__dirname, '../../uploads/employee');
 
 if( !fs.existsSync(uploadDirQuotation)){
     fs.mkdirSync(uploadDirQuotation, { recursive: true });
@@ -23,6 +24,9 @@ if( !fs.existsSync(uploadDirSaleOrderPayment)){
 }
 if( !fs.existsSync(uploadDirCompany)){
     fs.mkdirSync(uploadDirCompany, { recursive: true });
+}
+if( !fs.existsSync(uploadDirEmployee)){
+    fs.mkdirSync(uploadDirEmployee, { recursive: true });
 }
 
 const storage = multer.diskStorage({
@@ -38,6 +42,9 @@ const storage = multer.diskStorage({
     }
     if(file.fieldname === 'company'){
       cb(null, uploadDirCompany); // Save to /uploads folder
+    }
+    if(file.fieldname === 'emp'){
+      cb(null, uploadDirEmployee); // Save to /uploads folder
     }
   },
   filename: (req, file, cb) => {

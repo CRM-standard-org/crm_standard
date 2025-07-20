@@ -4,26 +4,27 @@ import { z } from "zod";
 
 export type TypePayloadEmployee = {
     employee_id : string;
-    employee_code : string;   
+    employee_code? : string;   
     username : string;
     password : string ; 
     email : string ;
-    is_active : Boolean      
-    role?: string;
-    role_id?: string;
-    position? : string;     
     first_name : string ;   
     last_name? : string;  
-    birthdate? : string;  
+    role_id: string;
+    position? : string;     
     phone? : string;   
-    line_id?: string;
-    contact_name? : string;  
+    social_id : string;  
+    detail_social : string;  
     address? :  string;  
-    country? : string;   
-    province? : string;  
-    district? : string;   
-    remark? : string;  
-    profile_picture? : string; 
+    country_id : string;   
+    province_id : string;  
+    district_id : string;   
+    status_id? : string; 
+    team_id?: string;
+    salaly? : number; 
+    start_date? : Date; 
+    end_date? : Date; 
+    birthdate? : Date; 
     created_by? : string; 
     updated_by? : string; 
     created_at : Date; 
@@ -32,9 +33,27 @@ export type TypePayloadEmployee = {
 
 export const CreateSchema = z.object({
     body : z.object({
-        tag_name: z.string().min(1).max(50),
-        tag_description: z.string(),
-        color: z.string().min(1).max(50),
+        employee_code: z.string().min(1).max(50),   
+        username: z.string().min(1).max(50),
+        password : z.string().min(1).max(50),
+        email: z.string().min(1).max(50),
+        first_name   : z.string().min(1).max(50),
+        last_name: z.string().max(50).optional(),  
+        role_id: z.string().min(1).max(50),
+        position: z.string().min(1).max(50),     
+        phone: z.string().min(1).max(50),   
+        social_id  : z.string().max(50).optional(),
+        detail_social  : z.string().max(50).optional(),
+        address: z.string().optional(),  
+        country_id   : z.string().min(1).max(50),
+        province_id  : z.string().min(1).max(50),
+        district_id   : z.string().min(1).max(50),
+        status_id: z.string().min(1).max(50), 
+        team_id: z.string().max(50).optional(), 
+        salaly: z.number().max(50).optional(), 
+        start_date: z.coerce.date().optional(), 
+        end_date: z.coerce.date().optional(),
+        birthdate: z.coerce.date().optional(), 
     })
 });
 

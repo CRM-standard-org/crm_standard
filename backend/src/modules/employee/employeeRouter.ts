@@ -6,11 +6,29 @@ import {
 } from "@common/utils/httpHandlers";
 import { authorizeByName } from "@common/middleware/permissions";
 import { employeeService } from "@modules/employee/employeeService";
-import { GetAllSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema } from "@modules/employee/employeeModel";
+import { CreateSchema , GetAllSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema } from "@modules/employee/employeeModel";
 import authenticateToken from "@common/middleware/authenticateToken";
+import { upload , handleMulter } from '@common/middleware/multerConfig';
+
 
 export const employeeRouter = (() => {
     const router = express.Router();
+
+    router.post("/create", authenticateToken, authorizeByName("พนักงาน", ["A"]), handleMulter(upload.array("emp", 1)), async (req: Request, res: Response) => {
+        try {
+            const raw = req.body.payload; // raw = JSON string
+            let parsedData;
+            parsedData = JSON.parse(raw);
+            const validation = CreateSchema.safeParse({ body: parsedData });
+            const payloadData = parsedData; // ใช้ค่า raw ที่ Parse มาโดยตรง
+            const files = req.files as Express.Multer.File[];
+            const employee_id = req.token.payload.uuid;
+            const resultService = await employeeService.create(payloadData, employee_id, files);
+            handleServiceResponse(resultService, res);
+        } catch (err: any) {
+            res.status(500).json({ success: false, message: err.message });
+        }}
+    );
 
     router.get("/get-team" , authenticateToken , authorizeByName("พนักงาน" , ["A"]) , validateRequest(GetAllSchema) , async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;

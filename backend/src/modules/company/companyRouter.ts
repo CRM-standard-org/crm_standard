@@ -20,7 +20,7 @@ export const companyRouter = (() => {
     }
   );
 
-  router.put("/update/:company_id?", authenticateToken, authorizeByName("ใบสั่งขาย", ["A"]), handleMulter(upload.array("company", 1)), async (req: Request, res: Response) => {
+  router.put("/update/:company_id?", authenticateToken, authorizeByName("บริษัท", ["A"]), handleMulter(upload.array("company", 1)), async (req: Request, res: Response) => {
       try {
         const company_id = req.params.company_id;
         const raw = req.body.payload; // raw = JSON string

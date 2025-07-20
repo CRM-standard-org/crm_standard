@@ -7,6 +7,25 @@ import { employees } from '@prisma/client';
 
 
 export const employeeService = {
+    create: async (payload: TypePayloadEmployee, employee_id : string , files: Express.Multer.File[] ) => {
+        try{
+            const data = await employeeRepository.create(payload , employee_id , files);
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Employee create success",
+                null,
+                StatusCodes.OK
+            );
+        } catch (ex) {
+            const errorMessage = "Error create employee :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
 
     findAllCreateTeam: async (page : number , limit : number , search : string ) => {
         try{

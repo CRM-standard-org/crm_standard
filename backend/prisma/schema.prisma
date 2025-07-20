@@ -105,16 +105,16 @@ model employees {
   team_id         String?   @db.Uuid
   first_name      String    @db.VarChar(20)
   last_name       String?   @db.VarChar(20)
-  birthdate       String?   @db.VarChar(10)
-  phone           String?   @db.VarChar(10)
-  line_id         String?   @db.VarChar(20)
-  address_id      String?   @db.Uuid
-  remark          String?   @db.VarChar(255)
+  birthdate       DateTime?   
+  phone           String?   @db.VarChar(20)
+  // line_id         String?   @db.VarChar(20)
+  // address_id      String?   @db.Uuid
+  // remark          String?   @db.VarChar(255)
   profile_picture String?   @db.VarChar(100)
-  salary          Decimal?  @db.Decimal(7, 2)
+  salary          Decimal?  @db.Decimal(10, 2)
   status_id       String?   @db.Uuid
-  start_date      String?   @db.VarChar(10)
-  end_date        String?   @db.VarChar(10)
+  start_date      DateTime?   
+  end_date        DateTime?   
   created_at      DateTime  @default(now())
   created_by      String?   @db.Uuid
   updated_at      DateTime? @updatedAt
@@ -161,13 +161,10 @@ model employees {
   character_create Character[] @relation("CharacterCreatedBy")
   character_update Character[] @relation("CharacterUpdatedBy")
 
-  permissions_create Permission[]
   team_create        Team[]       @relation("TeamCreatedBy")
   team_update        Team[]       @relation("TeamUpdatedBy")
   team_head          Team[]       @relation("TeamHead")
 
-  contact_create       Contact[]      @relation("ContactCreatedBy")
-  contact_update       Contact[]      @relation("ContactUpdatedBy")
   social_create        Social[]       @relation("SocialCreatedBy")
   social_update        Social[]       @relation("SocialUpdatedBy")
   detail_social_create DetailSocial[] @relation("DetailSocialCreatedBy")
@@ -239,16 +236,6 @@ model employeeStatus {
   @@index([name])
 }
 
-model Permission {
-  permission_id String   @id @default(uuid()) @db.Uuid
-  name          String   @db.VarChar(50)
-  created_at    DateTime @default(now())
-  created_by    String   @db.Uuid
-
-  create_by_employee employees @relation(fields: [created_by], references: [employee_id])
-
-  @@index([name])
-}
 
 model Character {
   character_id          String   @id @default(uuid()) @db.Uuid
@@ -309,20 +296,6 @@ model Team {
   // responesible  Responsible[] @relation("Responsible")
 
   @@index([name])
-}
-
-model Contact {
-  contact_id   String   @id @default(uuid()) @db.Uuid
-  contact_name String   @db.VarChar(50)
-  created_at   DateTime @default(now())
-  created_by   String   @db.Uuid
-  updated_at   DateTime @updatedAt
-  updated_by   String   @db.Uuid
-
-  created_by_employee employees @relation("ContactCreatedBy", fields: [created_by], references: [employee_id])
-  updated_by_employee employees @relation("ContactUpdatedBy", fields: [updated_by], references: [employee_id])
-
-  @@index([contact_name])
 }
 
 model Social {
