@@ -232,8 +232,7 @@ export default function EditSaleOrder() {
     const [paymentRemark, setPaymentRemark] = useState("");
 
     const [uploadedProve, setUploadedProve] = useState<File[]>([]);
-
-
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
     //สถานะจัดส่ง
     const [expectManufactureDate, setExpectManufactureDate] = useState<Date | null>(null);
@@ -817,23 +816,34 @@ export default function EditSaleOrder() {
     //แก้ไขตัว ฟอร์มบน ส่วนของ บริษัท
     const handleEditCompanyConfirm = async () => {
 
+
+        const errorMap: Record<string, boolean> = {};
+
+        if (!dateDelivery) errorMap.dateDelivery = true;
+        if (!placeName) errorMap.placeName = true;
+        if (!address) errorMap.address = true;
+        if (!country) errorMap.country = true;
+        if (!province || provinceOptions.length === 0) { errorMap.province = true; }
+        if (!district || districtOptions.length === 0) { errorMap.district = true; }
+        if (!contactPerson) errorMap.contactPerson = true;
+        if (!emailContact) errorMap.emailContact = true;
+        if (!telNoContact) errorMap.telNoContact = true;
+
+
+        setErrorFields(errorMap);
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+            return;
+        }
+
         const missingFields: string[] = [];
         if (!shippingMethod) missingFields.push("การรับสินค้า");
-        if (!dateDelivery) missingFields.push("วันจัดส่งสินค้า");
-        if (!placeName) missingFields.push("ชื่อสถานที่");
-        if (!address) missingFields.push("ที่อยู่");
-        if (!country) missingFields.push("ประเทศ");
-        if (!province) missingFields.push("จังหวัด");
-        if (!district) missingFields.push("อำเภอ");
-        if (!contactPerson) missingFields.push("ชื่อผู้ติดต่อ");
-        if (!emailContact) missingFields.push("อีเมลผู้ติดต่อ");
-        if (!telNoContact) missingFields.push("เบอร์ผู้ติดต่อ");
+
 
         if (missingFields.length > 0) {
             showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
             return;
         }
-
         const payload: PayLoadUpdateSaleOrderCompany = {
             shipping_method: shippingMethod,
             shipping_remark: otherRemark,
@@ -1541,6 +1551,7 @@ export default function EditSaleOrder() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "end-date", down: "date-delivery" }}
                                 require="require"
+                                isError={errorFields.country}
 
                             />
                         </div>
@@ -1555,6 +1566,7 @@ export default function EditSaleOrder() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "country", down: "province" }}
                                 required
+                                isError={errorFields.dateDelivery}
 
                             />
                         </div>
@@ -1574,6 +1586,7 @@ export default function EditSaleOrder() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "date-delivery", down: "placename" }}
                                 require="require"
+                                isError={errorFields.province}
 
                             />
                         </div>
@@ -1590,6 +1603,8 @@ export default function EditSaleOrder() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "province", down: "district" }}
+                                isError={errorFields.placeName}
+
                             />
                         </div>
                         <div className="">
@@ -1608,6 +1623,8 @@ export default function EditSaleOrder() {
                                 classNameSelect="w-full "
                                 require="require"
                                 nextFields={{ up: "placename", down: "address" }}
+                                isError={errorFields.district}
+
                             />
                         </div>
 
@@ -1624,6 +1641,8 @@ export default function EditSaleOrder() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "district", down: "customer-address" }}
+                                isError={errorFields.address}
+
                             />
                         </div>
                         <div className="">
@@ -1653,6 +1672,7 @@ export default function EditSaleOrder() {
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 nextFields={{ up: "address", down: "contact-person" }}
+                            
                             />
                         </div>
 
@@ -1676,6 +1696,7 @@ export default function EditSaleOrder() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "customer-address", down: "telno-contact" }}
+                                isError={errorFields.contactPerson}
 
                             />
                         </div>
@@ -1693,6 +1714,8 @@ export default function EditSaleOrder() {
                                 nextFields={{ up: "contact-person", down: "email-contact" }}
                                 require="require"
                                 maxLength={10}
+                                isError={errorFields.telNoContact}
+
                             />
                         </div>
                         <div className="">
@@ -1708,6 +1731,7 @@ export default function EditSaleOrder() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "telno-contact", down: "customer-contact" }}
                                 require="require"
+                                isError={errorFields.emailContact}
 
                             />
                         </div>

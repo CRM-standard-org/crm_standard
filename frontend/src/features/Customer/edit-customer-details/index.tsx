@@ -112,6 +112,7 @@ export default function EditCustomerDetails() {
     const page = searchParams.get("page") ?? "1";
     const pageSize = searchParams.get("pageSize") ?? "25";
     const [searchTextDebouce, setSearchTextDebouce] = useState("");
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
 
 
@@ -355,9 +356,30 @@ export default function EditCustomerDetails() {
     //ยืนยันไดอะล็อค
     const handleConfirm = async () => {
         const tagIds = selectedTags.map((tag) => String(tag.value));
-        if (!company || !typeCompany || !emailCompany || !telNoCompany || !taxId || !note || !priority || !companyPlaceName
-            || !companyAddress || !companyCountry || !companyProvince || !companyDistrict || !selectedTags || !responsible || !team || !telNoResponsible || !emailResponsible) {
-            showToast("กรุณาระบุให้ครบทุกช่อง", false);
+        const missingFields: string[] = [];
+
+
+        if (!priority) missingFields.push("ระดับความสำคัญ");
+ 
+
+        if (missingFields.length > 0) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
+            return;
+        }
+        const errorMap: Record<string, boolean> = {};
+
+        if (!tagIds || tagIds.length === 0) errorMap.tagIds = true;
+        if (!company) errorMap.company = true;
+        if (!priority) errorMap.priority = true;
+        if (!taxId) errorMap.taxId = true;
+        if (!responsible || responsibleOptions.length === 0) { errorMap.responsible = true; }        if (!team) errorMap.team = true;
+        if (!telNoResponsible) errorMap.telNoResponsible = true;
+        if (!emailResponsible) errorMap.emailResponsible = true;
+
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
         try {
@@ -437,6 +459,7 @@ export default function EditCustomerDetails() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "contact-option", down: "type-company" }}
+                                isError={errorFields.company}
 
                             />
                         </div>
@@ -478,7 +501,7 @@ export default function EditCustomerDetails() {
                                 classNameSelect="w-full"
                                 require="require"
                                 nextFields={{ up: "type-company", down: "company-placename" }}
-
+                                isError={errorFields.tagIds}
                             />
 
                         </div>
@@ -576,6 +599,7 @@ export default function EditCustomerDetails() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "company-country", down: "company-province" }}
+                                isError={errorFields.taxId}
 
                             />
                         </div>
@@ -678,6 +702,7 @@ export default function EditCustomerDetails() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "note", down: "responsible-telno" }}
                                 require="require"
+                                isError={errorFields.team}
 
                             />
 
@@ -697,6 +722,8 @@ export default function EditCustomerDetails() {
                                 nextFields={{ up: "team", down: "responsible" }}
                                 require="require"
                                 maxLength={10}
+                                isError={errorFields.telNoResponsible}
+
                             />
                         </div>
                         <div className="">
@@ -724,6 +751,7 @@ export default function EditCustomerDetails() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "responsible-telno", down: "responsible-email" }}
                                 require="require"
+                                isError={errorFields.responsible}
 
                             />
                         </div>
@@ -741,6 +769,8 @@ export default function EditCustomerDetails() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "responsible", down: "email" }}
                                 require="require"
+
+                                isError={errorFields.emailResponsible}
 
                             />
                         </div>

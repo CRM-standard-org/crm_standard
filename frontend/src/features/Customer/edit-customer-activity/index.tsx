@@ -85,6 +85,7 @@ export default function EditCustomerActivity() {
         throw Error;
     }
     const { data: activityDetails, refetch: refetchActivity } = useActivityById({ activityId });
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
 
     useEffect(() => {
@@ -351,21 +352,19 @@ export default function EditCustomerActivity() {
 
     //ยืนยันไดอะล็อค
     const handleConfirm = async () => {
-        const missingFields: string[] = [];
 
-        if (!customer) missingFields.push("ลูกค้า");
-        if (!dateActivity) missingFields.push("วันที่กิจกรรม ");
-        if (!responsible) missingFields.push("ผู้รับผิดชอบ");
-        if (!team) missingFields.push("ทีม");
-        if (!hour) missingFields.push("ชั่วโมง");
-        if (!minute) missingFields.push("นาที");
-        if (!activityDesciption) missingFields.push("รายละเอียดกิจกรรม");
+        const errorMap: Record<string, boolean> = {};
 
+        if (!customer) errorMap.customer = true;
+        if (!dateActivity) errorMap.dateActivity = true;
+        if (!responsible || responsibleOptions.length === 0) { errorMap.responsible = true; }
 
-        if (missingFields.length > 0) {
-            showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
-            return;
-        }
+        if (!team) errorMap.team = true;
+        if (!hour) errorMap.hour = true;
+        if (!minute) errorMap.minute = true;
+        if (!activityDesciption) errorMap.activityDesciption = true;
+
+        setErrorFields(errorMap);
         const time = hour + ":" + minute
         try {
             const response = await updateActivity(activityId, {
@@ -410,16 +409,21 @@ export default function EditCustomerActivity() {
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
 
+
                         <div className="">
                             <DatePickerComponent
-                                id="doc-date"
+                                id="date-activity"
                                 label="วันที่กิจกรรม"
                                 placeholder="dd/mm/yy"
                                 selectedDate={dateActivity}
                                 onChange={(date) => setDateActivity(date)}
+                                onAction={handleConfirm}
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
                                 required
+                                isError={errorFields.dateActivity}
+                                nextFields={{ up: "responsible", down: "customer" }}
+
                             />
                         </div>
 
@@ -428,6 +432,7 @@ export default function EditCustomerActivity() {
                                 id="customer"
                                 onChange={(option) => setCustomer(option ? String(option.value) : null)}
                                 fetchDataFromGetAPI={fetchDataCustomerDropdown}
+                                onAction={handleConfirm}
                                 valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."
@@ -436,12 +441,13 @@ export default function EditCustomerActivity() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
-                                defaultValue={{ label: customerName, value: customer ?? "" }}
-                                nextFields={{ up: "customer-contact", down: "team" }}
+                                nextFields={{ up: "date-activity", down: "hour" }}
+                                defaultValue={{label:customerName, value:customer ?? ""}}
                                 require="require"
+                                isError={errorFields.customer}
+
                             />
                         </div>
-
                         <div className="flex sm:flex-nowrap sm:items-center gap-2">
 
                             <label className="whitespace-nowrap w-1/2">เวลาของกิจกรรม<span style={{ color: "red" }}>*</span></label>
@@ -461,8 +467,10 @@ export default function EditCustomerActivity() {
                                 onAction={handleConfirm}
                                 classNameLabel=""
                                 classNameInput="w-full"
-                                nextFields={{ left: "team", right: "minute", up: "date-activity", down: "activity-detail" }}
+                                nextFields={{ up: "customer", down: "minute" }}
                                 require="require"
+                                isError={errorFields.hour}
+
                             />
                             <label>:</label>
                             <InputAction
@@ -480,10 +488,11 @@ export default function EditCustomerActivity() {
                                 onAction={handleConfirm}
                                 classNameLabel=""
                                 classNameInput="w-full"
-                                nextFields={{ left: "hour", right: "team", up: "date-activity", down: "activity-detail" }}
+                                nextFields={{ up: "hour", down: "team" }}
                                 require="require"
-                            />
+                                isError={errorFields.minute}
 
+                            />
 
                             <label className="">น.</label>
 
@@ -495,16 +504,21 @@ export default function EditCustomerActivity() {
                                 onChange={(option) => setTeam(option ? String(option.value) : null)}
                                 onInputChange={handleTeamSearch}
                                 fetchDataFromGetAPI={fetchDataTeamDropdown}
+                                onAction={handleConfirm}
+
                                 valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ทีมผู้รับผิดชอบ"
                                 labelOrientation="horizontal"
+
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
-                                nextFields={{ up: "province", down: "responsible-telno" }}
+                                nextFields={{ up: "minute", down: "activity-detail" }}
                                 require="require"
+                                isError={errorFields.team}
+
 
                             />
 
@@ -516,16 +530,18 @@ export default function EditCustomerActivity() {
                                 placeholder=""
                                 onChange={(e) => setActivityDesciption(e.target.value)}
                                 value={activityDesciption}
+                                onAction={handleConfirm}
                                 label="รายละเอียดกิจกรรม"
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 "
                                 classNameInput="w-full"
                                 onMicrophone={true}
-                                nextFields={{ left: "responsible", right: "responsible", up: "hour", down: "date-activity" }}
+                                nextFields={{ up: "team", down: "responsible" }}
                                 require="require"
+                                isError={errorFields.activityDesciption}
+
                             />
                         </div>
-
                         <div className="">
 
                             <DependentSelectComponent
@@ -534,6 +550,7 @@ export default function EditCustomerActivity() {
                                 onChange={(option) => { setResponsible(option ? String(option.value) : null); }}
                                 onInputChange={handleEmployeeSearch}
                                 fetchDataFromGetAPI={fetchDataMemberInteam}
+                                onAction={handleConfirm}
                                 valueKey="id"
                                 labelKey="name"
                                 placeholder="กรุณาเลือก..."
@@ -542,8 +559,9 @@ export default function EditCustomerActivity() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
-                                nextFields={{ up: "responsible-telno", down: "responsible-email" }}
+                                nextFields={{ up: "activity-detail", down: "date-activity" }}
                                 require="require"
+                                isError={errorFields.responsible}
 
                             />
                         </div>
@@ -551,7 +569,6 @@ export default function EditCustomerActivity() {
 
 
                     </div>
-
 
                 </div>
                 <div className="flex justify-center md:justify-end space-x-5 mt-5">

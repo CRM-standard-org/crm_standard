@@ -4,6 +4,7 @@ import { FaStar } from 'react-icons/fa';
 type RatingProps ={
     value:number;
     onChange: (value:number)=>void;
+    
 }
 const Rating:React.FC<RatingProps> = ({value, onChange}) => {
   const [hover, setHover] = useState(value);
