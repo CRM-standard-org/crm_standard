@@ -104,6 +104,7 @@ export default function CreateCustomer() {
     const [emailResponsible, setEmailResponsible] = useState("");
 
 
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
 
     // const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -420,31 +421,43 @@ export default function CreateCustomer() {
     const handleConfirm = async () => {
 
         const tagIds = selectedTags.map((tag) => String(tag.value));
+
+        const errorMap: Record<string, boolean> = {};
+
+        if (!firstContact) errorMap.firstContact = true;
+        if (!telNo) errorMap.telNo = true;
+        if (!email) errorMap.email = true;
+        if (!tagIds || tagIds.length === 0) errorMap.tagIds = true;
+        if (!role) errorMap.role = true;
+        if (!company) errorMap.company = true;
+        if (!priority) errorMap.priority = true;
+        if (!taxId) errorMap.taxId = true;
+        if (!placeName) errorMap.placeName = true;
+        if (!address) errorMap.address = true;
+        if (!country) errorMap.country = true;
+        if (!province || provinceOptions.length === 0) { errorMap.province = true; }
+        if (!district || districtOptions.length === 0) { errorMap.district = true; }
+        if (!responsible || responsibleOptions.length === 0) { errorMap.responsible = true; }
+        if (!team) errorMap.team = true;
+        if (!telNoResponsible) errorMap.telNoResponsible = true;
+        if (!emailResponsible) errorMap.emailResponsible = true;
+
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+            return;
+        }
         const missingFields: string[] = [];
 
-        if (!firstContact) missingFields.push("ชื่อผู้ติดต่อ");
-        if (!telNo) missingFields.push("เบอร์โทรผู้ติดต่อ");
-        if (!email) missingFields.push("อีเมลผู้ติดต่อ");
-        if (!tagIds || tagIds.length === 0) missingFields.push("แท็ก");
-        if (!role) missingFields.push("บทบาทลูกค้า");
-        if (!company) missingFields.push("ชื่อบริษัท");
+
         if (!priority) missingFields.push("ระดับความสำคัญ");
-        if (!taxId) missingFields.push("เลขประจำตัวผู้เสียภาษี");
-        if (!placeName) missingFields.push("สถานที่ติดต่อ");
-        if (!address) missingFields.push("ที่อยู่จัดส่ง");
-        if (!country) missingFields.push("ประเทศที่อยู่จัดส่ง");
-        if (!province) missingFields.push("จังหวัดที่อยู่จัดส่ง");
-        if (!district) missingFields.push("อำเภอที่อยู่จัดส่ง");
-        if (!responsible) missingFields.push("ผู้รับผิดชอบ");
-        if (!team) missingFields.push("ทีม");
-        if (!telNoResponsible) missingFields.push("เบอร์โทรผู้รับผิดชอบ");
-        if (!emailResponsible) missingFields.push("อีเมลผู้รับผิดชอบ");
+
 
         if (missingFields.length > 0) {
             showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
             return;
         }
-
         try {
             const response = await postCustomer({
                 company_name: company, // ใช้ชื่อ field ที่ตรงกับ type
@@ -548,6 +561,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "responsible-email", down: "character" }}
+                                isError={errorFields.firstContact}
                             />
                         </div>
                         <div className="">
@@ -580,7 +594,7 @@ export default function CreateCustomer() {
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
                                 nextFields={{ up: "character", down: "role" }}
-
+                                isError={errorFields.position}
                             />
                         </div>
 
@@ -600,7 +614,7 @@ export default function CreateCustomer() {
                                 classNameSelect="w-full "
                                 require="require"
                                 nextFields={{ up: "position", down: "tel-no" }}
-
+                                isError={errorFields.role}
                             />
                         </div>
 
@@ -618,6 +632,7 @@ export default function CreateCustomer() {
                                 require="require"
                                 nextFields={{ up: "role", down: "email" }}
                                 maxLength={10}
+                                isError={errorFields.telNo}
                             />
                         </div>
                         <div className="">
@@ -633,7 +648,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "tel-no", down: "telno-extension" }}
-
+                                isError={errorFields.email}
                             />
                         </div>
                         <div className="">
@@ -715,7 +730,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}`, down: "type-company" }}
-
+                                isError={errorFields.company}
                             />
                         </div>
                         <div className="flex flex-row space-x-4 pb-2 pt-2">
@@ -755,7 +770,7 @@ export default function CreateCustomer() {
                                 classNameSelect="w-full"
                                 require="require"
                                 nextFields={{ up: "type-company", down: "company-placename" }}
-
+                                isError={errorFields.tagIds}
                             />
 
                         </div>
@@ -801,7 +816,6 @@ export default function CreateCustomer() {
                                 classNameLabel="w-1/2  "
                                 classNameInput="w-full"
                                 nextFields={{ up: "company-telno", down: "company-email" }}
-
                             />
                         </div>
                         <div className="">
@@ -853,7 +867,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "company-country", down: "company-province" }}
-
+                                isError={errorFields.taxId}
                             />
                         </div>
                         <div className="">
@@ -950,7 +964,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "note", down: "address" }}
                                 require="require"
-
+                                isError={errorFields.placeName}
                             />
                         </div>
                         <div className="">
@@ -967,7 +981,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "placename", down: "country" }}
                                 require="require"
-
+                                isError={errorFields.address}
                             />
                         </div>
 
@@ -989,7 +1003,7 @@ export default function CreateCustomer() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "address", down: "district" }}
                                 require="require"
-
+                                isError={errorFields.country}
                             />
                         </div>
                         <div className="">
@@ -1009,7 +1023,7 @@ export default function CreateCustomer() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "country", down: "province" }}
                                 require="require"
-
+                                isError={errorFields.district}
                             />
                         </div>
                         <div className="">
@@ -1028,7 +1042,7 @@ export default function CreateCustomer() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "district", down: "team" }}
                                 require="require"
-
+                                isError={errorFields.province}
                             />
                         </div>
                     </div>
@@ -1055,7 +1069,7 @@ export default function CreateCustomer() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "province", down: "responsible-telno" }}
                                 require="require"
-
+                                isError={errorFields.team}
                             />
 
                         </div>
@@ -1074,6 +1088,7 @@ export default function CreateCustomer() {
                                 nextFields={{ up: "team", down: "responsible" }}
                                 require="require"
                                 maxLength={10}
+                                isError={errorFields.telNoResponsible}
                             />
                         </div>
                         <div className="">
@@ -1101,7 +1116,7 @@ export default function CreateCustomer() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "responsible-telno", down: "responsible-email" }}
                                 require="require"
-
+                                isError={errorFields.responsible}
                             />
                         </div>
                         <div className="">
@@ -1117,7 +1132,7 @@ export default function CreateCustomer() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "responsible", down: "email" }}
                                 require="require"
-
+                                isError={errorFields.emailResponsible}
                             />
                         </div>
                     </div>

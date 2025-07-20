@@ -17,6 +17,7 @@ interface TextAreaProps {
   classNameInput?: string;
   classNameLabel?: string;
   require?: string;
+  isError?: boolean;
   disabled?: boolean;
   maxLength?: number;
   errorMessage?: string;
@@ -38,6 +39,7 @@ const TextArea: React.FC<TextAreaProps> = ({
   classNameInput = "",
   classNameLabel = "",
   require = "",
+  isError,
   disabled = false,
   maxLength,
   errorMessage,
@@ -47,6 +49,15 @@ const TextArea: React.FC<TextAreaProps> = ({
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
   const [language, setLanguage] = useState<"th-TH" | "en-US">("th-TH");
   const lastTranscript = useRef("");
+
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isError && textAreaRef.current) {
+      textAreaRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      textAreaRef.current.focus();
+    }
+  }, [isError]);
 
   if (!browserSupportsSpeechRecognition) {
     return <span>Browser doesn't support speech recognition.</span>;
@@ -123,7 +134,8 @@ const TextArea: React.FC<TextAreaProps> = ({
         {/* กล่อง TextArea แบบไม่ล้น */}
         <div className="flex-1 min-w-0">
           <RadixTextArea
-            className={`${classNameInput} w-full`}
+            ref={textAreaRef}
+            className={`${classNameInput} w-full ${isError ? "ring-2 ring-red-500 animate-shake" : ""}`}
             placeholder={placeholder}
             value={value}
             defaultValue={defaultValue}

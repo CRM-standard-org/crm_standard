@@ -26,6 +26,7 @@ type TagSelectComponentProps = {
   classNameSelect?: string;
   classNameLabel?: string;
   require?: string;
+  isError?: boolean;
   heightInput?: string;
   defaultValue?: MultiValue<OptionColorType> | null;
   isDisabled?: boolean;
@@ -46,6 +47,7 @@ const TagSelectComponent: React.FC<TagSelectComponentProps> = ({
   classNameSelect = "",
   classNameLabel = "",
   require = "",
+  isError,
   heightInput = "32px",
   defaultValue = [],
   isDisabled = false,
@@ -56,6 +58,14 @@ const TagSelectComponent: React.FC<TagSelectComponentProps> = ({
   const selectRef = useRef<SelectInstance<OptionColorType> | null>(null);
   const [hasSetDefault, setHasSetDefault] = useState(false);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isError && containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      selectRef.current?.focus();
+    }
+  }, [isError]);
   useEffect(() => {
     const fetchOptions = async () => {
       try {
@@ -87,7 +97,7 @@ const TagSelectComponent: React.FC<TagSelectComponentProps> = ({
       setHasSetDefault(true);
     }
   }, [defaultValue, options, hasSetDefault]);
-  
+
 
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -124,7 +134,11 @@ const TagSelectComponent: React.FC<TagSelectComponentProps> = ({
   };
 
   return (
-    <div className={`flex flex-col sm:flex-row sm:items-center gap-2 ${className}`}>
+    <div
+      ref={containerRef}
+      className={`${className} flex flex-col sm:flex-row items-start sm:items-center gap-2`}
+    >
+
       {label && (
         <div
           style={{ marginBottom: labelOrientation === "vertical" ? "0.5rem" : "0" }}
@@ -136,6 +150,7 @@ const TagSelectComponent: React.FC<TagSelectComponentProps> = ({
       )}
 
       <Select
+
         isMulti
         options={options}
         value={selectedTags}
@@ -148,7 +163,8 @@ const TagSelectComponent: React.FC<TagSelectComponentProps> = ({
         placeholder={placeholder}
         isClearable={isClearable}
         classNamePrefix="react-select"
-        className={`${classNameSelect}`}
+        className={`${classNameSelect} ${isError ? "ring-2 ring-red-500 animate-shake rounded-sm" : ""}`}
+
         isDisabled={isDisabled}
         ref={selectRef}
         inputId={id}
@@ -159,15 +175,17 @@ const TagSelectComponent: React.FC<TagSelectComponentProps> = ({
             ...base,
             minHeight: "32px",
             height: heightInput,
+           
             borderColor: "#d9d9e0",
             backgroundColor: state.isDisabled ? "#f9f9fb" : "#ffffff",
             opacity: 1,
             boxShadow: "none",
-            width: "100%",
+            width: "100%", 
             "&:hover": {
               borderColor: "#3b82f6",
             },
           }),
+        
           valueContainer: (base) => ({
             ...base,
             height: heightInput,

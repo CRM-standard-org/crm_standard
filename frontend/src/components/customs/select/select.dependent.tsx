@@ -28,6 +28,7 @@ type DependentSelectComponentProps = {
   classNameSelect?: string;
   classNameLabel?: string;
   require?: string;
+  isError?: boolean;
   heightInput?: string;
   defaultValue?: SingleValue<OptionType> | null;
   isDisabled?: boolean;
@@ -52,17 +53,27 @@ const DependentSelectComponent: React.FC<DependentSelectComponentProps> = ({
   classNameSelect = "",
   classNameLabel = "",
   require = "",
+  isError,
   heightInput = "32px",
   defaultValue,
   isDisabled,
   errorMessage,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isError && containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      selectRef.current?.focus();
+    }
+  }, [isError]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const keycode = e.key;
     if (keycode === "Enter") {
       if (onAction) {
         onAction(); // Call onAction if provided
-      }else{
+      } else {
         selectRef.current?.focus();
         selectRef.current?.onMenuOpen?.();
         e.preventDefault();
@@ -133,8 +144,10 @@ const DependentSelectComponent: React.FC<DependentSelectComponentProps> = ({
 
   return (
     <div
-      className={`${className || ""} flex flex-col sm:flex-row items-start sm:items-center gap-2`}
+      ref={containerRef}
+      className={`${className} flex flex-col sm:flex-row items-start sm:items-center gap-2`}
     >
+
       {label && (
         <div
           style={{
@@ -167,7 +180,8 @@ const DependentSelectComponent: React.FC<DependentSelectComponentProps> = ({
         placeholder={placeholder}
         isClearable={isClearable}
         classNamePrefix="react-select"
-        className={`${classNameSelect}`}
+        className={`${classNameSelect} ${isError ? "ring-2 ring-red-500 animate-shake rounded-sm" : ""}`}
+
         ref={selectRef}
         inputId={id}
         tabIndex={0}
@@ -182,6 +196,7 @@ const DependentSelectComponent: React.FC<DependentSelectComponentProps> = ({
             opacity: 1,
             boxShadow: "none",
             width: '100%',
+            
             "&:hover": {
               borderColor: "#3b82f6",
             },

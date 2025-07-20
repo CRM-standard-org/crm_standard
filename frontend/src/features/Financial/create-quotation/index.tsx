@@ -153,6 +153,7 @@ export default function CreateQuotation() {
     const [searchParams, setSearchParams] = useSearchParams();
     const page = searchParams.get("page") ?? "1";
     const pageSize = searchParams.get("pageSize") ?? "25";
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
     //ดึงข้อมูล customer
     const [dataAboutCustomer, setDataAboutCustomer] = useState<TypeCustomerResponse>();
@@ -618,6 +619,56 @@ export default function CreateQuotation() {
     const handleConfirmApprove = () => createQuotation("รออนุมัติ");
 
     const createQuotation = async (quotationStatus: string) => {
+
+        const payment_term_day = paymentCondition === "เต็มจำนวน" ? payDay : undefined;
+        const payment_term_installment = paymentCondition === "แบ่งชำระ" ? installments : undefined;
+        const payment_term = paymentCondition === "เต็มจำนวน"
+            ? [{ installment_no: 1, installment_price: netTotal }]
+            : installmentPrice.map((price, index) => ({
+                installment_no: index + 1,
+                installment_price: price,
+            }));
+
+
+        const errorMap: Record<string, boolean> = {};
+
+        if (!customer) errorMap.customer = true;
+        if (!issueDate) errorMap.issueDate = true;
+        if (!team) errorMap.team = true;
+        if (!responsible || responsibleOptions.length === 0) { errorMap.responsible = true; }
+        if (!priceDate) errorMap.priceDate = true;
+        if (!taxId) errorMap.taxId = true;
+        if (!endDate) errorMap.endDate = true;
+        if (!dateDelivery) errorMap.dateDelivery = true;
+        if (!placeName) errorMap.placeName = true;
+        if (!address) errorMap.address = true;
+        if (!country) errorMap.country = true;
+        if (!province || provinceOptions.length === 0) { errorMap.province = true; }
+        if (!district || districtOptions.length === 0) { errorMap.district = true; }
+        if (!contactPerson) errorMap.contactPerson = true;
+        if (!emailContact) errorMap.emailContact = true;
+        if (!telNoContact) errorMap.telNoContact = true;
+        if (!currency) errorMap.currency = true;
+        if (!discount == null) errorMap.discount = true;
+        if (!vatId) errorMap.vatId = true;
+        if (!payDay || payDay == 0) errorMap.payDay = true;
+        if (!paymentCondition) errorMap.paymentCondition = true;
+        if (!paymentOption) errorMap.paymentOption = true;
+
+        setErrorFields(errorMap);
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+            return;
+        }
+        const missingFields: string[] = [];
+        if (!priority) missingFields.push("ความสำคัญ");
+        if (!shippingMethod) missingFields.push("การรับสินค้า");
+
+        if (missingFields.length > 0) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
+            return;
+        }
+
         const items = productRows
             .filter((row) => row.product_id && row.unit && row.price > 0 && row.amount > 0)
             .map((row) => ({
@@ -637,45 +688,6 @@ export default function CreateQuotation() {
             showToast("กรุณากรอกสินค้าอย่างน้อย 1 รายการให้ครบถ้วน", false);
             return;
         }
-
-        const payment_term_day = paymentCondition === "เต็มจำนวน" ? payDay : undefined;
-        const payment_term_installment = paymentCondition === "แบ่งชำระ" ? installments : undefined;
-        const payment_term = paymentCondition === "เต็มจำนวน"
-            ? [{ installment_no: 1, installment_price: netTotal }]
-            : installmentPrice.map((price, index) => ({
-                installment_no: index + 1,
-                installment_price: price,
-            }));
-
-        const missingFields: string[] = [];
-        if (!customer) missingFields.push("ชื่อผู้ติดต่อ");
-        if (!priority) missingFields.push("ความสำคัญ");
-        if (!issueDate) missingFields.push("อีเมลผู้ติดต่อ");
-        if (!team) missingFields.push("ทีม");
-        if (!responsible) missingFields.push("ผู้รับผิดชอบ");
-        if (!priceDate) missingFields.push("วันยื่นราคา ");
-        if (!endDate) missingFields.push("วันที่คาดว่าจะปิดดีล");
-        if (!shippingMethod) missingFields.push("การรับสินค้า");
-        if (!dateDelivery) missingFields.push("วันจัดส่งสินค้า");
-        if (!placeName) missingFields.push("ชื่อสถานที่");
-        if (!address) missingFields.push("ที่อยู่");
-        if (!country) missingFields.push("ประเทศ");
-        if (!province) missingFields.push("จังหวัด");
-        if (!district) missingFields.push("อำเภอ");
-        if (!contactPerson) missingFields.push("ชื่อผู้ติดต่อ");
-        if (!emailContact) missingFields.push("อีเมลผู้ติดต่อ");
-        if (!telNoContact) missingFields.push("เบอร์ผู้ติดต่อ");
-        if (!currency) missingFields.push("สกุลเงิน");
-        if (discount == null) missingFields.push("ส่วนลด");
-        if (!vatId) missingFields.push("vat");
-        if (!paymentCondition) missingFields.push("เงื่อนไขการชำระเงิน");
-        if (!paymentOption) missingFields.push("วิธีการชำระเงิน");
-
-        if (missingFields.length > 0) {
-            showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
-            return;
-        }
-
         const payload: PayLoadCreateQuotation = {
             customer_id: customer ?? "",
             priority,
@@ -731,7 +743,10 @@ export default function CreateQuotation() {
         }
     };
 
-
+    useEffect(() => {
+        console.log("province option", provinceOptions)
+        console.log("province", province)
+    }, [provinceOptions, province, country])
     //handle
 
     const handleAddProduct = () => {
@@ -812,6 +827,8 @@ export default function CreateQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "customer-contact", down: "team" }}
                                 require="require"
+                                isError={errorFields.customer}
+
                             />
                         </div>
                         <div className="">
@@ -831,6 +848,7 @@ export default function CreateQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "customer", down: "responsible" }}
                                 require="require"
+                                isError={errorFields.team}
 
                             />
 
@@ -860,6 +878,7 @@ export default function CreateQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "team", down: "issue-date" }}
                                 require="require"
+                                isError={errorFields.responsible}
 
                             />
                         </div>
@@ -875,6 +894,8 @@ export default function CreateQuotation() {
                                 nextFields={{ up: "responsible", down: "price-date" }}
                                 useTodayAsDefault={false}
                                 required
+                                isError={errorFields.issueDate}
+
                             />
                         </div>
                         <div className="">
@@ -887,8 +908,9 @@ export default function CreateQuotation() {
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
                                 nextFields={{ up: "issue-date", down: "identify" }}
-
                                 required
+                                isError={errorFields.priceDate}
+
                             />
                         </div>
                         <div className="">
@@ -904,6 +926,8 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "price-date", down: "end-date" }}
                                 require="require"
+                                isError={errorFields.taxId}
+
                             />
 
                         </div>
@@ -918,6 +942,8 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "identify", down: `${shippingMethod ? "shipping-other" : "country"}` }}
                                 required
+                                isError={errorFields.endDate}
+
                             />
                         </div>
 
@@ -957,6 +983,7 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "end-date", down: "country" }}
                                 require="require"
+
                             />
                         )}
 
@@ -976,6 +1003,7 @@ export default function CreateQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "end-date", down: "date-delivery" }}
                                 require="require"
+                                isError={errorFields.country}
 
                             />
                         </div>
@@ -991,6 +1019,7 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "country", down: "province" }}
                                 required
+                                isError={errorFields.dateDelivery}
 
                             />
                         </div>
@@ -1010,6 +1039,7 @@ export default function CreateQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "date-delivery", down: "placename" }}
                                 require="require"
+                                isError={errorFields.province}
 
                             />
                         </div>
@@ -1026,6 +1056,8 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "province", down: "district" }}
+                                isError={errorFields.placeName}
+
                             />
                         </div>
                         <div className="">
@@ -1044,6 +1076,8 @@ export default function CreateQuotation() {
                                 classNameSelect="w-full "
                                 require="require"
                                 nextFields={{ up: "placename", down: "address" }}
+                                isError={errorFields.district}
+
                             />
                         </div>
 
@@ -1060,6 +1094,8 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "district", down: "customer-address" }}
+                                isError={errorFields.address}
+
                             />
                         </div>
                         <div className="">
@@ -1089,6 +1125,7 @@ export default function CreateQuotation() {
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 nextFields={{ up: "address", down: "contact-person" }}
+
                             />
                         </div>
 
@@ -1112,6 +1149,7 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "customer-address", down: "telno-contact" }}
+                                isError={errorFields.contactPerson}
 
                             />
                         </div>
@@ -1129,6 +1167,8 @@ export default function CreateQuotation() {
                                 nextFields={{ up: "contact-person", down: "email-contact" }}
                                 require="require"
                                 maxLength={10}
+                                isError={errorFields.telNoContact}
+
                             />
                         </div>
                         <div className="">
@@ -1144,6 +1184,7 @@ export default function CreateQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "telno-contact", down: "customer-contact" }}
                                 require="require"
+                                isError={errorFields.emailContact}
 
                             />
                         </div>
@@ -1379,6 +1420,7 @@ export default function CreateQuotation() {
                         classNameLabel="w-1/2 flex"
                         classNameSelect="w-full "
                         nextFields={{ left: "email", right: "email", up: "responsible", down: "doc-release-date" }}
+                        isError={errorFields.currency}
 
                     />
 
@@ -1413,6 +1455,8 @@ export default function CreateQuotation() {
                                         classNameLabel="xl:w-25 flex"
                                         classNameInput="xl:w-20 sm:ms-3"
                                         require="require"
+                                        isError={errorFields.discount}
+
                                     />
                                 </div>
                                 <label>{amountAfterDiscount.toFixed(2)}</label>
@@ -1436,6 +1480,8 @@ export default function CreateQuotation() {
                                         className="xl:w-25 flex"
                                         classNameSelect="sm:ms-10"
                                         require="require"
+                                        isError={errorFields.vatId}
+
                                     />
 
                                 </div>
@@ -1491,6 +1537,7 @@ export default function CreateQuotation() {
                                         placeholder="เลือกเงื่อนไข"
                                         isClearable
                                         classNameSelect="w-48"
+                                        isError={errorFields.paymentCondition}
 
                                     />
 
@@ -1505,6 +1552,7 @@ export default function CreateQuotation() {
                                                 value={payDay.toString()}
                                                 onChange={(e) => setPayDay(Number(e.target.value))}
                                                 classNameInput="w-24"
+                                                isError={errorFields.payDay}
 
                                             />
                                             <label>วัน</label>
@@ -1525,6 +1573,8 @@ export default function CreateQuotation() {
                                                     }
                                                 }}
                                                 classNameInput="w-24 text-end"
+                                                isError={errorFields.installments}
+
                                             />
                                             <label>งวด</label>
                                         </>
@@ -1597,6 +1647,8 @@ export default function CreateQuotation() {
                                     classNameLabel="w-1/2 flex"
                                     classNameSelect="w-full "
                                     require="require"
+                                    isError={errorFields.paymentOption}
+
                                 />
 
                             </div>
@@ -1626,7 +1678,6 @@ export default function CreateQuotation() {
                                     onFilesChange={(files) => setUploadedFiles(files)}
                                     classNameLabel="w-1/3 flex"
                                     classNameInput="w-full"
-                                    require="require"
                                 />
                             </div>
 

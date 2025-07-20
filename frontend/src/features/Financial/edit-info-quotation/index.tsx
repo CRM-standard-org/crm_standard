@@ -202,6 +202,7 @@ export default function EditInfoQuotation() {
     const [productRows, setProductRows] = useState<ProductRow[]>([
         { id: "", quotation_product_id: "", product_id: "", productName: "", group: "", groupName: "", unit: "", unitName: "", price: 0, amount: 1, discount: 0, discountPercent: 0, value: 0 }
     ]);
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
 
     //fetch customer
@@ -751,29 +752,40 @@ export default function EditInfoQuotation() {
     const handleEditCompanyConfirm = async () => {
 
         const missingFields: string[] = [];
-        if (!customer) missingFields.push("ชื่อผู้ติดต่อ");
+
         if (!priority) missingFields.push("ความสำคัญ");
-        if (!issueDate) missingFields.push("อีเมลผู้ติดต่อ");
-        if (!team) missingFields.push("ทีม");
-        if (!responsible) missingFields.push("ผู้รับผิดชอบ");
-        if (!priceDate) missingFields.push("วันยื่นราคา ");
-        if (!endDate) missingFields.push("วันที่คาดว่าจะปิดดีล");
         if (!shippingMethod) missingFields.push("การรับสินค้า");
-        if (!dateDelivery) missingFields.push("วันจัดส่งสินค้า");
-        if (!placeName) missingFields.push("ชื่อสถานที่");
-        if (!address) missingFields.push("ที่อยู่");
-        if (!country) missingFields.push("ประเทศ");
-        if (!province) missingFields.push("จังหวัด");
-        if (!district) missingFields.push("อำเภอ");
-        if (!contactPerson) missingFields.push("ชื่อผู้ติดต่อ");
-        if (!emailContact) missingFields.push("อีเมลผู้ติดต่อ");
-        if (!telNoContact) missingFields.push("เบอร์ผู้ติดต่อ");
+
 
         if (missingFields.length > 0) {
             showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
             return;
         }
+        const errorMap: Record<string, boolean> = {};
 
+        if (!customer) errorMap.customer = true;
+        if (!issueDate) errorMap.issueDate = true;
+        if (!team) errorMap.team = true;
+        if (!responsible || responsibleOptions.length === 0) { errorMap.responsible = true; }
+        if (!priceDate) errorMap.priceDate = true;
+        if (!taxId) errorMap.taxId = true;
+        if (!endDate) errorMap.endDate = true;
+        if (!dateDelivery) errorMap.dateDelivery = true;
+        if (!placeName) errorMap.placeName = true;
+        if (!address) errorMap.address = true;
+        if (!country) errorMap.country = true;
+        if (!province || provinceOptions.length === 0) { errorMap.province = true; }
+        if (!district || districtOptions.length === 0) { errorMap.district = true; }
+        if (!contactPerson) errorMap.contactPerson = true;
+        if (!emailContact) errorMap.emailContact = true;
+        if (!telNoContact) errorMap.telNoContact = true;
+
+
+        setErrorFields(errorMap);
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+            return;
+        }
         const payload: PayLoadUpdateCompany = {
             customer_id: customer ?? "",
             priority,
@@ -1003,7 +1015,19 @@ export default function EditInfoQuotation() {
                 installment_no: index + 1,
                 installment_price: price,
             }));
-        console.log(payment_term)
+        const errorMap: Record<string, boolean> = {};
+
+        if (!discount == null) errorMap.discount = true;
+        if (!vatId) errorMap.vatId = true;
+        if (!payDay || payDay == 0) errorMap.payDay = true;
+        if (!paymentCondition) errorMap.paymentCondition = true;
+        if (!paymentOption) errorMap.paymentOption = true;
+
+        setErrorFields(errorMap);
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+            return;
+        }
         const payload: PayLoadUpdatePayment = {
 
             total_amount: totalAmount,
@@ -1094,8 +1118,9 @@ export default function EditInfoQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "customer-contact", down: "team" }}
                                 defaultValue={{ label: customerName, value: customer }}
-
                                 require="require"
+                                isError={errorFields.customer}
+
                             />
                         </div>
                         <div className="">
@@ -1115,6 +1140,7 @@ export default function EditInfoQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "customer", down: "responsible" }}
                                 require="require"
+                                isError={errorFields.team}
 
                             />
 
@@ -1144,6 +1170,7 @@ export default function EditInfoQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "team", down: "issue-date" }}
                                 require="require"
+                                isError={errorFields.responsible}
 
                             />
                         </div>
@@ -1171,8 +1198,9 @@ export default function EditInfoQuotation() {
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
                                 nextFields={{ up: "issue-date", down: "identify" }}
-
                                 required
+                                isError={errorFields.issueDate}
+
                             />
                         </div>
                         <div className="">
@@ -1188,6 +1216,7 @@ export default function EditInfoQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "price-date", down: "end-date" }}
                                 require="require"
+                                disabled
                             />
 
                         </div>
@@ -1202,6 +1231,8 @@ export default function EditInfoQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "identify", down: `${shippingMethod ? "shipping-other" : "country"}` }}
                                 required
+                                isError={errorFields.endDate}
+
                             />
                         </div>
 
@@ -1260,6 +1291,7 @@ export default function EditInfoQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "end-date", down: "date-delivery" }}
                                 require="require"
+                                isError={errorFields.country}
 
                             />
                         </div>
@@ -1274,9 +1306,11 @@ export default function EditInfoQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "country", down: "province" }}
                                 required
+                                isError={errorFields.dateDelivery}
 
                             />
                         </div>
+
                         <div className="">
                             <DependentSelectComponent
                                 id="province"
@@ -1293,6 +1327,7 @@ export default function EditInfoQuotation() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "date-delivery", down: "placename" }}
                                 require="require"
+                                isError={errorFields.province}
 
                             />
                         </div>
@@ -1309,6 +1344,8 @@ export default function EditInfoQuotation() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "province", down: "district" }}
+                                isError={errorFields.placeName}
+
                             />
                         </div>
                         <div className="">
@@ -1327,6 +1364,8 @@ export default function EditInfoQuotation() {
                                 classNameSelect="w-full "
                                 require="require"
                                 nextFields={{ up: "placename", down: "address" }}
+                                isError={errorFields.district}
+
                             />
                         </div>
 
@@ -1343,6 +1382,8 @@ export default function EditInfoQuotation() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "district", down: "customer-address" }}
+                                isError={errorFields.address}
+
                             />
                         </div>
                         <div className="">
@@ -1395,7 +1436,7 @@ export default function EditInfoQuotation() {
                                 classNameInput="w-full"
                                 require="require"
                                 nextFields={{ up: "customer-address", down: "telno-contact" }}
-
+                                isError={errorFields.contactPerson}
                             />
                         </div>
                         <div className="">
@@ -1412,6 +1453,8 @@ export default function EditInfoQuotation() {
                                 nextFields={{ up: "contact-person", down: "email-contact" }}
                                 require="require"
                                 maxLength={10}
+                                isError={errorFields.telNoContact}
+
                             />
                         </div>
                         <div className="">
@@ -1427,6 +1470,7 @@ export default function EditInfoQuotation() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "telno-contact", down: "customer-contact" }}
                                 require="require"
+                                isError={errorFields.emailContact}
 
                             />
                         </div>
@@ -1743,6 +1787,9 @@ export default function EditInfoQuotation() {
                                         labelOrientation="horizontal"
                                         classNameLabel="xl:w-25 flex"
                                         classNameInput="xl:w-20 sm:ms-3"
+                                        require="require"
+                                        isError={errorFields.discount}
+
                                     />
                                 </div>
                                 <label>{amountAfterDiscount.toFixed(2)}</label>
@@ -1766,6 +1813,8 @@ export default function EditInfoQuotation() {
                                         className="xl:w-25 flex"
                                         classNameSelect="sm:ms-10"
                                         defaultValue={{ label: vat.toString(), value: vatId ?? "" }}
+                                        require="require"
+                                        isError={errorFields.vatId}
 
                                     />
 
@@ -1846,7 +1895,7 @@ export default function EditInfoQuotation() {
                         {/* ฝั่งขวา */}
                         <div className="space-y-4">
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <label className="xl:me-15 whitespace-nowrap">เงื่อนไขการชำระเงิน</label>
+                                <label className="xl:me-15 whitespace-nowrap">เงื่อนไขการชำระเงิน<span style={{ color: "red" }}>*</span></label>
                                 <div className="flex flex-row items-center space-x-3 sm:ms-16">
 
                                     <MasterSelectComponent
@@ -1863,6 +1912,8 @@ export default function EditInfoQuotation() {
                                         isClearable
                                         classNameSelect="w-48"
                                         defaultValue={{ label: paymentCondition, value: mapPaymentTermNameToId(paymentCondition) }}
+                                        isError={errorFields.paymentCondition}
+
                                     />
 
 
@@ -1876,6 +1927,8 @@ export default function EditInfoQuotation() {
                                                 value={payDay.toString()}
                                                 onChange={(e) => setPayDay(Number(e.target.value))}
                                                 classNameInput="w-24"
+                                                isError={errorFields.payDay}
+
                                             />
                                             <label>วัน</label>
                                         </>
@@ -1895,6 +1948,8 @@ export default function EditInfoQuotation() {
                                                     }
                                                 }}
                                                 classNameInput="w-24 text-end"
+                                                isError={errorFields.installments}
+
                                             />
 
                                             <label>งวด</label>
@@ -1968,6 +2023,8 @@ export default function EditInfoQuotation() {
                                     classNameLabel="w-1/2 flex"
                                     classNameSelect="w-full "
                                     defaultValue={{ label: paymentMethodName, value: paymentOption ?? "" }}
+                                    require="require"
+                                    isError={errorFields.paymentOption}
 
                                 />
 
