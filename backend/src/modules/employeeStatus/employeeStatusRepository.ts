@@ -7,15 +7,7 @@ import e from 'express';
 export const Keys = [
     'status_id',
     'name',
-    'created_by',
-    'updated_by',
-    'created_at',
-    'updated_at',
 ];
-
-
-
-
 
 export const employeeStatusRepository = {
     findByName: async (status_name: string) => {

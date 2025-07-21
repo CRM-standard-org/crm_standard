@@ -44,3 +44,9 @@ export const GetTagByIdSchema = z.object({
         tag_id: z.string().min(1).max(50),
     })
 });
+
+export const SelectSchema = z.object({
+    query: z.object({
+        search: z.string().optional(),
+    })
+});

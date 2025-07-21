@@ -169,7 +169,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
   },
   สถานะพนักงาน: {
     Admin: "A",
-    Owner: "N",
+    Owner: "A",
     Manager: "N",
     Technician: "N",
     Sale: "N",
@@ -209,7 +209,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
   },
   บริษัท: {
     Admin: "A",
-    Owner: "N",
+    Owner: "A",
     Manager: "N",
     Technician: "N",
     Sale: "N",
@@ -217,11 +217,12 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
   },
   บทบาท: {
     Admin: "A",
-    Owner: "N",
+    Owner: "A",
     Manager: "N",
     Technician: "N",
     Sale: "N",
     Accounting: "N",
   },
+
   
 };

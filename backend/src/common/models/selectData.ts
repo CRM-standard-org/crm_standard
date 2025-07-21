@@ -15,6 +15,7 @@ const tableMap = {
     currency : prisma.currency,
     vat : prisma.vat,
     roles : prisma.roles,
+    employeeStatus : prisma.employeeStatus,
 };
   
 
