@@ -31,6 +31,11 @@ export type TypePayloadEmployee = {
     updated_at :  Date; 
 }
 
+export type Filter = {
+    is_active? : boolean;
+    status? : string;
+}
+
 export const CreateSchema = z.object({
     body : z.object({
         employee_code: z.string().min(1).max(50),   
@@ -57,31 +62,12 @@ export const CreateSchema = z.object({
     })
 });
 
-export const UpdateTagSchema = z.object({
-    body : z.object({
-        tag_name: z.string().min(1).max(50).optional(),
-        color: z.string().min(1).max(50).optional(),
-        tag_description: z.string().optional(),
-    })
-});
 
-export const DeleteTagSchema = z.object({
-    params : z.object({
-        tag_id: z.string().min(1).max(50),
-    })
-});
-
-export const GetAllSchema = z.object({
+export const GetAllEmployeeSchema = z.object({
     query: z.object({
         page: z.string().min(1).max(100).optional(),
         limit: z.string().min(1).max(50).optional(),
         search: z.string().optional(),
-    })
-});
-
-export const GetByIdSchema = z.object({
-    params: z.object({
-        tag_id: z.string().min(1).max(50),
     })
 });
 
@@ -92,4 +78,16 @@ export const SelectResponsibleInTeamSchema = z.object({
 
 export const SelectResponsibleSchema = z.object({
     query: z.object({ search: z.string().optional() })
+});
+
+export const GetAllSchema = z.object({
+    query: z.object({
+        page: z.string().min(1).max(100).optional(),
+        limit: z.string().min(1).max(50).optional(),
+        search: z.string().optional(),
+    }),
+    body : z.object({
+        is_active: z.boolean({message:"Please enter true or flase"}),   
+        status: z.enum(["ทดลองงาน", "พนักงานประจำ", "เลิกจ้าง", "ฝึกงาน", "ลาหยุด", "ถูกเลิกจ้าง", "เกษียณ"]),
+    })
 });

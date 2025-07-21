@@ -6,7 +6,7 @@ import {
 } from "@common/utils/httpHandlers";
 import { authorizeByName } from "@common/middleware/permissions";
 import { employeeService } from "@modules/employee/employeeService";
-import { CreateSchema , GetAllSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema } from "@modules/employee/employeeModel";
+import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema } from "@modules/employee/employeeModel";
 import authenticateToken from "@common/middleware/authenticateToken";
 import { upload , handleMulter } from '@common/middleware/multerConfig';
 
@@ -30,21 +30,30 @@ export const employeeRouter = (() => {
         }}
     );
 
-    router.get("/get-team" , authenticateToken , authorizeByName("พนักงาน" , ["A"]) , validateRequest(GetAllSchema) , async (req: Request, res: Response) => {
+    router.get("/none-team" , authenticateToken , authorizeByName("พนักงาน" , ["A"]) , validateRequest(GetAllEmployeeSchema) , async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 50;
         const searchText = (req.query.search as string) || "";
-        const ServiceResponse = await employeeService.findAllCreateTeam(page, limit, searchText);
+        const ServiceResponse = await employeeService.findAllNoneTeam(page, limit, searchText);
         handleServiceResponse(ServiceResponse, res);
     })
 
-    router.get("/get-employee" , authenticateToken , authorizeByName("พนักงาน" , ["A"]) , validateRequest(GetAllSchema) , async (req: Request, res: Response) => {
+    router.post("/get-employee" , authenticateToken , authorizeByName("พนักงาน", ["A"]), validateRequest(GetAllSchema), async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 50;
         const searchText = (req.query.search as string) || "";
-        const ServiceResponse = await employeeService.findAllEmployee(page, limit, searchText);
+        const payload = req.body;
+        const ServiceResponse = await employeeService.findAll(page , limit , searchText , payload);
         handleServiceResponse(ServiceResponse, res);
-    })
+    });
+
+    // router.get("/get-employee" , authenticateToken , authorizeByName("พนักงาน" , ["A"]) , validateRequest(GetAllEmployeeSchema) , async (req: Request, res: Response) => {
+    //     const page = parseInt(req.query.page as string) || 1;
+    //     const limit = parseInt(req.query.limit as string) || 50;
+    //     const searchText = (req.query.search as string) || "";
+    //     const ServiceResponse = await employeeService.findAllEmployee(page, limit, searchText);
+    //     handleServiceResponse(ServiceResponse, res);
+    // })
 
     router.get("/select-responsible/:team_id?" , authenticateToken , authorizeByName("การจัดการลูกค้า" , ["A"]) , validateRequest(SelectResponsibleInTeamSchema) , async (req: Request, res: Response) => {
         const team_id = req.params.team_id;
@@ -58,6 +67,8 @@ export const employeeRouter = (() => {
         const ServiceResponse = await employeeService.selectResponsible(searchText);
         handleServiceResponse(ServiceResponse, res);
     })
+
+    
 
     return router;
 })();

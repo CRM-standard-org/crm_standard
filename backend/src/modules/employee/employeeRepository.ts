@@ -1,6 +1,6 @@
 import { Social } from '@prisma/client';
 import prisma from '@src/db';
-import { TypePayloadEmployee } from '@modules/employee/employeeModel';
+import { TypePayloadEmployee , Filter } from '@modules/employee/employeeModel';
 import { object } from 'zod';
 import { skip } from '@prisma/client/runtime/library';
 import bcrypt from "bcrypt";
@@ -113,56 +113,180 @@ export const employeeRepository = {
         }
     },
 
-    count: async (searchText?: string) => {
+    count: async (searchText: string,payload : Filter) => {
         searchText = searchText?.trim();
         return await  prisma.employees.count({
-            where: { 
-                team_id : null ,
-                ...(searchText
-                    && {
+            where: {
+                is_active : true,
+                AND: [
+                    {...(searchText && {
                         OR: [
                             {
-                                username: {
-                                    contains: searchText,
-                                    mode: 'insensitive',
-                                },
+                                employee_code: { contains: searchText , mode : 'insensitive' }
                             },
-                        ],
-                    })
+                            {
+                                position: { contains: searchText , mode : 'insensitive' }
+                            },
+                            {
+                                first_name: { contains: searchText , mode : 'insensitive' }
+                            },
+                            {
+                                last_name: { contains: searchText , mode : 'insensitive' }
+                            },
+                            {
+                                team_employee: { 
+                                    is: {
+                                        name: { contains: searchText , mode : 'insensitive' }
+                                    }
+                                }
+                            },
+                            {
+                                employee_status: { 
+                                    is: {
+                                        name: { contains: searchText , mode : 'insensitive' }
+                                    }
+                                }
+                            },
+                        ]
+                    } )},
+                    {
+                        AND: [
+                            ...(payload.is_active ? [{ is_active : payload.is_active }] : []),
+                            ...(payload.status ? [{ 
+                                employee_status: {
+                                    name : payload.status 
+                                }
+                            }] : []),
+                        ]
+                    }
+                ]
             },
         });
     },
     
+    findAll: async (
+        skip: number,
+        take: number,
+        searchText: string,
+        payload : Filter
+    ) => {
+        searchText = searchText.trim();
 
-    findAllCreateTeam : async (skip: number , take: number , searchText: string) => {
-        return await prisma.employees.findMany({
-            where: { team_id : null , ...(searchText 
-                && {
-                    OR : [{
-                        username : {
-                            contains: searchText,
-                            mode: 'insensitive' // คือการค้นหาที่ไม่สนใจตัวพิมพ์เล็กหรือใหญ่
-                        }
-                    }]
-                } )},
-            skip: (skip - 1 ) * take,
+        return prisma.employees.findMany({
+            where: {
+                is_active : true,
+                AND: [
+                    {...(searchText && {
+                        OR: [
+                            {
+                                employee_code: { contains: searchText , mode : 'insensitive' }
+                            },
+                            {
+                                position: { contains: searchText , mode : 'insensitive' }
+                            },
+                            {
+                                first_name: { contains: searchText , mode : 'insensitive' }
+                            },
+                            {
+                                last_name: { contains: searchText , mode : 'insensitive' }
+                            },
+                            {
+                                team_employee: { 
+                                    is: {
+                                        name: { contains: searchText , mode : 'insensitive' }
+                                    }
+                                }
+                            },
+                            {
+                                employee_status: { 
+                                    is: {
+                                        name: { contains: searchText , mode : 'insensitive' }
+                                    }
+                                }
+                            },
+                        ]
+                    } )},
+                    {
+                        AND: [
+                            ...(payload.is_active ? [{ is_active : payload.is_active }] : []),
+                            ...(payload.status ? [{ 
+                                employee_status: {
+                                    name : payload.status 
+                                }
+                            }] : []),
+                        ]
+                    }
+                ]
+            },
+            skip: (skip - 1) * take,
             take: take,
-            orderBy: { created_at: 'asc' },
+            select:{
+                employee_id: true,
+                employee_code: true,
+                first_name: true,
+                last_name: true,
+                position: true,
+                team_employee: { select: { team_id: true , name: true }},
+                start_date: true,
+                employee_status: {select: { status_id: true , name: true }},
+                salary: true
+            },
+            orderBy : { created_at : 'desc' }
         });
     },
-    findAllTeamEmployee : async (skip: number , take: number , searchText: string) => {
-        return await prisma.employees.findMany({
-            where: { ...(searchText 
+
+    countNoneTeam: async (searchText?: string) => {
+        searchText = searchText?.trim();
+        return await  prisma.employees.count({
+            where: { team_id : null , 
+                ...(searchText 
                 && {
-                    OR : [{
-                        username : {
-                            contains: searchText,
-                            mode: 'insensitive' // คือการค้นหาที่ไม่สนใจตัวพิมพ์เล็กหรือใหญ่
-                        }
-                    }]
+                    OR : [
+                        {
+                            first_name : {
+                                contains: searchText,
+                                mode: 'insensitive' // คือการค้นหาที่ไม่สนใจตัวพิมพ์เล็กหรือใหญ่
+                            }
+                        },
+                        {
+                            last_name : {
+                                contains: searchText,
+                                mode: 'insensitive' // คือการค้นหาที่ไม่สนใจตัวพิมพ์เล็กหรือใหญ่
+                            }
+                        },
+                    ]
+                } 
+            )},
+        });
+    },
+
+    findAllNoneTeam : async (skip: number , take: number , searchText: string) => {
+        return await prisma.employees.findMany({
+            where: { team_id : null , 
+                ...(searchText 
+                && {
+                    OR : [
+                        {
+                            first_name : {
+                                contains: searchText,
+                                mode: 'insensitive' // คือการค้นหาที่ไม่สนใจตัวพิมพ์เล็กหรือใหญ่
+                            }
+                        },
+                        {
+                            last_name : {
+                                contains: searchText,
+                                mode: 'insensitive' // คือการค้นหาที่ไม่สนใจตัวพิมพ์เล็กหรือใหญ่
+                            }
+                        },
+                    ]
                 } )},
             skip: (skip - 1 ) * take,
             take: take,
+            select:{
+                employee_id: true,
+                first_name: true,
+                last_name: true
+            },
             orderBy: { created_at: 'asc' },
         });
     },

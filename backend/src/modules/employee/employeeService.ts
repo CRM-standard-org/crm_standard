@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ResponseStatus, ServiceResponse } from '@common/models/serviceResponse';
 import { employeeRepository } from '@modules/employee/employeeRepository';
-import { TypePayloadEmployee } from '@modules/employee/employeeModel';
+import { TypePayloadEmployee , Filter } from '@modules/employee/employeeModel';
 import { employees } from '@prisma/client';
 
 
@@ -27,11 +27,11 @@ export const employeeService = {
         }
     },
 
-    findAllCreateTeam: async (page : number , limit : number , search : string ) => {
+    findAllNoneTeam: async (page : number , limit : number , search : string ) => {
         try{
-            const employee = await employeeRepository.findAllCreateTeam(page , limit , search);
+            const employee = await employeeRepository.findAllNoneTeam(page , limit , search);
             // console.log("tag", page , limit , search, tag);
-            const totalCount = await employeeRepository.count(search);
+            const totalCount = await employeeRepository.countNoneTeam(search);
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Get all success",
@@ -53,31 +53,6 @@ export const employeeService = {
         }
     },
     
-    findAllEmployee : async (page : number , limit : number , search : string ) => {
-        try{
-            const employee = await employeeRepository.findAllTeamEmployee(page , limit , search);
-            // console.log("tag", page , limit , search, tag);
-            const totalCount = await employeeRepository.count(search);
-            return new ServiceResponse(
-                ResponseStatus.Success,
-                "Get all success",
-                {
-                    totalCount,
-                    totalPages: Math.ceil(totalCount / limit),
-                    data : employee,
-                },
-                StatusCodes.OK
-            )
-        } catch (ex) {
-            const errorMessage = "Error get all employee :" + (ex as Error).message;
-            return new ServiceResponse(
-                ResponseStatus.Failed,
-                errorMessage,
-                null,
-                StatusCodes.INTERNAL_SERVER_ERROR
-            );
-        }
-    },
 
     selectResponsibleInTeam: async (team_id : string , search : string ) => {
         try{
@@ -123,6 +98,31 @@ export const employeeService = {
             )
         } catch (ex) {
             const errorMessage = "Error get all responsible :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
+
+    findAll: async (page: number , limit: number , searchText: string , payload : Filter ) => {
+        try{
+            const totalCount = await employeeRepository.count(searchText , payload );
+            const data = await employeeRepository.findAll(page , limit , searchText , payload);
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Get all success",
+                {
+                    totalCount,
+                    totalPages: Math.ceil(totalCount / limit),
+                    data : data
+                },
+                StatusCodes.OK
+            )
+        }catch (ex){
+            const errorMessage = "Error get all :" + (ex as Error).message;
             return new ServiceResponse(
                 ResponseStatus.Failed,
                 errorMessage,
