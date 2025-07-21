@@ -14,6 +14,7 @@ const tableMap = {
     paymentMethod : prisma.paymentMethod,
     currency : prisma.currency,
     vat : prisma.vat,
+    roles : prisma.roles,
 };
   
 

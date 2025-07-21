@@ -5,15 +5,9 @@ export type TypePayloadrole = {
     role_name: string;
 }
 
-export const GetroleSchema = z.object({
-    params: z.object({
-        role_id: z.string().uuid(),
-        role_name: z.string()
-        
-    })
-});
-export const GetRoleByIdSchema = z.object({
-    params: z.object({
-        role_id: z.string().uuid(),
+
+export const SelectSchema = z.object({
+    query: z.object({
+        search: z.string().optional(),
     })
 });
