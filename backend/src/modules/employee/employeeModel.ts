@@ -87,7 +87,7 @@ export const GetAllSchema = z.object({
         search: z.string().optional(),
     }),
     body : z.object({
-        is_active: z.boolean({message:"Please enter true or flase"}),   
-        status: z.enum(["ทดลองงาน", "พนักงานประจำ", "เลิกจ้าง", "ฝึกงาน", "ลาหยุด", "ถูกเลิกจ้าง", "เกษียณ"]),
+        is_active: z.boolean({message:"Please enter true or flase"}).optional().nullable(),   
+        status: z.enum(["ทดลองงาน", "พนักงานประจำ", "เลิกจ้าง", "ฝึกงาน", "ลาหยุด", "ถูกเลิกจ้าง", "เกษียณ"]).optional().nullable(),
     })
 });

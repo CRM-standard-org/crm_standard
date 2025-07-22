@@ -14,3 +14,9 @@ export const districtData = [
 ];
 
 export const vatData =[0,3,7];
+
+
+
+
+
+
