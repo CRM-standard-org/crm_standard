@@ -446,7 +446,7 @@ model CustomerTags {
   customer_tag_id String   @id @default(uuid()) @db.Uuid
   customer_id     String   @db.Uuid
   tag_id          String   @db.Uuid
-  number          Int?     @db.Integer // ยังไม่รู้
+  // number          Int?     @db.Integer // ยังไม่รู้
   created_at      DateTime @default(now())
   created_by      String   @db.Uuid
   updated_at      DateTime @updatedAt
@@ -457,7 +457,7 @@ model CustomerTags {
   created_by_employee employees @relation("CustomerTagsCreatedBy", fields: [created_by], references: [employee_id])
   updated_by_employee employees @relation("CustomerTagsUpdatedBy", fields: [updated_by], references: [employee_id])
 
-  @@index([number])
+  @@index([tag_id])
 }
 
 model Country {

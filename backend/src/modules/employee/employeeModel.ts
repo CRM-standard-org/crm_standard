@@ -1,5 +1,6 @@
 import { query } from "express";
 import { z } from "zod";
+import { employeeRouter } from "./employeeRouter";
 
 
 export type TypePayloadEmployee = {
@@ -90,4 +91,10 @@ export const GetAllSchema = z.object({
         is_active: z.boolean({message:"Please enter true or flase"}).optional().nullable(),   
         status: z.enum(["ทดลองงาน", "พนักงานประจำ", "เลิกจ้าง", "ฝึกงาน", "ลาหยุด", "ถูกเลิกจ้าง", "เกษียณ"]).optional().nullable(),
     })
+});
+
+export const GetByIdSchema = z.object({
+    params: z.object({
+        employee_id: z.string().min(1).max(50),
+    }),
 });
