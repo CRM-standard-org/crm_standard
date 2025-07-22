@@ -15,21 +15,40 @@ export type TypePayloadEmployee = {
     position? : string;     
     phone? : string;   
     social_id : string;  
-    detail_social : string;  
+    detail : string;  
     address? :  string;  
     country_id : string;   
     province_id : string;  
     district_id : string;   
     status_id? : string; 
     team_id?: string;
-    salaly? : number; 
+    salary? : number; 
     start_date? : Date; 
     end_date? : Date; 
     birthdate? : Date; 
-    created_by? : string; 
-    updated_by? : string; 
-    created_at : Date; 
-    updated_at :  Date; 
+}
+
+export type UpdateEmployee = {
+    username? : string;
+    password : string ; 
+    email? : string ;
+    role_id?: string;
+    is_active?: boolean;
+    position? : string;     
+    first_name? : string ;   
+    last_name? : string;  
+    birthdate? : Date; 
+    phone? : string;   
+    salary? : number; 
+    status_id? : string; 
+    start_date? : Date; 
+    end_date? : Date; 
+    address? :  string;  
+    country_id? : string;   
+    province_id? : string;  
+    district_id? : string;   
+    social_id? : string;  
+    detail? : string;  
 }
 
 export type Filter = {
