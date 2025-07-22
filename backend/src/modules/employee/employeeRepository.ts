@@ -4,6 +4,7 @@ import { TypePayloadEmployee , Filter } from '@modules/employee/employeeModel';
 import { object } from 'zod';
 import { skip } from '@prisma/client/runtime/library';
 import bcrypt from "bcrypt";
+import { convertDecimalToNumber } from '@common/models/createCode';
 
 export const Keys = [
     'social_id',
@@ -354,5 +355,77 @@ export const employeeRepository = {
             orderBy: [{ first_name: 'asc' },{ last_name: 'asc' }]
         })
     } ,
+
+    findById: async (employee_id: string) => {
+        employee_id = employee_id.trim();
+        const data = await prisma.employees.findFirst({
+            where: { employee_id : employee_id },
+            select:{
+                employee_code: true,
+                username: true,
+                email: true,
+                role: {select: { role_id: true , role_name: true }},
+                is_active: true,
+                position: true,
+                team_employee: { select: { team_id: true , name: true} },
+                first_name: true,
+                last_name: true,
+                birthdate: true,
+                phone: true,
+                profile_picture: true,
+                salary: true,
+                employee_status: { select: { status_id: true , name: true} },
+                start_date: true,
+                end_date: true,
+                quotation_responsible:{
+                    select: {
+                        quotation_id: true,
+                        quotation_number: true,
+                        customer: { 
+                            select: { 
+                                customer_id: true ,  
+                                company_name: true,
+                                customer_tags: { 
+                                    select: { 
+                                        customer_tag_id: true,
+                                        group_tag: {select: {tag_id: true , tag_name: true , color: true}}
+                                    } 
+                                }
+                            } 
+                        },
+                        priority: true,
+                        issue_date: true,
+                        grand_total: true,
+                        quotation_status: true
+                    }
+                },
+                sale_order_responsible:{
+                    select: {
+                        sale_order_id: true,
+                        sale_order_number: true,
+                        customer: { 
+                            select: { 
+                                customer_id: true ,  
+                                company_name: true,
+                                customer_tags: { 
+                                    select: { 
+                                        customer_tag_id: true,
+                                        group_tag: {select: {tag_id: true , tag_name: true , color: true}}
+                                    } 
+                                }
+                            } 
+                        },
+                        priority: true,
+                        issue_date: true,
+                        created_at: true,
+                        grand_total: true,
+                        sale_order_status: true
+                    }
+                }
+            },
+        })
+
+        return convertDecimalToNumber(data)
+    },
 
 };

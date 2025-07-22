@@ -6,7 +6,7 @@ import {
 } from "@common/utils/httpHandlers";
 import { authorizeByName } from "@common/middleware/permissions";
 import { employeeService } from "@modules/employee/employeeService";
-import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema } from "@modules/employee/employeeModel";
+import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema , GetByIdSchema } from "@modules/employee/employeeModel";
 import authenticateToken from "@common/middleware/authenticateToken";
 import { upload , handleMulter } from '@common/middleware/multerConfig';
 
@@ -47,27 +47,24 @@ export const employeeRouter = (() => {
         handleServiceResponse(ServiceResponse, res);
     });
 
-    // router.get("/get-employee" , authenticateToken , authorizeByName("พนักงาน" , ["A"]) , validateRequest(GetAllEmployeeSchema) , async (req: Request, res: Response) => {
-    //     const page = parseInt(req.query.page as string) || 1;
-    //     const limit = parseInt(req.query.limit as string) || 50;
-    //     const searchText = (req.query.search as string) || "";
-    //     const ServiceResponse = await employeeService.findAllEmployee(page, limit, searchText);
-    //     handleServiceResponse(ServiceResponse, res);
-    // })
-
     router.get("/select-responsible/:team_id?" , authenticateToken , authorizeByName("การจัดการลูกค้า" , ["A"]) , validateRequest(SelectResponsibleInTeamSchema) , async (req: Request, res: Response) => {
         const team_id = req.params.team_id;
         const searchText = (req.query.search as string) || "";
         const ServiceResponse = await employeeService.selectResponsibleInTeam(team_id, searchText);
         handleServiceResponse(ServiceResponse, res);
-    })
+    });
 
     router.get("/select-employee" , authenticateToken , authorizeByName("การจัดการลูกค้า" , ["A"]) , validateRequest(SelectResponsibleSchema) , async (req: Request, res: Response) => {
         const searchText = (req.query.search as string) || "";
         const ServiceResponse = await employeeService.selectResponsible(searchText);
         handleServiceResponse(ServiceResponse, res);
-    })
+    });
 
+    router.get("/get/:employee_id?" , authenticateToken , authorizeByName("การจัดการลูกค้า", ["A"]), validateRequest(GetByIdSchema), async (req: Request, res: Response) => {
+        const employee_id = req.params.employee_id;
+        const ServiceResponse = await employeeService.findById(employee_id);
+        handleServiceResponse(ServiceResponse, res);
+    });
     
 
     return router;
