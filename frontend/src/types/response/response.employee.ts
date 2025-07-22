@@ -1,27 +1,20 @@
+
 export type TypeEmployeeResponse = {
-    employee_id: string;
+    employee_id: string,
     employee_code: string,
-    username: string;
-    password: string;
-    email: string;
-    role_id: string;
-    is_active: boolean;
-    position: null;
-    team_id: string;
-    first_name: string
-    last_name: null;
-    birthdate: null;
-    phone: null;
-    line_id: null;
-    contact_id: null;
-    contact_name: null;
-    company_id: null;
-    remark: null;
-    profile_picture: null;
-    salary: null;
-    status_id: null;
-    start_date: null;
-    end_date: null;
+    first_name: string,
+    last_name: string,
+    position: string,
+    team_employee: {
+        team_id: string,
+        name: string
+    } | null,
+    start_date: string,
+    employee_status: {
+        status_id: string,
+        name: string
+    },
+    salary: string
 }
 
 export type TypeEmployee = {
@@ -53,4 +46,22 @@ export type SearchEmployeeResponse = {
     responseObject: TypeSearchEmployeeResponse;
     statusCode: number
 }
+//select employee status
+export type TypeSelectEmployeeStatusResponse = {
+    status_id: string,
+    name: string
+}
+export type TypeSelectEmployeeStatus = {
+    data: TypeSelectEmployeeStatusResponse[];
+}
+export type EmployeeStatusResponse = {
+    success: boolean;
+    message: string;
+    responseObject: TypeSelectEmployeeStatus;
+    statusCode: number
+}
 
+export type PayLoadFilterEmployee = {
+    is_active: boolean;
+    status: string | null;
+}

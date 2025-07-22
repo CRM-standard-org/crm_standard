@@ -1,7 +1,9 @@
-import { getEmployeeNoTeam, selectEmployee, selectResponsible } from "@/services/employee.service";
+import { getAllEmployees, getEmployeeNoTeam, selectEmployee, selectEmployeeStatus, selectResponsible } from "@/services/employee.service";
+import { PayLoadFilterEmployee } from "@/types/response/response.employee";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
-function fetchEmployeeOptions({
+//พนักงานที่ยังไม่มีทีม
+function fetchEmployeeNoneTeamOptions({
     page,
     pageSize,
     searchText,
@@ -20,7 +22,7 @@ function fetchEmployeeOptions({
     });
 }
 
-export const useEmployee = ({
+export const useEmployeeNoneTeam = ({
     page = "1", // ตั้งค่า default
     pageSize = "10",
     searchText = "",
@@ -30,10 +32,52 @@ export const useEmployee = ({
     searchText?: string;
 }) => {
     return useQuery(
-        fetchEmployeeOptions({
+        fetchEmployeeNoneTeamOptions({
             page,
             pageSize,
             searchText,
+        })
+    );
+};
+//get all employoee
+function fetchAllEmployees({
+    page,
+    pageSize,
+    searchText,
+    payload,
+}: {
+    page: string,
+    pageSize: string;
+    searchText: string;
+    payload?: PayLoadFilterEmployee;
+}) {
+
+    return queryOptions({
+        queryKey: ["getAllEmployees", page, pageSize, searchText,payload],
+        queryFn: () => getAllEmployees(page, pageSize, searchText,payload),
+        staleTime: 10 * 1000,
+        refetchInterval: 10 * 1000,
+        retry: false,
+    });
+}
+
+export const useAllEmployee = ({
+    page = "1", // ตั้งค่า default
+    pageSize = "10",
+    searchText = "",
+    payload,
+}: {
+    page?: string;
+    pageSize?: string;
+    searchText?: string;
+    payload?: PayLoadFilterEmployee;
+}) => {
+    return useQuery(
+        fetchAllEmployees({
+            page,
+            pageSize,
+            searchText,
+            payload,
         })
     );
 };
@@ -60,7 +104,7 @@ export const useSelectResponsible = ({
     team_id,
     searchText = "",
 }: {
-    team_id:string;
+    team_id: string;
     searchText?: string;
 }) => {
     return useQuery(
@@ -89,10 +133,40 @@ function fetchSelectEmployee({
 export const useSelectEmployee = ({
     searchText = "",
 }: {
-     searchText?: string;
+    searchText?: string;
 }) => {
     return useQuery(
         fetchSelectEmployee({
+            searchText,
+        })
+    );
+};
+
+//select employee status
+function fetchSelectEmployeeStatus({
+    searchText,
+}: {
+    searchText: string;
+}) {
+
+    return queryOptions({
+        queryKey: ["selectEmployeeStatus", searchText],
+        queryFn: () => selectEmployeeStatus(searchText),
+        staleTime: 10 * 1000,
+        refetchInterval: 10 * 1000,
+        retry: false,
+    });
+}
+
+export const useSelectEmployeeStatus = ({
+
+    searchText = "",
+}: {
+
+    searchText?: string;
+}) => {
+    return useQuery(
+        fetchSelectEmployeeStatus({
             searchText,
         })
     );

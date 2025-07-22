@@ -32,7 +32,7 @@ export const useAllQuotations = ({
   page?: string,
   pageSize?: string;
   searchText?: string;
-  payload: PayLoadFilterQuotation;
+  payload?: PayLoadFilterQuotation;
 }) => {
   return useQuery(
     fetchAllQuotations({

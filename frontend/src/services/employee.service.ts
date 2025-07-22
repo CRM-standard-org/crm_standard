@@ -3,12 +3,15 @@ import {
     GET_ALL_EMPLOYEE,
     GET_EMPLOYEE_NO_TEAM,
     SELECT_RESPONSIBLE,
-    SELECT_EMPLOYEE
+    SELECT_EMPLOYEE,
+    CREATE_EMPLOYEE,
+    GET_EMPLOYEE_STATUS
 } from "@/apis/endpoint.api";
 
 import mainApi from "@/apis/main.api";
-import {  EmployeeResponse, SearchEmployeeResponse } from "@/types/response/response.employee";
+import {  EmployeeResponse, EmployeeStatusResponse, PayLoadFilterEmployee, SearchEmployeeResponse } from "@/types/response/response.employee";
 import { APIResponseType } from "@/types/response";
+import { PayLoadCreateEmployee } from "@/types/requests/request.employee";
 
 
 export const searchEmployee = async (employee_code: string) => {
@@ -23,8 +26,19 @@ export const searchEmployee = async (employee_code: string) => {
       throw error;
     }
   }
-
-
+//select employee status
+export const selectEmployeeStatus = async (searchText: string) => {
+  try{
+    const { data: response } = await mainApi.get<EmployeeStatusResponse>(
+      `${GET_EMPLOYEE_STATUS}?search=${searchText}`
+    );
+    return response;
+  } catch (error) {
+    console.error("Error select Employee Status:", error);
+    throw error;
+  }
+};
+// get employee no team
 export const getEmployeeNoTeam= async (page: string, pageSize: string, searchText: string) => {
     try {
       const { data: response } = await mainApi.get<EmployeeResponse>(
@@ -39,11 +53,12 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
     }
   };
   
-  export const getAllEmployees= async (page: string, pageSize: string, searchText: string) => {
+  //get all employee 
+  export const getAllEmployees= async (page: string, pageSize: string, searchText: string,payload:PayLoadFilterEmployee) => {
     try {
-      const { data: response } = await mainApi.get<EmployeeResponse>(
-        `${GET_ALL_EMPLOYEE}?page=${page}&limit=${pageSize}&search=${searchText}`
-
+      const { data: response } = await mainApi.post<EmployeeResponse>(
+        `${GET_ALL_EMPLOYEE}?page=${page}&limit=${pageSize}&search=${searchText}`,
+        payload
       );
 
       return response;
@@ -74,6 +89,39 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
       return response;
     } catch (error) {
       console.error("Error get Employee:", error);
+      throw error;
+    }
+  };
+  //create Employee 
+  export const createEmployee = async (
+    payload: PayLoadCreateEmployee,
+    empFile: File 
+  ) => {
+    try {
+      const formData = new FormData();
+     
+  
+      formData.append("payload", JSON.stringify(payload));
+  
+      if (empFile) {
+        formData.append("emp", empFile); 
+      }
+  
+      const { data: response } = await mainApi.post(
+        `${CREATE_EMPLOYEE}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+  
+      console.log("service", response);
+      return response;
+  
+    } catch (error) {
+      console.error("Error create Employee", error);
       throw error;
     }
   };

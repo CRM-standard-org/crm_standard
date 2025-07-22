@@ -20,13 +20,15 @@ import { useColor } from "@/hooks/useColor";
 import { useTag } from "@/hooks/useCustomerTag";
 import { TypeTagColorResponse } from "@/types/response/response.tagColor";
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
+import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { useAllEmployee } from "@/hooks/useEmployee";
 type dateTableType = {
   className: string;
   cells: {
     value: any;
     className: string;
   }[];
-  // data: TypeColorAllResponse; //ตรงนี้
+  data: TypeEmployeeResponse; //ตรงนี้
 }[];
 
 //
@@ -48,34 +50,17 @@ export default function Employee() {
   const page = searchParams.get("page") ?? "1";
   const pageSize = searchParams.get("pageSize") ?? "25";
   const [searchTextDebouce, setSearchTextDebouce] = useState("");
+  const [searchEmployee, setSearchEmployee] = useState("");
 
   const [allQuotation, setAllQuotation] = useState<any[]>([]);
   const [quotation, setQuotation] = useState<any[]>([]);
-  const [filterGroup, setFilterGroup] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
-  const { data: dataColor, refetch: refetchColor } = useColor({
-    page: page,
-    pageSize: pageSize,
-    searchText: searchTextDebouce,
-  });
+  const [isActive, setIsActive] = useState<boolean>(true);
 
-  //fetch ข้อมูล tag ลูกค้า
 
-  const { data: dataTag } = useTag({
-    page: "1",
-    pageSize: "100",
-    searchText: "",
-  });
 
-  const fetchDataTagDropdown = async () => {
-    const tagList = dataTag?.responseObject?.data ?? [];
-    return {
-      responseObject: tagList.map((item: TypeTagColorResponse) => ({
-        id: item.tag_id,
-        name: item.tag_name,
-      })),
-    };
-  };
+
   // const dataCountry = async () => {
   //   return {
   //     responseObject: [
@@ -105,20 +90,42 @@ export default function Employee() {
   // }, [dataColor]);
 
   //item จาก dropdown
-  const dropdown = [
-    {
-      placeholder: "สถานะ",
-      fetchData: async () => {
-        return {
-          responseObject: [
-            { id: 1, name: "ทีม A" },
-            { id: 2, name: "ทีม B" },
-          ],
-        };
-      },
-    },
 
-  ];
+  //fetch quotation
+  const { data: dataEmployee, refetch: refetchEmployee } = useAllEmployee({
+    page: page,
+    pageSize: pageSize,
+    searchText: searchEmployee,
+    payload: {
+      is_active: isActive,
+      status: filterStatus
+    }
+  });
+
+
+  useEffect(() => {
+
+    if (dataEmployee?.responseObject?.data) {
+
+      const formattedData = dataEmployee.responseObject?.data.map(
+        (item: TypeEmployeeResponse) => ({
+          className: "",
+          cells: [
+            { value: item.employee_code, className: "text-center" },
+            { value: item.first_name + " " + item.last_name, className: "text-left" },
+            { value: item.position ?? "-", className: "text-center" },
+            { value: item.team_employee?.name ?? "-", className: "text-center" },
+            { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-center" },
+            { value: item.employee_status?.name ?? "-", className: "text-center" },
+            { value: item.salary ?? "-", className: "text-center" },
+          ],
+          data: item,
+        })
+
+      );
+      setData(formattedData);
+    }
+  }, [dataEmployee]);
 
   //
   const headers = [
@@ -131,7 +138,7 @@ export default function Employee() {
     { label: "เงินเดือน/ค่าแรง", colSpan: 1, className: "w-auto" },
     { label: "ดูรายละเอียด", colSpan: 1, className: "w-auto" },
   ];
-  const idPath = 'Customer1'
+
   const mockData = [
     {
       className: "",
@@ -166,53 +173,122 @@ export default function Employee() {
       },
     }
   ];
+  const dropdown = [
+    {
+      placeholder: "สถานะการทำงาน",
+      fetchData: async () => {
+        return {
+          responseObject: [
+            { id: 1, name: "ทำงานอยู่" },
+            { id: 2, name: "ไม่ได้ทำงาน" },
+          ],
+        };
+      },
+      onChange: (value: string | null) => {
+        if (value === "1") {
+          setIsActive(true);
+        } else if (value === "2") {
+          setIsActive(false);
+        } else {
+          setIsActive(true);
+        }
+        setSearchParams({ page: "1", pageSize });
+      }
+
+    },
+  ];
 
   //tabs บน headertable
 
 
   const groupTabs = [
     {
-      id: "regular",
-      name: "พนักงานประจำ",
+      id: "all",
+      name: "ทั้งหมด",
       onChange: () => {
-        setFilterGroup("พนักงานประจำ")
+        setFilterStatus(null)
         setSearchParams({ page: "1", pageSize });
 
       }
     },
     {
-      id: "part-time",
-      name: "พนักงานรายวัน",
+      id: "regular",
+      name: "พนักงานประจำ",
       onChange: () => {
-        setFilterGroup("พนักงานรายวัน")
+        setFilterStatus("พนักงานประจำ")
+        setSearchParams({ page: "1", pageSize });
+
+      }
+    },
+    {
+      id: "test",
+      name: "ทดลองงาน",
+      onChange: () => {
+        setFilterStatus("ทดลองงาน")
+        setSearchParams({ page: "1", pageSize });
+
+      }
+    },
+    {
+      id: "dismiss",
+      name: "เลิกจ้าง",
+      onChange: () => {
+        setFilterStatus("เลิกจ้าง")
+        setSearchParams({ page: "1", pageSize });
+
+      }
+    },
+    {
+      id: "intern",
+      name: "ฝึกงาน",
+      onChange: () => {
+        setFilterStatus("ฝึกงาน")
+        setSearchParams({ page: "1", pageSize });
+
+      }
+    },
+    {
+      id: "take-leave",
+      name: "ลาหยุด",
+      onChange: () => {
+        setFilterStatus("ลาหยุด")
+        setSearchParams({ page: "1", pageSize });
+
+      }
+    },
+    {
+      id: "out",
+      name: "ถูกเลิกจ้าง",
+      onChange: () => {
+        setFilterStatus("ถูกเลิกจ้าง")
         setSearchParams({ page: "1", pageSize });
 
       }
     },
 
   ];
-  useEffect(() => {
-    if (searchText === "") {
-      setSearchTextDebouce(searchText);
-      setSearchParams({ page: "1", pageSize });
-
-      refetchColor();
-    }
-  }, [searchText]);
 
   const handleNavCreate = () => {
     navigate('/create-employee');
   }
   //handle
   const handleSearch = () => {
-    setSearchTextDebouce(searchText);
+    setSearchEmployee(searchText);
     setSearchParams({ page: "1", pageSize });
-    refetchColor();
+
 
   };
+  useEffect(() => {
+    if (searchText === "") {
+      setSearchEmployee(searchText);
+      setSearchParams({ page: "1", pageSize });
 
-  const handleView = () => {
-    navigate(`/employee-details/${idPath}`);
+
+    }
+  }, [searchText]);
+
+  const handleView = (item: TypeEmployeeResponse) => {
+    navigate(`/employee-details/${item.employee_id}`);
   }
   //เปิด
   const handleCreateOpen = () => {
@@ -256,7 +332,6 @@ export default function Employee() {
         setColorsName("");
         handleCreateClose();
         showToast("สร้างรายการสีเรียบร้อยแล้ว", true);
-        refetchColor();
       } else {
         showToast("รายการสีนี้มีอยู่แล้ว", false);
       }
@@ -284,7 +359,7 @@ export default function Employee() {
         showToast("แก้ไขรายการสีเรียบร้อยแล้ว", true);
         setColorsName("");
         setIsEditDialogOpen(false);
-        refetchColor();
+
       } else {
         showToast("ข้อมูลนี้มีอยู่แล้ว", false);
       }
@@ -306,7 +381,6 @@ export default function Employee() {
       if (response.statusCode === 200) {
         showToast("ลบรายการสีเรียบร้อยแล้ว", true);
         setIsDeleteDialogOpen(false);
-        refetchColor();
       }
       else if (response.statusCode === 400) {
         if (response.message === "Color in quotation") {
@@ -341,8 +415,8 @@ export default function Employee() {
         ]}
         onSearch={handleSearch}
         headers={headers}
-        rowData={mockData}
-        totalData={mockData?.length}
+        rowData={data}
+        totalData={dataEmployee?.responseObject?.totalCount}
         onView={handleView}
         onPopCreate={handleCreateOpen}
         onCreateBtn={true} // ให้มีปุ่ม create เพิ่มมารป่าว

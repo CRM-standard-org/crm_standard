@@ -1,4 +1,4 @@
-export type TypeRoleAllResponse ={
+export type TypeCustomerRoleAllResponse ={
     customer_role_id:string;
     name:string;
     description:string;
@@ -8,20 +8,20 @@ export type TypeRoleAllResponse ={
     update_by:string;
 }
 
-export type TypeRoleResponse = {
+export type TypeCustomerRoleResponse = {
     customer_role_id:string;
     name:string;
     description:string;
 }
-export type TypeRole ={
+export type TypeCustomerRole ={
     totalCount:number;
     totalPages:number;
-    data:TypeRoleAllResponse[];
+    data:TypeCustomerRoleAllResponse[];
 }
 
-export type RoleResponse = {
+export type CustomerRoleResponse = {
     success:boolean;
     message:string;
-    responseObject:TypeRole;
+    responseObject:TypeCustomerRole;
     statusCode:number
 }

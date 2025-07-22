@@ -1,23 +1,23 @@
 import { 
-    CREATE_ROLE,
-    GET_ALL_ROLE,
-    SELECT_ROLE,
-    GET_ROLE_BY_ID,
-    UPDATE_ROLE,
-    DELETE_ROLE
+    CREATE_CUSTOMER_ROLE,
+    GET_ALL_CUSTOMER_ROLE,
+    SELECT_CUSTOMER_ROLE,
+    GET_CUSTOMER_ROLE_BY_ID,
+    UPDATE_CUSTOMER_ROLE,
+    DELETE_CUSTOMER_ROLE
 } from '../apis/endpoint.api';
 
 import mainApi from "@/apis/main.api"
 
 import { PayLoadCreateRole, PayLoadEditRole } from '@/types/requests/request.customerRole';
-import { RoleResponse, TypeRoleAllResponse } from '@/types/response/response.customerRole';
+import { CustomerRoleResponse, TypeCustomerRoleAllResponse } from '@/types/response/response.customerRole';
 
 import { APIResponseType } from "@/types/response";
   
-  export const getRole = async (page: string, pageSize: string, searchText: string) => {
+  export const getCustomerRole = async (page: string, pageSize: string, searchText: string) => {
     try{
-      const { data: response } = await mainApi.get<RoleResponse>(
-        `${GET_ALL_ROLE}?page=${page}&limit=${pageSize}&search=${searchText}`
+      const { data: response } = await mainApi.get<CustomerRoleResponse>(
+        `${GET_ALL_CUSTOMER_ROLE}?page=${page}&limit=${pageSize}&search=${searchText}`
       );
       return response;
     } catch (error) {
@@ -25,10 +25,10 @@ import { APIResponseType } from "@/types/response";
       throw error;
     }
   };
-  export const selectRole = async (searchText: string) => {
+  export const selectCustomerRole = async (searchText: string) => {
     try{
-      const { data: response } = await mainApi.get<RoleResponse>(
-        `${SELECT_ROLE}?search=${searchText}`
+      const { data: response } = await mainApi.get<CustomerRoleResponse>(
+        `${SELECT_CUSTOMER_ROLE}?search=${searchText}`
       );
       return response;
     } catch (error) {
@@ -36,10 +36,10 @@ import { APIResponseType } from "@/types/response";
       throw error;
     }
   };
-  export const getAllRoles = async () => {
+  export const getAllCustomerRoles = async () => {
     try {
-      const { data: response } = await mainApi.get<RoleResponse>(
-        GET_ALL_ROLE
+      const { data: response } = await mainApi.get<CustomerRoleResponse>(
+        GET_ALL_CUSTOMER_ROLE
       );
       return response;
     } catch (error) {
@@ -48,9 +48,9 @@ import { APIResponseType } from "@/types/response";
     }
   };
   
-  export const postRole = async (payload: PayLoadCreateRole) => {
+  export const postCustomerRole = async (payload: PayLoadCreateRole) => {
     try {
-      const { data: response } = await mainApi.post(CREATE_ROLE, payload);
+      const { data: response } = await mainApi.post(CREATE_CUSTOMER_ROLE, payload);
       console.log("API Response:", response); // Log the response
       return response;
     } catch (error) {
@@ -59,12 +59,12 @@ import { APIResponseType } from "@/types/response";
     }
   };
   
-  export const updateRole = async (role_id: string,payload: PayLoadEditRole) => {
+  export const updateCustomerRole = async (role_id: string,payload: PayLoadEditRole) => {
   
     try {
       // ใช้ encodeURIComponent เพื่อเข้ารหัสตัวอักษรพิเศษใน color_name
       const encodedRole = encodeURIComponent(role_id);
-      const { data: response } = await mainApi.put(`${UPDATE_ROLE}/${encodedRole}`,
+      const { data: response } = await mainApi.put(`${UPDATE_CUSTOMER_ROLE}/${encodedRole}`,
         payload
       );
   
@@ -76,12 +76,12 @@ import { APIResponseType } from "@/types/response";
     }
   };
   
-  export const deleteRole = async (role_id: string) => {
+  export const deleteCustomerRole = async (role_id: string) => {
     try {
       // ใช้ encodeURIComponent เพื่อเข้ารหัสตัวอักษรพิเศษใน tag_name
       const encodedRole = encodeURIComponent(role_id);
       const { data: response } = await mainApi.delete(
-        `${DELETE_ROLE}/${encodedRole}`
+        `${DELETE_CUSTOMER_ROLE}/${encodedRole}`
       );
       console.log("API Response:", response); // Log the response
       return response;

@@ -39,7 +39,7 @@ import { useResponseToOptions } from "@/hooks/useOptionType";
 import TextArea from "@/components/customs/textAreas/textarea.main.component";
 import { deleteCustomerAddress, deleteCustomerContact, postCustomerAddress, postCustomerContact, updateCustomerAddress, updateCustomerContact, updateCustomerMainAddress, updateCustomerMainContact } from "@/services/customer.service";
 import { useSelectCustomerRole } from "@/hooks/useCustomerRole";
-import { TypeRoleResponse } from "@/types/response/response.customerRole";
+import { TypeCustomerRoleResponse } from "@/types/response/response.customerRole";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { useSelectCharacter } from "@/hooks/useCustomerCharacter";
 import { TypeCharacterResponse } from "@/types/response/response.customerCharacter";
@@ -143,7 +143,7 @@ export default function CustomerDetails() {
     const fetchDataRoleDropdown = async () => {
         const roleList = dataCustomerRole?.responseObject?.data ?? [];
         return {
-            responseObject: roleList.map((item: TypeRoleResponse) => ({
+            responseObject: roleList.map((item: TypeCustomerRoleResponse) => ({
                 id: item.customer_role_id,
                 name: item.name,
                 description: item.description,

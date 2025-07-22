@@ -81,16 +81,10 @@ export default function EditInfoCompany() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setUploadedFiles([file]);
-            e.target.value = "";
-        }
-    };
+
 
     const [uploadKey, setUploadKey] = useState(0);
 
@@ -257,6 +251,14 @@ export default function EditInfoCompany() {
 
 
     //ยืนยันไดอะล็อค
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setUploadedFile(file);
+            e.target.value = ""; // เคลียร์ input เพื่อให้เลือกไฟล์เดิมได้
+        }
+    };
+
     const handleConfirm = async () => {
 
 
@@ -301,9 +303,9 @@ export default function EditInfoCompany() {
         };
 
         console.log("ส่ง payload", payload);
-        console.log("ไฟล์แนบ:", uploadedFiles);
+        console.log("ไฟล์แนบ:", uploadedFile);
         try {
-            const response = await updateCompany(companyId, payload, uploadedFiles);
+            const response = await updateCompany(companyId, payload, uploadedFile);
             if (response.statusCode === 200) {
                 setUploadKey(prev => prev + 1); // trigger เพื่อ reset
                 refetchCompany();
@@ -313,7 +315,7 @@ export default function EditInfoCompany() {
             }
 
         } catch (err) {
-            showToast("ไม่สามารถสร้างใบเสนอราคาได้", false);
+            showToast("ไม่สามารถแก้ไขข้อมูลบริษัทได้", false);
             console.error(err);
         }
     };
@@ -338,12 +340,12 @@ export default function EditInfoCompany() {
                                 <div className="flex items-center space-x-4">
                                     <div
                                         onClick={() => inputRef.current?.click()}
-                                        className="bg-gray-200 text-white text-center rounded-full w-40 h-40 flex items-center justify-center cursor-pointer hover:opacity-80 transition"
+                                        className="bg-gray-300 text-white text-center rounded-full w-40 h-40 flex items-center justify-center cursor-pointer hover:bg-gray-400 transition"
                                         title="คลิกเพื่อเปลี่ยนรูป"
                                     >
-                                        {uploadedFiles.length > 0 ? (
+                                        {uploadedFile ? (
                                             <img
-                                                src={URL.createObjectURL(uploadedFiles[0])}
+                                                src={URL.createObjectURL(uploadedFile)}
                                                 alt="preview"
                                                 className="w-full h-full object-cover rounded-full"
                                             />
@@ -357,6 +359,7 @@ export default function EditInfoCompany() {
                                         ) : (
                                             <FiImage size={40} />
                                         )}
+
                                     </div>
 
                                     <input

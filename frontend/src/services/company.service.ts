@@ -7,7 +7,7 @@ import { CompanyResponse } from "@/types/response/response.company";
 
 export const getCompany = async () => {
     try {
- 
+
         const { data: response } = await mainApi.get<CompanyResponse>(
             `${GET_COMPANY}`
         );
@@ -22,9 +22,9 @@ export const getCompany = async () => {
 
 //update company
 export const updateCompany = async (
-    companyId:string,
+    companyId: string,
     payload: PayLoadEditCompany,
-    companyFiles: File[]
+    companyFiles: File
 ) => {
     try {
         const formData = new FormData();
@@ -32,10 +32,8 @@ export const updateCompany = async (
 
         formData.append("payload", JSON.stringify(payload));
 
-        if (companyFiles && companyFiles.length > 0) {
-            companyFiles.forEach((file) => {
-                formData.append("company", file);
-            });
+        if (companyFiles) {
+            formData.append("company", companyFiles);
         }
 
         const { data: response } = await mainApi.put(`${UPDATE_COMPANY}/${encodedCompanyId}`, formData, {

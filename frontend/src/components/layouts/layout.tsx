@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import NavbarMain from "./navbars/navbar.main";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getAuthStatus, getLogout } from "@/services/auth.service";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -9,7 +9,7 @@ import { IoIosLogOut } from "react-icons/io";
 import { DataSideBar, SidebarComponent } from "./sidebars/sidebar";
 
 import { FaAppStore, FaCartShopping, FaCircleUser } from "react-icons/fa6";
-import { IoIosCube,IoIosSettings} from "react-icons/io";
+import { IoIosCube, IoIosSettings } from "react-icons/io";
 import { GiSellCard } from "react-icons/gi";
 import { FaCalendarDay } from "react-icons/fa";
 
@@ -17,11 +17,22 @@ import { FaCalendarDay } from "react-icons/fa";
 import { useLocalProfileData } from "@/zustand/useProfile";
 import { permissionMap } from "@/utils/permissionMap";
 import PermissionRedirect from "@/utils/permissionRedirect";
+import { useCompany } from "@/hooks/useCompany";
+import { TypeCompanyResponse } from "@/types/response/response.company";
+import { appConfig } from "@/configs/app.config";
 
 const MainLayout = () => {
   const navigate = useNavigate();
   const { setLocalProfileData, profile } = useLocalProfileData();
 
+  //ข้อมูลบริษัท
+  const [dataCompany, setDataCompany] = useState<TypeCompanyResponse>();
+  const { data: companyDetails } = useCompany();
+  useEffect(() => {
+    if (companyDetails?.responseObject) {
+      setDataCompany(companyDetails.responseObject)
+    }
+  }, [companyDetails])
   const handleLogout = async () => {
     getLogout()
       .then((response) => {
@@ -63,10 +74,10 @@ const MainLayout = () => {
     // });
   }, []);
 
-  const eiditprofile = () => {
-    console.log("profile", profile.company_id);
+  const editprofile = () => {
+
     //navigate('/eidit/companies', { state: { customer_id: profile.company_id} });
-    navigate('/eidit/companies', { state: { customer_id: profile.company_id } });
+    navigate(`/edit-info-company/${dataCompany?.company_id}`);
   }
 
   const rawSidebarItems = [
@@ -186,7 +197,7 @@ const MainLayout = () => {
           url: `/product-unit`,
         },
       ],
-    },{
+    }, {
       title: "การตั้งค่าองค์กร",
       url: "",
       icon: IoIosSettings,
@@ -248,9 +259,9 @@ const MainLayout = () => {
     ],
     sidebarFooter: {
       profile: {
-        name: (profile?.first_name ?? "") + " " + (profile?.last_name ?? ""),
+        name: (dataCompany?.name_th ?? ""),
         // avatar: profile?.image_url ?? "/images/avatar2.png",
-        avatar: "/images/avatar2.png",
+        avatar: `${appConfig.baseApi}${dataCompany?.logo}`,
       },
       items: [
         {
@@ -267,7 +278,7 @@ const MainLayout = () => {
           name: "แก้ไขโปรไฟล์บริษัท",
           onClick: () => {
             console.log("logout");
-            eiditprofile();
+            editprofile();
           },
         },
 
@@ -290,6 +301,7 @@ const MainLayout = () => {
       >
         <NavbarMain />
         <SidebarComponent data={dataSidebar} />
+        
         <SidebarInset className="m-0 p-0 bg-[#F6F7F9] w-full max-w-full">
           {/* <header className="clas flex shrink-0 items-center gap-2">
             <div className="flex items-center gap-2 p-4">

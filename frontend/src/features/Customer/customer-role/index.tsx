@@ -5,9 +5,9 @@ import InputAction from "@/components/customs/input/input.main.component";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
 import {
 
-  postRole,
-  updateRole,
-  deleteRole,
+  postCustomerRole,
+  updateCustomerRole,
+  deleteCustomerRole,
 } from "@/services/customerRole.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 
@@ -15,7 +15,7 @@ import { useToast } from "@/components/customs/alert/ToastContext";
 //
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCustomerRole } from "@/hooks/useCustomerRole";
-import { TypeRoleResponse } from "@/types/response/response.customerRole";
+import { TypeCustomerRoleResponse } from "@/types/response/response.customerRole";
 
 type dateTableType = {
   className: string;
@@ -23,7 +23,7 @@ type dateTableType = {
     value: any;
     className: string;
   }[];
-  data: TypeRoleResponse; //ตรงนี้
+  data: TypeCustomerRoleResponse; //ตรงนี้
 }[];
 
 //
@@ -37,7 +37,7 @@ export default function CustomerRole() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  const [selectedItem, setSelectedItem] = useState<TypeRoleResponse | null>(null);
+  const [selectedItem, setSelectedItem] = useState<TypeCustomerRoleResponse | null>(null);
 
   const { showToast } = useToast();
   //
@@ -58,7 +58,7 @@ export default function CustomerRole() {
     console.log("Data:", dataRole);
     if (dataRole?.responseObject?.data) {
       const formattedData = dataRole.responseObject?.data.map(
-        (item: TypeRoleResponse, index: number) => ({
+        (item: TypeCustomerRoleResponse, index: number) => ({
           className: "",
           cells: [
             { value: index + 1, className: "text-center" },
@@ -105,13 +105,13 @@ export default function CustomerRole() {
     setRoleDescription("");
     setIsCreateDialogOpen(true);
   };
-  const handleEditOpen = (item: TypeRoleResponse) => {
+  const handleEditOpen = (item: TypeCustomerRoleResponse) => {
     setSelectedItem(item);
     setRoleName(item.name);
     setRoleDescription(item.description);
     setIsEditDialogOpen(true);
   };
-  const handleDeleteOpen = (item: TypeRoleResponse) => {
+  const handleDeleteOpen = (item: TypeCustomerRoleResponse) => {
     setSelectedItem(item);
     setIsDeleteDialogOpen(true);
 
@@ -135,7 +135,7 @@ export default function CustomerRole() {
       return;
     }
     try {
-      const response = await postRole({
+      const response = await postCustomerRole({
         name: roleName, // ใช้ชื่อ field ที่ตรงกับ type
         description: roleDescription
       });
@@ -166,7 +166,7 @@ export default function CustomerRole() {
     }
 
     try {
-      const response = await updateRole(selectedItem.customer_role_id, {
+      const response = await updateCustomerRole(selectedItem.customer_role_id, {
         name: roleName, // ใช้ชื่อ field ที่ตรงกับ type
         description: roleDescription
       });
@@ -193,7 +193,7 @@ export default function CustomerRole() {
 
 
     try {
-      const response = await deleteRole(selectedItem.customer_role_id);
+      const response = await deleteCustomerRole(selectedItem.customer_role_id);
 
       if (response.statusCode === 200) {
         showToast("ลบรายการสีเรียบร้อยแล้ว", true);

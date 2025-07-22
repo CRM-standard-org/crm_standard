@@ -1,4 +1,4 @@
-import { getRole, selectRole } from "@/services/customerRole.service";
+import { getCustomerRole, selectCustomerRole } from "@/services/customerRole.service";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
 function fetchCustomerRoleOptions({
@@ -11,8 +11,8 @@ function fetchCustomerRoleOptions({
   searchText: string;
 }) {
   return queryOptions({
-    queryKey: ["getRole", page, pageSize, searchText],
-    queryFn: () => getRole(page, pageSize, searchText),
+    queryKey: ["getCustomerRole", page, pageSize, searchText],
+    queryFn: () => getCustomerRole(page, pageSize, searchText),
     staleTime: 10 * 1000,
     refetchInterval: 10 * 1000,
     retry: false,
@@ -43,8 +43,8 @@ function fetchSelectCustomerRole({
   searchText: string;
 }) {
   return queryOptions({
-    queryKey: ["selectRole", searchText],
-    queryFn: () => selectRole(searchText),
+    queryKey: ["selectCustomerRole", searchText],
+    queryFn: () => selectCustomerRole(searchText),
     staleTime: 10 * 1000,
     refetchInterval: 10 * 1000,
     retry: false,

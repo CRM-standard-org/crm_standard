@@ -28,7 +28,6 @@ import { OptionColorType } from "@/components/customs/tagCustomer/tagselect.main
 
 //Customer Role
 import { useCustomerRole } from "@/hooks/useCustomerRole";
-import { TypeRoleResponse } from "@/types/response/response.customerRole";
 
 //Character 
 import { useCustomerCharacter } from "@/hooks/useCustomerCharacter";
@@ -38,13 +37,12 @@ import { setPriority } from "os";
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import RatingShow from "@/components/customs/rating/rating.show.component";
 import { LuPencil } from "react-icons/lu";
-import { deleteRole } from "@/services/customerRole.service";
 import { useTeamMember } from "@/hooks/useTeam";
 import { deleteMemberTeam, editMemberTeam, editTeam, postTeam } from "@/services/team.service";
 
 
 //employee
-import { useEmployee } from "@/hooks/useEmployee";
+import { useEmployeeNoneTeam } from "@/hooks/useEmployee";
 import { TypeEmployeeResponse } from "@/types/response/response.employee";
 import { TypeMemberInTeamResponse } from "@/types/response/response.team";
 
@@ -100,6 +98,7 @@ export default function EditTeamDetails() {
     //tabs บน headertable
     const groupTabs = [
         {
+            id:"team-member",
             name: "สมาชิกทีม",
             onChange: () => setFilterGroup(null)
         },
@@ -191,7 +190,7 @@ export default function EditTeamDetails() {
     }, [dataT]);
 
     //fetch ตัวของ employee ที่ยังไม่มีทีม
-    const { data: dataEmployee, refetch: refetchEmployee } = useEmployee({
+    const { data: dataEmployee, refetch: refetchEmployee } = useEmployeeNoneTeam({
         page: page,
         pageSize: pageSize,
         searchText: searchTextEmployeeDebouce,
@@ -509,7 +508,7 @@ export default function EditTeamDetails() {
                                 { value: item.first_name + " " + item.last_name, className: "text-left" },
                                 { value: item.position, className: "text-center" },
                                 { value: item.start_date, className: "text-center" },
-                                { value: item.status_id, className: "text-center" },
+                                { value: item.employee_status.status_id, className: "text-center" },
                                 {
                                     value: (
                                         item.employee_id === checkHead ? (

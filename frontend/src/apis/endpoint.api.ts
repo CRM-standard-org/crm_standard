@@ -28,12 +28,12 @@ export const UPDATE_TAG = "/v1/tag/update";
 export const DELETE_TAG = "/v1/tag/delete"
 
 //Customer Role
-export const CREATE_ROLE = "/v1/customer-role/create";
-export const GET_ALL_ROLE = "/v1/customer-role/get";
-export const SELECT_ROLE = "/v1/customer-role/select";
-export const GET_ROLE_BY_ID = "/v1/customer-role/get";
-export const UPDATE_ROLE = "/v1/customer-role/update";
-export const DELETE_ROLE = "/v1/customer-role/delete"
+export const CREATE_CUSTOMER_ROLE = "/v1/customer-role/create";
+export const GET_ALL_CUSTOMER_ROLE = "/v1/customer-role/get";
+export const SELECT_CUSTOMER_ROLE = "/v1/customer-role/select";
+export const GET_CUSTOMER_ROLE_BY_ID = "/v1/customer-role/get";
+export const UPDATE_CUSTOMER_ROLE = "/v1/customer-role/update";
+export const DELETE_CUSTOMER_ROLE = "/v1/customer-role/delete"
 
 //Character
 export const CREATE_CHARACTER = "/v1/character/create";
@@ -72,14 +72,16 @@ export const DELETE_TEAM ="/v1/team/delete";
 
 //social 
 export const SELECT_SOCIAL = "/v1/social/select"
-
+//role
+export const SELECT_ROLE = "/v1/role/select";
 //employee status
-export const GET_EMPLOYEE_STATUS = "/v1/employee-status/get";
+export const GET_EMPLOYEE_STATUS = "/v1/employee-status/select";
 //employee
+export const GET_EMPLOYEE_NO_TEAM = "/v1/employee/none-team";
 export const GET_ALL_EMPLOYEE ="/v1/employee/get-employee"
-export const GET_EMPLOYEE_NO_TEAM = "/v1/employee/get-team";
 export const SELECT_RESPONSIBLE = "/v1/employee/select-responsible";
 export const SELECT_EMPLOYEE = "/v1/employee/select-employee";
+export const CREATE_EMPLOYEE = "/v1/employee/create";
 
 //address
 export const SELECT_ADDRESS = "/v1/address/select";

@@ -28,16 +28,16 @@ import { FaMinus } from "react-icons/fa";
 
 //Customer Role
 import { useCustomerRole } from "@/hooks/useCustomerRole";
-import { TypeRoleResponse } from "@/types/response/response.customerRole";
+import { TypeCustomerRoleResponse } from "@/types/response/response.customerRole";
 
 
-import { deleteRole } from "@/services/customerRole.service";
+import { deleteCustomerRole } from "@/services/customerRole.service";
 
 import { postTeam } from "@/services/team.service";
 
 
 //employee
-import { useEmployee } from "@/hooks/useEmployee";
+import { useEmployeeNoneTeam } from "@/hooks/useEmployee";
 import { TypeEmployeeResponse } from "@/types/response/response.employee";
 
 type dateTableType = {
@@ -55,7 +55,6 @@ export default function CreateTeam() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-    const [selectedItem, setSelectedItem] = useState<TypeRoleResponse | null>(null);
 
     // variable form create customer 
     const [teamName, setTeamName] = useState("");
@@ -81,7 +80,7 @@ export default function CreateTeam() {
     const [searchHead, setSearchHead] = useState("");
 
     // const {data:dataTeamMember, refetch refetchMember} = useTeamMember()
-    const { data: dataEmployee, refetch: refetchEmployee } = useEmployee({
+    const { data: dataEmployee, refetch: refetchEmployee } = useEmployeeNoneTeam({
         page: page,
         pageSize: pageSize,
         searchText: searchTextDebouce || searchHead,
@@ -260,36 +259,7 @@ export default function CreateTeam() {
     ];
 
 
-    const handleDeleteConfirm = async () => {
-        if (!selectedItem || !selectedItem.name || !selectedItem.description) {
-            showToast("กรุณาระบุรายการบทบาทที่ต้องการลบ", false);
-            return;
-        }
-
-
-        try {
-            const response = await deleteRole(selectedItem.customer_role_id);
-
-            if (response.statusCode === 200) {
-                showToast("ลบรายการสีเรียบร้อยแล้ว", true);
-                setIsDeleteDialogOpen(false);
-                // refetchRole();
-            }
-            else if (response.statusCode === 400) {
-                if (response.message === "Color in quotation") {
-                    showToast("ไม่สามารถลบรายการสีได้ เนื่องจากมีใบเสนอราคาอยู่", false);
-                }
-                else {
-                    showToast("ไม่สามารถลบรายการสีได้", false);
-                }
-            }
-            else {
-                showToast("ไม่สามารถลบรายการสีได้", false);
-            }
-        } catch (error) {
-            showToast("ไม่สามารถลบรายการสีได้", false);
-        }
-    };
+   
 
     return (
         <>
@@ -418,7 +388,7 @@ export default function CreateTeam() {
                                 { value: item.first_name + " " + item.last_name, className: "text-left" },
                                 { value: item.position, className: "text-center" },
                                 { value: item.start_date, className: "text-center" },
-                                { value: item.status_id, className: "text-center" },
+                                { value: item.employee_status.status_id, className: "text-center" },
                                 {
                                     value: (
                                         item.employee_id === checkHead ? (
@@ -478,21 +448,6 @@ export default function CreateTeam() {
 
             </div>
 
-            {/* ลบ */}
-            <DialogComponent
-                isOpen={isDeleteDialogOpen}
-                onClose={handleDeleteClose}
-                title="ยืนยันการลบ"
-                onConfirm={handleDeleteConfirm}
-                confirmText="ยืนยัน"
-                cancelText="ยกเลิก"
-                confirmBtnType="primary"
-            >
-                <p>
-                    คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้? <br />
-                    สี : <span className="text-red-500">{selectedItem?.name} </span>
-                </p>
-            </DialogComponent>
         </>
 
     );

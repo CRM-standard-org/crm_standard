@@ -24,7 +24,7 @@ import { OptionColorType } from "@/components/customs/tagCustomer/tagselect.main
 
 //Customer Role
 import { useSelectCustomerRole } from "@/hooks/useCustomerRole";
-import { TypeRoleResponse } from "@/types/response/response.customerRole";
+import { TypeCustomerRoleResponse } from "@/types/response/response.customerRole";
 
 //Character 
 import { useSelectCharacter } from "@/hooks/useCustomerCharacter";
@@ -151,7 +151,7 @@ export default function CreateCustomer() {
     const fetchDataRoleDropdown = async () => {
         const roleList = dataCustomerRole?.responseObject?.data ?? [];
         return {
-            responseObject: roleList.map((item: TypeRoleResponse) => ({
+            responseObject: roleList.map((item: TypeCustomerRoleResponse) => ({
                 id: item.customer_role_id,
                 name: item.name,
                 description: item.description,

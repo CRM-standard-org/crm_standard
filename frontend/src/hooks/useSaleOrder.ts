@@ -32,7 +32,7 @@ export const useAllSaleOrders = ({
   page?: string,
   pageSize?: string;
   searchText?: string;
-  payload: PayLoadFilterSaleOrder;
+  payload?: PayLoadFilterSaleOrder;
 }) => {
   return useQuery(
     fetchAllSaleOrders({

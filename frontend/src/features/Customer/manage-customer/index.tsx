@@ -187,7 +187,7 @@ export default function ManageCustomer() {
                   <div className="flex flex-row space-x-1">
                     {item.customer_tags && item.customer_tags.map((tag) => (
 
-                      <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
+                      <TagCustomer key={tag.group_tag.tag_id} nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
                     ))}
 
                   </div>
