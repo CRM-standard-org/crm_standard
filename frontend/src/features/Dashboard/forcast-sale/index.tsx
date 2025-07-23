@@ -34,7 +34,7 @@ import { SummaryTable } from "@/components/customs/display/sumTable.component";
 import { FiPrinter } from "react-icons/fi";
 import { pdf } from "@react-pdf/renderer";
 import ForcastSalePDF from "../pdf/print-forcast-sale/ForcastSalePDF";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 type dateTableType = {
   className: string;

@@ -30,7 +30,7 @@ import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main
 import { FiPrinter } from "react-icons/fi";
 import SummarySalePDF from "../pdf/print-summary-sale/SummarySalePDF";
 import { pdf } from "@react-pdf/renderer";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 type dateTableType = {
   className: string;

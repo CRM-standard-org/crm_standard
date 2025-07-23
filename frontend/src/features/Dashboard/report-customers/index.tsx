@@ -27,7 +27,7 @@ import { IoCloseCircle } from "react-icons/io5";
 import { FiPrinter } from "react-icons/fi";
 import ReportCustomerPDF from "../pdf/print-report-customer/ReportCustomerPDF";
 import { pdf } from "@react-pdf/renderer";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 type dateTableType = {
   className: string;

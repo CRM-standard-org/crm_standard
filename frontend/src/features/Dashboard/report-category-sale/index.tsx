@@ -39,7 +39,7 @@ import { SummaryTable } from "@/components/customs/display/sumTable.component";
 import { pdf } from "@react-pdf/renderer";
 import ReportCategoryPDF from "../pdf/print-report-category-sale/ReportCategoryPDF";
 import { FiPrinter } from "react-icons/fi";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 
 type dateTableType = {

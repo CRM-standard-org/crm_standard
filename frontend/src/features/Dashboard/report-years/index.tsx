@@ -37,7 +37,7 @@ import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main
 import { pdf } from "@react-pdf/renderer";
 import ReportYearPDF from "../pdf/print-report-year/ReportYearPDF";
 
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 import { useRef } from "react";
 
 type dateTableType = {
