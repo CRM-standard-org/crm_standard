@@ -132,4 +132,31 @@ export const employeeService = {
         }
     },
   
+    findById: async (employee_id: string) => {
+        try{
+            const data = await employeeRepository.findById(employee_id);
+            if(!data){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Employee not found",
+                    data,
+                    StatusCodes.BAD_REQUEST
+                )
+            }
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Get by employee id success",
+                data,
+                StatusCodes.OK
+            )
+        }catch (ex){
+            const errorMessage = "Error get by employee id :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
 }
