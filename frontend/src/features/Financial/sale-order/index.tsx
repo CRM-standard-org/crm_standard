@@ -29,7 +29,7 @@ import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main
 import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
 import { useResponseToOptions } from "@/hooks/useOptionType";
 import { OptionType } from "@/components/customs/select/select.main.component";
-import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { TypeAllEmployeeResponse, TypeEmployeeResponse } from "@/types/response/response.employee";
 import { cancelQuotation } from "@/services/quotation.service";
 import TextArea from "@/components/customs/textAreas/textarea.main.component";
 import { TypeAllSaleOrderResponse } from "@/types/response/response.saleorder";
@@ -84,7 +84,7 @@ export default function SaleOrder() {
   const fetchDataMemberInteam = async () => {
     const employeeList = dataEmployee?.responseObject?.data ?? [];
     return {
-      responseObject: employeeList.map((item: TypeEmployeeResponse) => ({
+      responseObject: employeeList.map((item: TypeAllEmployeeResponse) => ({
         id: item.employee_id,
         name: `${item.first_name} ${item.last_name || ""}`,
       })),

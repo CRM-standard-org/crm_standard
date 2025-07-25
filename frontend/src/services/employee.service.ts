@@ -5,11 +5,12 @@ import {
     SELECT_RESPONSIBLE,
     SELECT_EMPLOYEE,
     CREATE_EMPLOYEE,
-    GET_EMPLOYEE_STATUS
+    GET_EMPLOYEE_STATUS,
+    GET_EMPLOYEE_BY_ID
 } from "@/apis/endpoint.api";
 
 import mainApi from "@/apis/main.api";
-import {  EmployeeResponse, EmployeeStatusResponse, PayLoadFilterEmployee, SearchEmployeeResponse } from "@/types/response/response.employee";
+import {  AllEmployeeResponse, EmployeeResponse, EmployeeStatusResponse, PayLoadFilterEmployee, SearchEmployeeResponse } from "@/types/response/response.employee";
 import { APIResponseType } from "@/types/response";
 import { PayLoadCreateEmployee } from "@/types/requests/request.employee";
 
@@ -41,7 +42,7 @@ export const selectEmployeeStatus = async (searchText: string) => {
 // get employee no team
 export const getEmployeeNoTeam= async (page: string, pageSize: string, searchText: string) => {
     try {
-      const { data: response } = await mainApi.get<EmployeeResponse>(
+      const { data: response } = await mainApi.get<AllEmployeeResponse>(
         `${GET_EMPLOYEE_NO_TEAM}?page=${page}&limit=${pageSize}&search=${searchText}`
 
       );
@@ -56,9 +57,23 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
   //get all employee 
   export const getAllEmployees= async (page: string, pageSize: string, searchText: string,payload:PayLoadFilterEmployee) => {
     try {
-      const { data: response } = await mainApi.post<EmployeeResponse>(
+      const { data: response } = await mainApi.post<AllEmployeeResponse>(
         `${GET_ALL_EMPLOYEE}?page=${page}&limit=${pageSize}&search=${searchText}`,
         payload
+      );
+
+      return response;
+    } catch (error) {
+      console.error("Error get All Employee:", error);
+      throw error;
+    }
+  };
+  //get all employee 
+  export const getEmployee= async (employeeId:string) => {
+    try {
+      const encodedEmployeeId= encodeURIComponent(employeeId);
+      const { data: response } = await mainApi.get<EmployeeResponse>(
+        `${GET_EMPLOYEE_BY_ID}/${encodedEmployeeId}`
       );
 
       return response;
@@ -70,7 +85,7 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
 
   export const selectEmployee = async (searchText: string) => {
     try{
-      const { data: response } = await mainApi.get<EmployeeResponse>(
+      const { data: response } = await mainApi.get<AllEmployeeResponse>(
         `${SELECT_EMPLOYEE}?search=${searchText}`
       );
       return response;
@@ -83,7 +98,7 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
   export const selectResponsible = async (team_id:string,searchText: string) => {
     try{
       const encodedTeamId = encodeURIComponent(team_id);
-      const { data: response } = await mainApi.get<EmployeeResponse>(
+      const { data: response } = await mainApi.get<AllEmployeeResponse>(
         `${SELECT_RESPONSIBLE}/${encodedTeamId}?search=${searchText}`
       );
       return response;

@@ -32,7 +32,6 @@ import { TypeCharacterResponse } from "@/types/response/response.customerCharact
 
 import Rating from "@/components/customs/rating/rating.main.component";
 //employee
-import { useEmployee } from "@/hooks/useEmployee";
 import { TypeEmployeeResponse } from "@/types/response/response.employee";
 
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
@@ -137,9 +136,9 @@ export default function TeamDetails() {
                     cells: [
                         { value: item.employee_code, className: "text-center" },
                         { value: item.first_name + " " + item.last_name, className: "text-left" },
-                        { value: item.position, className: "text-left" },
-                        { value: item.start_date, className: "text-left" },
-                        { value: item.employee_status, className: "text-left" },
+                        { value: item.position, className: "text-center" },
+                        { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-left" },
+                        { value: item.employee_status?.name ?? "-", className: "text-center" }
                     ],
                     data: item,
                 })
@@ -149,7 +148,7 @@ export default function TeamDetails() {
         fetchDataLeader();
     }, [dataTeamMember, dataLeader]);
 
-
+    console.log(dataMemberInTeam)
     const fetchDataLeader = async () => {
 
         if (dataTeamMember?.responseObject?.data.leader) {
@@ -208,8 +207,7 @@ export default function TeamDetails() {
         { label: "ตำแหน่ง", colSpan: 1, className: "w-auto" },
         { label: "วันเริ่มทำงาน", colSpan: 1, className: "w-auto" },
         { label: "สถานะ", colSpan: 1, className: "w-auto" },
-        { label: "ย้าย", colSpan: 1, className: "w-auto" },
-        { label: "ลบ", colSpan: 1, className: "w-auto" },
+        { label: "เอาออก", colSpan: 1, className: "w-auto" },
     ];
     //handle
     const handleSearch = () => {
@@ -411,7 +409,6 @@ export default function TeamDetails() {
                 headers={headers}
                 rowData={dataMemberInTeam}
                 totalData={dataTeamMember?.responseObject?.data.member.length}
-                onEdit={handleEditOpen}
                 onDelete={handleDeleteOpen}
                 hidePagination={true}
                 headerTab={true}

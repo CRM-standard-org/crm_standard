@@ -419,7 +419,7 @@ export default function CreateEmployee() {
                     <h1 className="text-xl font-semibold">ข้อมูลพนักงาน</h1>
 
                     <div className="border-b-2 border-main mb-6"></div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex justify-center xl:justify-start items-center space-x-4 mb-3">
                         <div
                             onClick={() => inputRef.current?.click()}
                             className="bg-gray-300 text-white text-center rounded-full w-40 h-40 flex items-center justify-center cursor-pointer hover:bg-gray-400 transition"

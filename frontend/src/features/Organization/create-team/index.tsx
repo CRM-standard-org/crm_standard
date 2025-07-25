@@ -38,7 +38,7 @@ import { postTeam } from "@/services/team.service";
 
 //employee
 import { useEmployeeNoneTeam } from "@/hooks/useEmployee";
-import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { TypeAllEmployeeResponse, TypeEmployeeResponse } from "@/types/response/response.employee";
 
 type dateTableType = {
     className: string;
@@ -46,7 +46,7 @@ type dateTableType = {
         value: any;
         className: string;
     }[];
-    data: TypeEmployeeResponse; //ตรงนี้
+    data: TypeAllEmployeeResponse; //ตรงนี้
 }[];
 
 //
@@ -90,7 +90,7 @@ export default function CreateTeam() {
     const fetchDataEmployees = async () => {
         const roleList = dataEmployee?.responseObject?.data ?? [];
         return {
-            responseObject: roleList.map((item: TypeEmployeeResponse) => ({
+            responseObject: roleList.map((item: TypeAllEmployeeResponse) => ({
                 id: item.employee_id,
                 employee_code: item.employee_code,
                 name: item.first_name + " " + item.last_name,
@@ -179,7 +179,7 @@ export default function CreateTeam() {
         setIsCreateDialogOpen(true);
     };
 
-    const handleDeleteOpen = (item: TypeEmployeeResponse) => {
+    const handleDeleteOpen = (item: TypeAllEmployeeResponse) => {
 
         setIsDeleteDialogOpen(true);
 
@@ -381,7 +381,7 @@ export default function CreateTeam() {
                     onSearch={handleSearch}
                     headers={headerTeams}
                     rowData={
-                        (dataEmployee?.responseObject?.data ?? []).map((item: TypeEmployeeResponse) => ({
+                        (dataEmployee?.responseObject?.data ?? []).map((item: TypeAllEmployeeResponse) => ({
                             className: "",
                             cells: [
                                 { value: item.employee_code, className: "text-center" },

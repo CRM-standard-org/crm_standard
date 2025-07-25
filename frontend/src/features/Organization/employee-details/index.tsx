@@ -8,7 +8,7 @@ import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { Link } from "react-router-dom";
 
@@ -24,6 +24,9 @@ import { useAddress } from "@/hooks/useAddress";
 import { TypeAddressResponse } from "@/types/response/response.address";
 import { useResponseToOptions } from "@/hooks/useOptionType";
 import { LabelWithValue } from "@/components/ui/label";
+import { useEmployee } from "@/hooks/useEmployee";
+import { quotation_responsible, TypeEmployeeResponse } from "@/types/response/response.employee";
+import { appConfig } from "@/configs/app.config";
 
 type dateTableType = {
     className: string;
@@ -31,13 +34,14 @@ type dateTableType = {
         value: any;
         className: string;
     }[];
-    data: TypeColorAllResponse; //ตรงนี้
+    data: quotation_responsible; //ตรงนี้
 }[];
 
 //
 export default function EmployeeDetails() {
-  
 
+
+    const { employeeId } = useParams<{ employeeId: string }>();
 
     // const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [data, setData] = useState<dateTableType>([]);
@@ -46,7 +50,7 @@ export default function EmployeeDetails() {
     const { showToast } = useToast();
     //
     const navigate = useNavigate();
-    const [dataAddress, setDataAddress] = useState<TypeAddressResponse[]>();
+    const [dataEmployee, setDataEmployee] = useState<TypeEmployeeResponse[]>();
 
 
 
@@ -58,40 +62,62 @@ export default function EmployeeDetails() {
     const [searchAddress, setSearchAddress] = useState("");
 
 
+    //fetch employee by id
+    const { data: employee, refetch: refetchEmployee } = useEmployee({ employeeId });
 
+    useEffect(() => {
 
-    const roleCustomer = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "A" },
-                { id: 2, name: "B" },
-                { id: 3, name: "C" },
-                { id: 4, name: "D" },
-            ],
-        };
-    };
+        if (employee?.responseObject?.quotation_responsible) {
 
-    const dataProvince = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "กรุงเทพ" },
-                { id: 2, name: "นนทบุรี" },
-                { id: 3, name: "ปทุมธานี" },
-                { id: 4, name: "ชุมพร" },
-            ],
-        };
-    };
+            const formattedData = employee?.responseObject?.quotation_responsible?.map(
+                (item: quotation_responsible, index: number) => ({
+                    className: "",
+                    cells: [
+                        { value: index + 1, className: "text-center" },
+                        {
+                            value: <div className="flex flex-col">
+                                {item.customer.company_name}
+                                <div className="flex flex-row space-x-1">
+                                    {item.customer.customer_tags && item.customer.customer_tags.map((tag) => (
 
-    const dataDistrict = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "ปากเกร็ด" },
-                { id: 2, name: "บางใหญ่" },
-                { id: 3, name: "พระนคร" },
-                { id: 4, name: "เมือง" },
-            ],
-        };
-    };
+                                        <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
+                                    ))}
+
+                                </div>
+                            </div>, className: "text-left"
+                        },
+                        { value: (<RatingShow value={item.priority} className="w-5 h-5" />), className: "text-left" },
+                        { value: item.quotation_number, className: "text-center" },
+                        {
+                            value: (
+                                <div>
+                                    {new Date(item.issue_date).toLocaleDateString("th-TH")}
+
+                                </div>
+                            )
+                            , className: "text-center"
+                        },
+                        {
+                            value: (
+                                <div className="flex flex-col">
+                                    {item.quotation_status}
+                                    <div className="">
+                                        {new Date(item.issue_date).toLocaleDateString("th-TH")}
+                                    </div>
+                                </div>
+                            ), className: "text-left"
+                        },
+                        { value: item.grand_total.toLocaleString(), className: "text-center" },
+
+                    ],
+                    data: item,
+                })
+
+            );
+            setData(formattedData);
+        }
+    }, [employee?.responseObject?.quotation_responsible]);
+
 
 
     const listContact = async () => {
@@ -114,7 +140,13 @@ export default function EmployeeDetails() {
     //tabs บน headertable
     const groupTabs = [
         {
-            name: "งานที่รับผิดชอบ",
+            id: "quotation",
+            name: "ใบเสนอราคา",
+            onChange: () => setFilterGroup(null)
+        },
+        {
+            id: "saleorder",
+            name: "ใบสั่งขาย",
             onChange: () => setFilterGroup(null)
         },
 
@@ -176,6 +208,9 @@ export default function EmployeeDetails() {
         { label: "มูลค่า", colSpan: 1, className: "min-w-40" },
     ];
 
+    const profileUrl = employee?.responseObject?.profile_picture
+        ? `${appConfig.baseApi}${employee?.responseObject?.profile_picture}`
+        : null;
 
     return (
         <>
@@ -201,26 +236,53 @@ export default function EmployeeDetails() {
                         </Link>
 
                     </div>
+
                     <div className="border-b-2 border-main mb-6"></div>
+                    <div className="flex justify-center xl:justify-start items-center space-x-4 mb-3">
+                        <div className="flex items-center space-x-4">
+                            <img
+                                src={
+                                    employee?.responseObject.profile_picture
+                                        ? profileUrl
+                                        : "/images/avatar2.png"
+                                }
+                                alt="Profile"
+                                crossOrigin="anonymous"
+                                className="w-40 h-40 rounded-full object-cover"
+                            />
+                        </div>
+                    </div>
 
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
                         {/* ฝั่งซ้าย */}
                         <div className="space-y-4">
 
                             <div className="">
 
-                                <LabelWithValue label="รหัสพนักงาน" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ชื่อผู้ใช้งาน" value={`${employee?.responseObject?.username}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
                             <div className="">
-                                <LabelWithValue label="ชื่อ-นามสกุล" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ชื่อ" value={`${employee?.responseObject?.first_name}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
                             <div className="">
-                                <LabelWithValue label="ตำแหน่ง" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ตำแหน่ง" value={`${employee?.responseObject?.position}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                            </div>
+
+                            <div className="">
+                                <LabelWithValue
+                                    label="วันเริ่มทำงาน"
+                                    value={
+                                        employee?.responseObject?.start_date
+                                            ? new Date(employee?.responseObject?.start_date).toLocaleDateString("th-TH")
+                                            : "-"
+                                    } classNameLabel="sm:w-1/2" classNameValue="w-80"
+                                />
                             </div>
                             <div className="">
-                                <LabelWithValue label="ทีม" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="สถานะ" value={`${employee?.responseObject?.employee_status?.name}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
                         </div>
 
@@ -229,17 +291,46 @@ export default function EmployeeDetails() {
 
                             <div className="">
 
-                                <LabelWithValue label="วันเริ่มทำงาน" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="รหัสพนักงาน" value={`${employee?.responseObject?.employee_code}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                             <div className="">
 
-                                <LabelWithValue label="สถานะ" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="นามสกุล" value={`${employee?.responseObject?.last_name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                             <div className="">
 
-                                <LabelWithValue label="เงินเดือน/ค่าแรง" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="บทบาท" value={`${employee?.responseObject?.role.role_name}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+
+                            </div>
+
+                            <LabelWithValue
+                                label="เงินเดือน/ค่าแรง"
+                                value={
+                                    employee?.responseObject?.salary != null
+                                        ? employee.responseObject.salary.toLocaleString()
+                                        : "-"
+                                }
+                                classNameLabel="sm:w-1/2"
+                                classNameValue="w-80"
+                            />
+
+
+                            <div className="">
+
+                                <LabelWithValue
+                                    label="วันที่เลิกทำงาน"
+                                    value={
+                                        employee?.responseObject?.end_date
+                                            ? new Date(employee?.responseObject?.end_date).toLocaleDateString("th-TH")
+                                            : "-"
+                                    } classNameLabel="sm:w-1/2" classNameValue="w-80"
+                                />
+                            </div>
+                            <div className="">
+
+                                <LabelWithValue label="ทีม" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                         </div>
@@ -258,23 +349,23 @@ export default function EmployeeDetails() {
 
                             <div className="">
 
-                                <LabelWithValue label="ประเทศ" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ประเทศ" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                             <div className="">
 
-                                <LabelWithValue label="จังหวัด" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="จังหวัด" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                             <div className="">
 
-                                <LabelWithValue label="อำเภอ" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="อำเภอ" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                             <div className="">
 
 
-                                <LabelWithValue label="ที่อยู่" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ที่อยู่" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                         </div>
@@ -283,15 +374,29 @@ export default function EmployeeDetails() {
                         <div className="space-y-4">
 
                             <div className="">
-                                <LabelWithValue label="เบอร์โทรศัพท์" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="อีเมล" value={`${employee?.responseObject?.email ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
                             <div className="">
-                                <LabelWithValue label="อีเมล" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="เบอร์โทรศัพท์" value={`${employee?.responseObject?.phone ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
                             <div className="">
-                                <LabelWithValue label="LINE" value={`สมมติ`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+
+                                <LabelWithValue
+                                    label="วันเกิด"
+                                    value={
+                                        employee?.responseObject?.birthdate
+                                            ? new Date(employee?.responseObject?.birthdate).toLocaleDateString("th-TH")
+                                            : "-"
+                                    } classNameLabel="sm:w-1/2" classNameValue="w-80"
+                                />
+                            </div>
+                            <div className="">
+                                <LabelWithValue label="ช่องทางการติดต่อ" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                            </div>
+                            <div className="">
+                                <LabelWithValue label="LINE" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
 
@@ -302,15 +407,15 @@ export default function EmployeeDetails() {
 
                 </div>
             </div>
+
             <MasterTableFeature
                 title=""
                 hideTitleBtn={true}
                 headers={headers}
-                rowData={mockData}
-                totalData={mockData?.length}
+                rowData={data}
+                totalData={employee?.responseObject?.quotation_responsible?.length}
                 onCreateBtn={false} // ให้มีปุ่ม create เพิ่มมารป่าว
                 onDropdown={true}
-                hidePagination={true}
                 headerTab={true}
                 groupTabs={groupTabs}
             />

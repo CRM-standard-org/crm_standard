@@ -20,7 +20,7 @@ import { useColor } from "@/hooks/useColor";
 import { useTag } from "@/hooks/useCustomerTag";
 import { TypeTagColorResponse } from "@/types/response/response.tagColor";
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
-import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { TypeAllEmployeeResponse, TypeEmployeeResponse } from "@/types/response/response.employee";
 import { useAllEmployee } from "@/hooks/useEmployee";
 type dateTableType = {
   className: string;
@@ -28,7 +28,7 @@ type dateTableType = {
     value: any;
     className: string;
   }[];
-  data: TypeEmployeeResponse; //ตรงนี้
+  data: TypeAllEmployeeResponse; //ตรงนี้
 }[];
 
 //
@@ -108,7 +108,7 @@ export default function Employee() {
     if (dataEmployee?.responseObject?.data) {
 
       const formattedData = dataEmployee.responseObject?.data.map(
-        (item: TypeEmployeeResponse) => ({
+        (item: TypeAllEmployeeResponse) => ({
           className: "",
           cells: [
             { value: item.employee_code, className: "text-center" },
@@ -287,7 +287,7 @@ export default function Employee() {
     }
   }, [searchText]);
 
-  const handleView = (item: TypeEmployeeResponse) => {
+  const handleView = (item: TypeAllEmployeeResponse) => {
     navigate(`/employee-details/${item.employee_id}`);
   }
   //เปิด

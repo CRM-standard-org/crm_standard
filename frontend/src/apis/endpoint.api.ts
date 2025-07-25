@@ -82,6 +82,7 @@ export const GET_ALL_EMPLOYEE ="/v1/employee/get-employee"
 export const SELECT_RESPONSIBLE = "/v1/employee/select-responsible";
 export const SELECT_EMPLOYEE = "/v1/employee/select-employee";
 export const CREATE_EMPLOYEE = "/v1/employee/create";
+export const GET_EMPLOYEE_BY_ID = "/v1/employee/get";
 
 //address
 export const SELECT_ADDRESS = "/v1/address/select";

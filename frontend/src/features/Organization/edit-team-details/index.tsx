@@ -43,7 +43,7 @@ import { deleteMemberTeam, editMemberTeam, editTeam, postTeam } from "@/services
 
 //employee
 import { useEmployeeNoneTeam } from "@/hooks/useEmployee";
-import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { TypeAllEmployeeResponse, TypeEmployeeResponse } from "@/types/response/response.employee";
 import { TypeMemberInTeamResponse } from "@/types/response/response.team";
 
 type dateTableType = {
@@ -501,7 +501,7 @@ export default function EditTeamDetails() {
                     onSearch={handleSearchEmployee}
                     headers={headers}
                     rowData={
-                        (dataEmployee?.responseObject?.data ?? []).map((item: TypeEmployeeResponse) => ({
+                        (dataEmployee?.responseObject?.data ?? []).map((item: TypeAllEmployeeResponse) => ({
                             className: "",
                             cells: [
                                 { value: item.employee_code, className: "text-center" },

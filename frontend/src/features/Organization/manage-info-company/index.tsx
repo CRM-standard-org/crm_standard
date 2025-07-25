@@ -151,7 +151,7 @@ export default function ManageInfoCompany() {
     const logoUrl = dataCompany?.logo
     ? `${appConfig.baseApi}${dataCompany.logo}`
     : null;
-    console.log(logoUrl)
+  
     return (
         <>
             <div className="flex  text-2xl font-bold mb-3">
@@ -188,9 +188,7 @@ export default function ManageInfoCompany() {
                                         </div>
                                     )}
                                 </div>
-
-
-
+                                
 
                                 <LabelWithValue label="ชื่อบริษัท" value={`${dataCompany?.name_th || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
                                 <LabelWithValue label="ชื่ออังกฤษ" value={`${dataCompany?.name_en || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
