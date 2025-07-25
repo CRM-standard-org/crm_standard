@@ -6,9 +6,7 @@ import { Filter , TypeUpdateCompany , TypeUpdatePaymentDetail , Payment , Paymen
 import { select  } from '@common/models/selectData';
 import { rejects } from 'assert';
 
-
 export const saleOrderService = {
-    
     findAll: async (page: number , limit: number , searchText: string , payload : Filter ) => {
         try{
             const totalCount = await saleOrderRepository.count(searchText , payload );
@@ -264,7 +262,6 @@ export const saleOrderService = {
     },
     paymentFile: async (payment_log_id: string) => {
         try{
-            
             const data = await saleOrderRepository.findByIdPaymentFile(payment_log_id);
             if(!data){
                 return new ServiceResponse(

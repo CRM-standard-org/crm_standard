@@ -6,7 +6,7 @@ import {
 } from "@common/utils/httpHandlers";
 import { authorizeByName } from "@common/middleware/permissions";
 import { employeeService } from "@modules/employee/employeeService";
-import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema , GetByIdSchema } from "@modules/employee/employeeModel";
+import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema , GetByIdSchema , UpdateSchema } from "@modules/employee/employeeModel";
 import authenticateToken from "@common/middleware/authenticateToken";
 import { upload , handleMulter } from '@common/middleware/multerConfig';
 
@@ -66,6 +66,22 @@ export const employeeRouter = (() => {
         handleServiceResponse(ServiceResponse, res);
     });
     
+    router.put("/update/:employee_id?", authenticateToken, authorizeByName("พนักงาน", ["A"]), handleMulter(upload.array("emp", 1)), async (req: Request, res: Response) => {
+        try {
+            const employee_id = req.params.employee_id;
+            const raw = req.body.payload; // raw = JSON string
+            let parsedData;
+            parsedData = JSON.parse(raw);
+            const validation = UpdateSchema.safeParse({ body: parsedData });
+            const payloadData = parsedData; // ใช้ค่า raw ที่ Parse มาโดยตรง
+            const files = req.files as Express.Multer.File[];
+            const employee_id_by = req.token.payload.uuid;
+            const resultService = await employeeService.update(employee_id,payloadData, employee_id_by, files);
+            handleServiceResponse(resultService, res);
+        } catch (err: any) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
 
     return router;
 })();
