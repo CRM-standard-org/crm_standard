@@ -152,7 +152,7 @@ model employees {
 
   customer_character_create CustomerCharacter[] @relation("CustomerCharacterCreatedBy")
   customer_character_update CustomerCharacter[] @relation("CustomerCharacterUpdatedBy")
-  customer_character        CustomerCharacter[] @relation("CustomerCharacter")
+  // customer_character        CustomerCharacter[] @relation("CustomerCharacter")
 
   customer_contact_create CustomerContact[] @relation("CustomerContactCreatedBy")
   customer_contact_update CustomerContact[] @relation("CustomerContactUpdatedBy")
@@ -256,7 +256,7 @@ model Character {
 
 model CustomerCharacter {
   customer_character_id String   @id @default(uuid()) @db.Uuid
-  employee_id           String?  @db.Uuid
+  // employee_id           String?  @db.Uuid
   customer_contact_id   String?  @unique @db.Uuid
   character_id          String   @db.Uuid
   created_at            DateTime @default(now())
@@ -264,7 +264,7 @@ model CustomerCharacter {
   updated_at            DateTime @updatedAt
   updated_by            String   @db.Uuid
 
-  employee             employees?       @relation("CustomerCharacter", fields: [employee_id], references: [employee_id])
+  // employee             employees?       @relation("CustomerCharacter", fields: [employee_id], references: [employee_id])
   character            Character        @relation("CustomerCharacter", fields: [character_id], references: [character_id])
   customer_contact     CustomerContact? @relation("CustomerCharacter", fields: [customer_contact_id], references: [customer_contact_id])
   created_by_employee  employees        @relation("CustomerCharacterCreatedBy", fields: [created_by], references: [employee_id])
@@ -317,7 +317,7 @@ model Social {
 model DetailSocial {
   detail_social_id    String   @id @default(uuid()) @db.Uuid
   detail              String   @db.VarChar(50)
-  employee_id         String?  @db.Uuid
+  employee_id         String?  @unique @db.Uuid
   customer_contact_id String?  @unique @db.Uuid
   social_id           String   @db.Uuid
   created_at          DateTime @default(now())
