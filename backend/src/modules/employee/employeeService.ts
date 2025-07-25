@@ -160,7 +160,7 @@ export const employeeService = {
         }
     },
 
-    updateCompany: async (employee_id: string , payload: UpdateEmployee , employee_id_by: string ,  files: Express.Multer.File[]) => {
+    update: async (employee_id: string , payload: UpdateEmployee , employee_id_by: string ,  files: Express.Multer.File[]) => {
         try{
 
             const check = await employeeRepository.findById(employee_id);

@@ -75,7 +75,7 @@ export const CreateSchema = z.object({
         district_id   : z.string().min(1).max(50),
         status_id: z.string().min(1).max(50), 
         team_id: z.string().max(50).optional(), 
-        salaly: z.number().optional(), 
+        salary: z.number().optional(), 
         start_date: z.coerce.date().optional(), 
         end_date: z.coerce.date().optional(),
         birthdate: z.coerce.date().optional(), 
@@ -83,11 +83,12 @@ export const CreateSchema = z.object({
 });
 
 export const UpdateSchema = z.object({
+    params: z.object({ employee_id: z.string().min(1).max(50) }),
     body : z.object({
         username: z.string().min(1).max(50).optional(),
         password : z.string().min(4).max(50).optional(),
         email: z.string().min(1).max(50).optional(),
-        first_name   : z.string().max(50).optional(),
+        first_name : z.string().max(50).optional(),
         last_name: z.string().max(50).optional(),  
         role_id: z.string().min(1).max(50).optional(),
         position: z.string().max(50).optional(),     
@@ -95,9 +96,9 @@ export const UpdateSchema = z.object({
         social_id  : z.string().min(1).max(50).optional(),
         detail  : z.string().max(50).optional(),
         address: z.string().optional(),  
-        country_id   : z.string().min(1).max(50).optional(),
-        province_id  : z.string().min(1).max(50).optional(),
-        district_id   : z.string().min(1).max(50).optional(),
+        country_id : z.string().min(1).max(50).optional(),
+        province_id : z.string().min(1).max(50).optional(),
+        district_id : z.string().min(1).max(50).optional(),
         status_id: z.string().min(1).max(50).optional(), 
         salaly: z.number().optional(), 
         start_date: z.coerce.date().optional(), 
