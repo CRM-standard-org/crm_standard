@@ -85,7 +85,7 @@ const ReportCategoryPDF: React.FC<ReportCategoryPDFProps> = ({ chartImage1, char
                 <View style={styles.headerRow}>
                     <View style={styles.companyInfo}>
                         <Image src={companyLogoBase64} style={styles.logo} />
-                        <Text style={styles.companyName}>รายงานยอดขายประจำปี</Text>
+                        <Text style={styles.companyName}>รายงานพยากรณ์ยอดขายตามหมวดหมู่</Text>
                         <Text style={styles.companySub}>บริษัท CRM Manager (DEMO)</Text>
                         <Text style={styles.companySubSmall}>1 มกราคม 2024 - 31 เมษายน 2024</Text>
                         <Text style={styles.companySubSmall}>หมวดหมู่สินค้า : ทั้งหมด ทีม : ทั้งหมด</Text>
