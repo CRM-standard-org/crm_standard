@@ -60,7 +60,7 @@ export const CreateSchema = z.object({
     body : z.object({
         employee_code: z.string().min(1).max(50),   
         username: z.string().min(1).max(50),
-        password : z.string().min(4).max(50),
+        password : z.string().min(6).max(50),
         email: z.string().min(1).max(50),
         first_name   : z.string().min(1).max(50),
         last_name: z.string().max(50).optional(),  
@@ -86,7 +86,7 @@ export const UpdateSchema = z.object({
     params: z.object({ employee_id: z.string().min(1).max(50) }),
     body : z.object({
         username: z.string().min(1).max(50).optional(),
-        password : z.string().min(4).max(50).optional(),
+        password : z.string().max(50).optional(),
         email: z.string().min(1).max(50).optional(),
         first_name : z.string().max(50).optional(),
         last_name: z.string().max(50).optional(),  

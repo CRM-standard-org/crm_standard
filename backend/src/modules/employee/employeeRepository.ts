@@ -287,8 +287,14 @@ export const employeeRepository = {
             take: take,
             select:{
                 employee_id: true,
+                employee_code: true,
                 first_name: true,
-                last_name: true
+                last_name: true,
+                position: true,
+                team_employee: true,
+                start_date: true,
+                employee_status: { select: { status_id: true , name: true }},
+                salary: true
             },
             orderBy: { created_at: 'asc' },
         });
