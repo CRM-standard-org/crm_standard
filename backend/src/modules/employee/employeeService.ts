@@ -198,12 +198,14 @@ export const employeeService = {
             const passEmp = await employeeRepository.findByUsername(check.username);
             const addressEmp = await employeeRepository.findAddress(employee_id);
             const socialEmp = await employeeRepository.findSocial(employee_id);
+
+            console.log({password : password ?? passEmp?.password,})
     
             const data = await employeeRepository.update(
                 employee_id,
                 {
                     username,
-                    password : password ?? passEmp?.password,
+                    password : (password != '' ? password : passEmp?.password) as string,
                     email,
                     role_id: role_id ?? check.role.role_id,
                     is_active,
