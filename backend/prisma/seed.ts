@@ -41,48 +41,6 @@ async function main() {
   const saltRounds = 10;
   const salt = await bcrypt.genSalt(saltRounds);  
   const hashPassword = await bcrypt.hash(password, salt);
-  
-  const userAdmin = await prisma.users.upsert({
-      where: { username: 'admin@gmail.com' },
-      update: {},
-      create: {
-        employee_code: 'K1000',
-        username: 'admin@gmail.com',
-        password: hashPassword, 
-        email: 'admin@gmail.com',
-        role_id: roldAdmin.role_id,
-        first_name: 'admin',
-        is_active: true
-      },
-  })
-
-  const userPalm = await prisma.users.upsert({
-    where: { username: 'warinpalm@gmail.com' },
-    update: {},
-    create: {
-      employee_code: 'K1001',
-        username: 'warinpalm@gmail.com',
-        password: hashPassword, 
-        email: 'warinpalm@gmail.com',
-        role_id: roldAdmin.role_id,
-        first_name: 'warinpalm',
-        is_active: true
-    },
-  })
-  
-  const userPor = await prisma.users.upsert({
-    where: { username: 'myzero0139@gmail.com' },
-    update: {},
-    create: {
-      employee_code: 'K1002',
-      username: 'myzero0139@gmail.com',
-      password: hashPassword, 
-      email: 'myzero0139@gmail.com',
-      role_id: roldAdmin.role_id,
-      first_name: 'zero',
-      is_active: true
-    },
-  })
 
   const employeeAdmin = await prisma.employees.upsert({
     where: { username: 'admin@gmail.com' },

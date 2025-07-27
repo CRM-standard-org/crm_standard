@@ -199,8 +199,6 @@ export const employeeService = {
             const addressEmp = await employeeRepository.findAddress(employee_id);
             const socialEmp = await employeeRepository.findSocial(employee_id);
 
-            console.log({password : password ?? passEmp?.password,})
-    
             const data = await employeeRepository.update(
                 employee_id,
                 {

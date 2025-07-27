@@ -217,7 +217,15 @@ export const teamService = {
                 )
             }
 
-            await teamRepository.deleteMember( team_id, employee_id );
+            const data = await teamRepository.deleteMember( team_id, employee_id );
+            if(data == null){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Responsible for customers",
+                    null,
+                    StatusCodes.BAD_REQUEST
+                )
+            }
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Delete customer role success",

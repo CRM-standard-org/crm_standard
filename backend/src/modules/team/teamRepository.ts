@@ -333,6 +333,9 @@ export const teamRepository = {
     deleteMember: async ( team_id: string , employee_id: string ) => {
         team_id = team_id.trim();
         employee_id = employee_id.trim();
+
+        const checkCustomer = await prisma.customer.findFirst({where: {employee_id}});
+        if(checkCustomer) return null;
         return await prisma.employees.update({
             where: { employee_id: employee_id },
             data: { team_id: null },
