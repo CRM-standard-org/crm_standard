@@ -381,6 +381,8 @@ export const employeeRepository = {
                 end_date: true,
                 address:{
                     select: {
+                        address_id: true,
+                        address:true,
                         country: { select: { country_id: true , country_name: true }},
                         province: { select: { province_id: true , province_name: true }},
                         district: { select: {district_id: true , district_name : true}}
