@@ -491,7 +491,7 @@ model Province {
 
 model District {
   district_id   String   @id @default(uuid()) @db.Uuid
-  district_name String   @unique @db.VarChar(50)
+  district_name String   @db.VarChar(50)
   province_id   String   @db.Uuid
   province      Province @relation("District", fields: [province_id], references: [province_id])
 

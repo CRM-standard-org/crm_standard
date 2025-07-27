@@ -2,7 +2,8 @@ import { PrismaClient, roles } from '@prisma/client'
 const prisma = new PrismaClient()
 import bcrypt from "bcrypt";
 import { rolesData } from "../src/common/models/roleData";
-import { statusData , socialData , countryData , provinceData ,districtData , vatData } from "../src/common/models/dataSeed";
+import { statusData , socialData , vatData } from "../src/common/models/dataSeed";
+import { countryData , provinceData ,districtData } from "../src/common/models/addressSeed";
 
 async function main() {
   let roldAdmin: roles | null = null;
@@ -27,7 +28,7 @@ async function main() {
 
   // create Company
   const company = await prisma.company.upsert({
-    where: { name_th : 'ภูเขาสามลูก'},
+    where: { name_th : 'บลูพีค อินโนเวชั่น จำกัด'},
     update: {},
     create: {
       name_th: 'บลูพีค อินโนเวชั่น จำกัด',
