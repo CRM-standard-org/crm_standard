@@ -420,7 +420,6 @@ export default function CustomerDetails() {
             setContactOption(social?.social.social_id);
             setContactNameOption(social?.social.name);
             setContactDetail(social?.detail);
-            setContactNameOption(social?.social.name);
             setCharacter(character.character.character_id);
             setCharacterName(character.character.character_name);
 

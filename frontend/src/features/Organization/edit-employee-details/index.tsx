@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 
@@ -17,7 +17,7 @@ import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { Link } from "react-router-dom";
 import TextArea from "@/components/customs/textAreas/textarea.main.component";
@@ -26,7 +26,6 @@ import { OptionColorType } from "@/components/customs/tagCustomer/tagselect.main
 
 //Customer Role
 import { useCustomerRole } from "@/hooks/useCustomerRole";
-import { TypeRoleResponse } from "@/types/response/response.customerRole";
 
 //Character 
 import { useCustomerCharacter } from "@/hooks/useCustomerCharacter";
@@ -44,6 +43,15 @@ import { LuPencil } from "react-icons/lu";
 import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
 import DependentSelectComponent from "@/components/customs/select/select.dependent";
 import { TypeAddressResponse } from "@/types/response/response.address";
+import { FiImage } from "react-icons/fi";
+import dayjs from "dayjs";
+import { PayLoadEditEmployee } from "@/types/requests/request.employee";
+import { useEmployeeById, useSelectEmployeeStatus } from "@/hooks/useEmployee";
+import { TypeSelectEmployeeStatusResponse } from "@/types/response/response.employee";
+import { updateEmployee } from "@/services/employee.service";
+import { useSelectRole } from "@/hooks/useRole";
+import { TypeRoleResponse } from "@/types/response/response.role";
+import { appConfig } from "@/configs/app.config";
 
 type dateTableType = {
     className: string;
@@ -57,20 +65,31 @@ type dateTableType = {
 //
 export default function EditEmployeeDetails() {
     const [searchText, setSearchText] = useState("");
+    const { employeeId } = useParams<{ employeeId: string }>();
 
     // variable form edit employee 
-    const [employeeCode, setEmployeeCode] = useState("");
-    const [position, setPosition] = useState("");
-    const [startDate, setStartDate] = useState<Date | null>(new Date());
-    const [contactNameOption, setContactNameOption] = useState("");
-    const [contactOption, setContactOption] = useState<string | null>(null);
-    const [contactDetail, setContactDetail] = useState("");
-    const [salary, setSalary] = useState("");
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [team, setTeam] = useState<string | null>(null);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [passwordError, setPasswordError] = useState<boolean>(false);
+    const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
 
+    const [employeeCode, setEmployeeCode] = useState("");
+    const [employeeRole, setEmployeeRole] = useState<string | null>(null);
+    const [employeeRoleName, setEmployeeRoleName] = useState("");
+
+    const [fName, setFName] = useState("");
+    const [lName, setLName] = useState("");
+    const [position, setPosition] = useState("");
+    const [salary, setSalary] = useState("");
+
+    const [startDate, setStartDate] = useState<Date | null>(new Date());
+    const [endDate, setEndDate] = useState<Date | null>(new Date());
+    const [employeeStatusName, setEmployeeStatusName] = useState("");
     const [employeeStatus, setEmployeeStatus] = useState<string | null>(null);
+    const [team, setTeam] = useState<string | null>(null);
+    const [teamName, setTeamName] = useState("");
+
+
     const [country, setCountry] = useState<string | null>(null);
     const [countryOptions, setCountryOptions] = useState<OptionType[]>([]);
 
@@ -79,9 +98,18 @@ export default function EditEmployeeDetails() {
 
     const [district, setDistrict] = useState<string | null>(null);
     const [districtOptions, setDistrictOptions] = useState<OptionType[]>([]);
+    const [email, setEmail] = useState("");
     const [telNo, setTelno] = useState("");
+    const [birthDate, setBirthDate] = useState<Date | null>(new Date());
 
-    const [note, setNote] = useState("");
+    const [address, setAddress] = useState("");
+    const [contactNameOption, setContactNameOption] = useState("");
+    const [contactOption, setContactOption] = useState<string | null>(null);
+    const [contactDetail, setContactDetail] = useState("");
+
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const [uploadKey, setUploadKey] = useState(0);
 
     // const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [data, setData] = useState<dateTableType>([]);
@@ -91,17 +119,66 @@ export default function EditEmployeeDetails() {
     //
     const navigate = useNavigate();
     const [dataAddress, setDataAddress] = useState<TypeAddressResponse[]>();
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
 
 
     const [filterGroup, setFilterGroup] = useState<string | null>(null);
     //searchText control
 
+
     const [searchSocial, setSearchSocial] = useState("");
     const [searchTeam, setSearchTeam] = useState("");
     const [searchAddress, setSearchAddress] = useState("");
+    const [searchStatus, setSearchStatus] = useState("");
 
+    //fetch employee by id
 
+    const { data: employee, refetch: refetchEmployee } = useEmployeeById({ employeeId });
+
+    useEffect(() => {
+        fetchEmployeeById();
+    }, [employee])
+
+    const fetchEmployeeById = async () => {
+        if (employee?.responseObject) {
+            setUsername(employee?.responseObject?.username)
+            setFName(employee?.responseObject?.first_name)
+            setPosition(employee?.responseObject?.position)
+            setStartDate(employee?.responseObject?.start_date ?
+                new Date(employee?.responseObject?.start_date)
+                : null
+            );
+            setEmployeeStatus(employee?.responseObject?.employee_status?.status_id)
+            setEmployeeStatusName(employee?.responseObject?.employee_status?.name)
+            setEmployeeCode(employee?.responseObject?.employee_code)
+            setLName(employee?.responseObject?.last_name ?? "")
+            setEmployeeRole(employee?.responseObject?.role.role_id)
+            setEmployeeRoleName(employee?.responseObject?.role.role_name)
+            setSalary(employee?.responseObject?.salary)
+            setEndDate(employee?.responseObject?.end_date ?
+                new Date(employee?.responseObject?.end_date)
+                : null
+            );
+            setTeam(employee?.responseObject?.team_employee?.team_id ?? "")
+            setTeamName(employee?.responseObject?.team_employee?.name ?? "")
+            setCountry(employee?.responseObject?.address[0]?.country.country_id)
+            setProvince(employee?.responseObject?.address[0]?.province.province_id)
+            setDistrict(employee?.responseObject?.address[0]?.district.district_id)
+            setAddress(employee?.responseObject?.address[0]?.address ?? "")
+
+            setEmail(employee?.responseObject?.email)
+            setTelno(employee?.responseObject?.phone)
+            setBirthDate(employee?.responseObject?.birthdate ?
+                new Date(employee?.responseObject?.birthdate)
+                : null
+            );
+            setContactOption(employee?.responseObject?.detail_social[0]?.social.social_id ?? "")
+            setContactNameOption(employee?.responseObject?.detail_social[0]?.social.name ?? "");
+            setContactDetail(employee?.responseObject?.detail_social[0]?.detail ?? "");
+
+        }
+    };
 
 
     const roleCustomer = async () => {
@@ -158,6 +235,43 @@ export default function EditEmployeeDetails() {
 
 
 
+    //fetch employee status
+    const { data: dataEmployeeStatus, refetch: refetchEmployeeStatus } = useSelectEmployeeStatus({
+        searchText: searchStatus
+    })
+    const fetchEmployeeStatusDropdown = async () => {
+        const employeeStatusList = dataEmployeeStatus?.responseObject.data ?? [];
+        return {
+            responseObject: employeeStatusList.map((item: TypeSelectEmployeeStatusResponse) => ({
+                id: item.status_id,
+                name: item.name
+            }))
+        }
+    }
+
+    const handleStatusSearch = (searchText: string) => {
+        setSearchStatus(searchText);
+        refetchEmployeeStatus();
+    };
+
+    //fetch employee status
+    const { data: dataRole, refetch: refetchRole } = useSelectRole({
+        searchText: searchStatus
+    })
+    const fetchRoleDropdown = async () => {
+        const roleList = dataRole?.responseObject.data ?? [];
+        return {
+            responseObject: roleList.map((item: TypeRoleResponse) => ({
+                id: item.role_id,
+                name: item.role_name
+            }))
+        }
+    }
+
+    const handleRoleSearch = (searchText: string) => {
+        setSearchStatus(searchText);
+        refetchRole();
+    };
     //fetch team 
 
     const { data: dataTeam, refetch: refetchTeam } = useTeam({
@@ -280,14 +394,101 @@ export default function EditEmployeeDetails() {
     };
 
     //ยืนยันไดอะล็อค
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setUploadedFile(file);
+            e.target.value = ""; // เคลียร์ input เพื่อให้เลือกไฟล์เดิมได้
+        }
+    };
+    //สำหรับป้องกันรหัสต่ำกว่า 6 ตัว
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newPassword = e.target.value;
+        setPassword(newPassword);
+
+
+        if (newPassword && newPassword.length < 6) {
+            setPasswordError(true);
+            setPasswordErrorMessage("รหัสผ่านต้องมี 6 ตัวอักษรขึ้นไป");
+        } else {
+            // ถ้าเงื่อนไขถูกต้อง ให้ล้าง error
+            setPasswordError(false);
+            setPasswordErrorMessage("");
+        }
+    };
     const handleConfirm = async () => {
 
+
+
+        const errorMap: Record<string, boolean> = {};
+
+        if (!employeeCode) errorMap.employeeCode = true;
+        if (!username) errorMap.username = true;
+        if (!fName) errorMap.fName = true;
+        if (!employeeRole) errorMap.employeeRole = true;
+        if (!position) errorMap.position = true;
+        if (!telNo) errorMap.telNo = true;
+        if (!country) errorMap.country = true;
+        if (!province || provinceOptions.length === 0) { errorMap.province = true; }
+        if (!district || districtOptions.length === 0) { errorMap.district = true; }
+        if (!employeeStatus) errorMap.employeeStatus = true;
+        if (!email) errorMap.email = true;
+
+        setErrorFields(errorMap);
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+            return;
+        }
+
+
+        const payload: PayLoadEditEmployee = {
+            employee_code: employeeCode,
+            username: username,
+            password: password,
+            email: email,
+            first_name: fName,
+            last_name: lName ?? "",
+            role_id: employeeRole,
+            position: position,
+            phone: telNo,
+            social_id: contactOption ?? "",
+            detail: contactDetail ?? "",
+            address: address ?? "",
+            country_id: country,
+            province_id: province,
+            district_id: district,
+            status_id: employeeStatus,
+            team_id: team ?? "",
+            salary: salary ?? "",
+            start_date: startDate ? dayjs(startDate).format("YYYY-MM-DD") : "",
+            end_date: endDate ? dayjs(endDate).format("YYYY-MM-DD") : "",
+            birthdate: birthDate ? dayjs(birthDate).format("YYYY-MM-DD") : "",
+        };
+
+        console.log("ส่ง payload", payload);
+        console.log("ไฟล์แนบ:", uploadedFile);
+        try {
+            const response = await updateEmployee(employeeId, payload, uploadedFile);
+            if (response.statusCode === 200) {
+                setUploadKey(prev => prev + 1); // trigger เพื่อ reset
+                navigate("/employee");
+            } else {
+                showToast("ไม่สามารถแก้ไขพนักงานได้", false);
+            }
+
+        } catch (err) {
+            showToast("ไม่สามารถแก้ไขพนักงานได้", false);
+            console.error(err);
+        }
     };
 
 
     return (
         <>
             <h1 className="text-2xl font-bold mb-3">แก้ไขรายละเอียดพนักงาน</h1>
+
+
+
 
 
             <div className="p-7 pb-5 bg-white shadow-lg rounded-lg">
@@ -297,9 +498,76 @@ export default function EditEmployeeDetails() {
                     <h1 className="text-xl font-semibold">ข้อมูลพนักงาน</h1>
 
                     <div className="border-b-2 border-main mb-6"></div>
+                    <div className="flex justify-center xl:justify-start items-center space-x-4 mb-3">
+                        <div
+                            onClick={() => inputRef.current?.click()}
+                            className="bg-gray-300 text-center rounded-full w-40 h-40 flex items-center justify-center cursor-pointer hover:bg-gray-400 transition"
+                            title="คลิกเพื่อเปลี่ยนรูป"
+                        >
+                            {uploadedFile ? (
+                                <img
+                                    src={URL.createObjectURL(uploadedFile)}
+                                    alt="preview"
+                                    className="w-full h-full object-cover rounded-full"
+                                />
+                            ) : employee?.responseObject?.profile_picture ? (
+                                <img
+                                    src={`${appConfig.baseApi}${employee?.responseObject?.profile_picture}`}
+                                    alt="Profile"
+                                    crossOrigin="anonymous"
+                                    className="w-full h-full object-cover rounded-full"
+                                />
+                            ) : (
+                                <FiImage size={40} />
+                            )}
 
+                        </div>
+
+                        <input
+                            ref={inputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFileChange}
+                        />
+                    </div>
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
+                        <div className="">
+                            <InputAction
+                                id="username"
+                                placeholder=""
+                                onChange={(e) => setUsername(e.target.value)}
+                                value={username}
+                                label="ชื่อผู้ใช้งาน"
+                                labelOrientation="horizontal"
+                                onAction={handleConfirm}
+                                classNameLabel="w-1/2 flex "
+                                classNameInput="w-full"
+                                nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}`, down: "password" }}
+                                isError={errorFields.username}
+                                require="require"
+                            />
+                        </div>
+                        <div className="">
+                            <InputAction
+                                type="password"
+                                id="password"
+                                placeholder=""
+                                onChange={handlePasswordChange}
+                                value={password}
+                                label="รหัสผ่าน"
+                                labelOrientation="horizontal"
+                                onAction={handleConfirm}
+                                classNameLabel="w-1/2 flex "
+                                classNameInput="w-full"
+                                nextFields={{ up: "username", down: "employee-code" }}
+                                isError={passwordError}
+                                errorMessage={passwordErrorMessage}
+                                require="require"
+                            />
+
+                        </div>
                         <div className="">
                             <InputAction
                                 id="employee-code"
@@ -311,52 +579,62 @@ export default function EditEmployeeDetails() {
                                 onAction={handleConfirm}
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
-                                nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "note"}`, down: "start-date" }}
+                                nextFields={{ up: "password", down: "employee-role" }}
+                                isError={errorFields.employeeCode}
                                 require="require"
                             />
                         </div>
+
                         <div className="">
-                            <DatePickerComponent
-                                id="start-date"
-                                label="วันเริ่มทำงาน"
-                                placeholder="dd/mm/yy"
-                                selectedDate={startDate}
-                                onChange={(date) => setStartDate(date)}
-                                classNameLabel="w-1/2"
+                            <MasterSelectComponent
+                                id="employee-role"
+                                onChange={(option) => setEmployeeRole(option ? String(option.value) : null)}
+                                fetchDataFromGetAPI={fetchRoleDropdown}
+                                onInputChange={handleRoleSearch}
+                                valueKey="id"
+                                labelKey="name"
+                                placeholder="กรุณาเลือก..."
+                                isClearable
+                                label="บทบาท"
+                                labelOrientation="horizontal"
+                                classNameLabel="w-1/2 flex"
+                                classNameSelect="w-full "
+                                defaultValue={{ label: employeeRoleName, value: employeeRole }}
+
+                                nextFields={{ up: "employee-code", down: "fname" }}
+                                isError={errorFields.employeeRole}
+                                require="require"
+                            />
+                        </div>
+
+
+                        <div className="">
+                            <InputAction
+                                id="fname"
+                                placeholder=""
+                                onChange={(e) => setFName(e.target.value)}
+                                value={fName}
+                                label="ชื่อ"
+                                labelOrientation="horizontal"
+                                classNameLabel="w-1/2 flex"
                                 classNameInput="w-full"
-                                nextFields={{ up: "employee-code", down: "name" }}
-                                required
+                                nextFields={{ up: "employee-code", down: "lname" }}
+                                require="require"
+                                isError={errorFields.fName}
+
                             />
                         </div>
                         <div className="">
                             <InputAction
-                                id="name"
+                                id="lname"
                                 placeholder=""
-                                onChange={(e) => setName(e.target.value)}
-                                value={name}
-                                label="ชื่อ-นามสกุล"
+                                onChange={(e) => setLName(e.target.value)}
+                                value={lName}
+                                label="นามสกุล"
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameInput="w-full"
-                                nextFields={{ up: "start-date", down: "employee-status" }}
-                                require="require"
-                            />
-                        </div>
-                        <div className="">
-                            <MasterSelectComponent
-                                id="employee-status"
-                                onChange={(option) => setEmployeeStatus(option ? String(option.value) : null)}
-                                fetchDataFromGetAPI={listContact}
-                                valueKey="id"
-                                labelKey="name"
-                                placeholder="พนักงานประจำ"
-                                isClearable
-                                label="สถานะ"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 flex"
-                                classNameSelect="w-full "
-                                nextFields={{ up: "name", down: "position" }}
-                                require="require"
+                                nextFields={{ up: "fname", down: "position" }}
                             />
                         </div>
                         <div className="">
@@ -370,8 +648,10 @@ export default function EditEmployeeDetails() {
                                 onAction={handleConfirm}
                                 classNameLabel="w-1/2 flex"
                                 classNameInput="w-full"
-                                nextFields={{ up: "employee-status", down: "salary" }}
+                                nextFields={{ up: "lname", down: "salary" }}
                                 require="require"
+                                isError={errorFields.position}
+
                             />
                         </div>
                         <div className="">
@@ -385,11 +665,60 @@ export default function EditEmployeeDetails() {
                                 onAction={handleConfirm}
                                 classNameLabel="w-1/2 flex"
                                 classNameInput="w-full"
-                                nextFields={{ up: "position", down: "team" }}
-                                require="require"
+                                nextFields={{ up: "position", down: "start-date" }}
                             />
                         </div>
                         <div className="">
+                            <DatePickerComponent
+                                id="start-date"
+                                label="วันเริ่มทำงาน"
+                                placeholder="dd/mm/yy"
+                                selectedDate={startDate}
+                                onChange={(date) => setStartDate(date)}
+                                classNameLabel="w-1/2"
+                                classNameInput="w-full"
+                                nextFields={{ up: "salary", down: "end-date" }}
+
+                            />
+                        </div>
+
+                        <div className="">
+                            <DatePickerComponent
+                                id="end-date"
+                                label="วันที่เลิกทำงาน"
+                                placeholder="dd/mm/yy"
+                                selectedDate={endDate}
+                                onChange={(date) => setEndDate(date)}
+                                classNameLabel="w-1/2"
+                                classNameInput="w-full"
+                                nextFields={{ up: "start-date", down: "team" }}
+
+                            />
+                        </div>
+
+                        <div className="">
+                            <MasterSelectComponent
+                                id="employee-status"
+                                onChange={(option) => setEmployeeStatus(option ? String(option.value) : null)}
+                                fetchDataFromGetAPI={fetchEmployeeStatusDropdown}
+                                onInputChange={handleStatusSearch}
+                                valueKey="id"
+                                labelKey="name"
+                                placeholder="กรุณาเลือก..."
+                                isClearable
+                                label="สถานะ"
+                                labelOrientation="horizontal"
+                                classNameLabel="w-1/2 flex"
+                                classNameSelect="w-full "
+                                defaultValue={{ label: employeeStatusName, value: employeeStatus }}
+                                nextFields={{ up: "end-date", down: "team" }}
+                                require="require"
+                                isError={errorFields.employeeStatus}
+                            />
+                        </div>
+
+                        <div className="">
+
                             <MasterSelectComponent
                                 id="team"
                                 onChange={(option) => setTeam(option ? String(option.value) : null)}
@@ -397,14 +726,14 @@ export default function EditEmployeeDetails() {
                                 onInputChange={handleTeamSearch}
                                 valueKey="id"
                                 labelKey="name"
-                                placeholder="รายชื่อทีม"
+                                placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ทีม"
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
-                                nextFields={{ up: "salary", down: "country" }}
-                                require="require"
+                                defaultValue={{ label: teamName, value: team }}
+                                nextFields={{ up: "employee-status", down: "country" }}
                             />
                         </div>
 
@@ -435,6 +764,7 @@ export default function EditEmployeeDetails() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "team", down: "email" }}
                                 require="require"
+                                isError={errorFields.country}
 
                             />
                         </div>
@@ -452,6 +782,7 @@ export default function EditEmployeeDetails() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "country", down: "province" }}
                                 require="require"
+                                isError={errorFields.email}
                             />
                         </div>
 
@@ -471,7 +802,7 @@ export default function EditEmployeeDetails() {
                                 classNameSelect="w-full "
                                 nextFields={{ up: "email", down: "telno" }}
                                 require="require"
-
+                                isError={errorFields.province}
                             />
                         </div>
                         <div className="">
@@ -488,6 +819,8 @@ export default function EditEmployeeDetails() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "province", down: "district" }}
                                 require="require"
+                                isError={errorFields.telNo}
+
                             />
                         </div>
 
@@ -507,9 +840,40 @@ export default function EditEmployeeDetails() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
-                                nextFields={{ up: "telno", down: "contact-option" }}
+                                nextFields={{ up: "telno", down: "birth-date" }}
                                 require="require"
+                                isError={errorFields.district}
 
+                            />
+
+                        </div>
+                        <div className="">
+                            <DatePickerComponent
+                                id="birth-date"
+                                label="วันเกิด"
+                                placeholder="dd/mm/yy"
+                                selectedDate={birthDate}
+                                onChange={(date) => setBirthDate(date)}
+                                classNameLabel="w-1/2"
+                                classNameInput="w-full"
+                                nextFields={{ up: "district", down: "address" }}
+
+                            />
+                        </div>
+
+                        <div className="">
+
+                            <TextArea
+                                id="address"
+                                placeholder=""
+                                onChange={(e) => setAddress(e.target.value)}
+                                value={address}
+                                label="ที่อยู่"
+                                labelOrientation="horizontal"
+                                onAction={handleConfirm}
+                                classNameLabel="w-1/2 flex "
+                                classNameInput="w-full"
+                                nextFields={{ up: "birth-date", down: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}` }}
                             />
                         </div>
                         <div className="">
@@ -529,66 +893,46 @@ export default function EditEmployeeDetails() {
                                 labelOrientation="horizontal"
                                 classNameLabel="w-1/2"
                                 classNameSelect="w-full"
-                                nextFields={{ up: "district", down: "note" }}
-                                require="require"
-                            />
+                                defaultValue={{ label: contactNameOption, value: contactOption }}
 
+                                nextFields={{ up: "district", down: `${contactOption ? contactOption?.toLowerCase() : "username"}` }}
+                            />
+                            {contactOption && (
+                                <>
+
+                                    <div className="mt-6">
+                                        <InputAction
+                                            id={contactOption.toLowerCase()}
+                                            placeholder=""
+                                            onChange={(e) => setContactDetail(e.target.value)}
+                                            value={contactDetail}
+                                            label={contactNameOption}
+                                            labelOrientation="horizontal"
+                                            onAction={handleConfirm}
+                                            classNameLabel="w-1/2"
+                                            classNameInput="w-full"
+                                            nextFields={{ up: "contact-option", down: "username" }}
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
 
-
-
-                        <div className="">
-
-                            <TextArea
-                                id="note"
-                                placeholder=""
-                                onChange={(e) => setNote(e.target.value)}
-                                value={note}
-                                label="ที่อยู่"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex "
-                                classNameInput="w-full"
-                                nextFields={{ up: "contact-option", down: `${contactOption ? contactOption?.toLowerCase() : "employee-code"}` }}
-                                require="require"
-                            />
-                        </div>
-
-                        {contactOption && (
-                            <>
-                                <div className="">
-                                    <InputAction
-                                        id={contactOption.toLowerCase()}
-                                        placeholder=""
-                                        onChange={(e) => setContactDetail(e.target.value)}
-                                        value={contactDetail}
-                                        label={contactNameOption}
-                                        labelOrientation="horizontal"
-                                        onAction={handleConfirm}
-                                        classNameLabel="w-1/2"
-                                        classNameInput="w-full"
-                                        nextFields={{ up: "contact-option", down: "employee-code" }}
-                                        require="require"
-                                    />
-                                </div>
-                            </>
-                        )}
 
                     </div>
 
                 </div>
             </div>
-
-
             <div className="flex justify-center md:justify-end space-x-5 mt-5">
                 <Buttons
                     btnType="primary"
                     variant="outline"
                     className="w-30"
+                    onClick={handleConfirm}
                 >
-                    เพิ่มพนักงานใหม่
+                    ยืนยันการแก้ไข
                 </Buttons>
-                <Link to={`/employee-details/employee1`}>
+                <Link to="/employee">
                     <Buttons
                         btnType="cancel"
                         variant="soft"

@@ -136,8 +136,8 @@ export default function TeamDetails() {
                     cells: [
                         { value: item.employee_code, className: "text-center" },
                         { value: item.first_name + " " + item.last_name, className: "text-left" },
-                        { value: item.position, className: "text-center" },
-                        { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-left" },
+                        { value: item.position ?? "-", className: "text-center" },
+                        { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-center" },
                         { value: item.employee_status?.name ?? "-", className: "text-center" }
                     ],
                     data: item,
@@ -438,7 +438,7 @@ export default function TeamDetails() {
                 confirmText="ยืนยัน"
                 cancelText="ยกเลิก"
             >
-                <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?</p>
+                <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการเอาออกจากทีม?</p>
                 <p>ชื่อ : <span className="text-red-500">{selectedItem?.first_name} {selectedItem?.last_name}</span></p>
             </DialogComponent>
         </>

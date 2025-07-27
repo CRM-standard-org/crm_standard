@@ -112,8 +112,7 @@ export default function EditTeamDetails() {
         { label: "ตำแหน่ง", colSpan: 1, className: "w-auto" },
         { label: "วันเริ่มทำงาน", colSpan: 1, className: "w-auto " },
         { label: "สถานะ", colSpan: 1, className: "w-auto" },
-        { label: "ย้าย", colSpan: 1, className: "w-auto" },
-        { label: "ลบ", colSpan: 1, className: "w-auto" },
+        { label: "เอาออก", colSpan: 1, className: "w-auto" },
     ];
     //header ของพนักงานที่ไม่มีทีม
     const headers = [
@@ -131,7 +130,7 @@ export default function EditTeamDetails() {
     if (!teamId) {
         throw Error;
     }
-    const { data: dataT, refetch: refetchTeamMember } = useTeamMember({
+    const { data: dataTeamMember, refetch: refetchTeamMember } = useTeamMember({
         team_id: teamId,
         page: page,
         pageSize: pageSize,
@@ -139,11 +138,11 @@ export default function EditTeamDetails() {
     });
 
     useEffect(() => {
-        fetchDataTeam();
-    }, [dataT])
+        fetchdataTeamMembeream();
+    }, [dataTeamMember])
 
     const fetchDataMemberInTeam = async () => {
-        const member = dataT?.responseObject?.data.member ?? [];
+        const member = dataTeamMember?.responseObject?.data.member ?? [];
         return {
             responseObject: member.map((item: TypeMemberInTeamResponse) => ({
                 id: item.employee_id,
@@ -152,12 +151,12 @@ export default function EditTeamDetails() {
             })),
         };
     };
-    const fetchDataTeam = async () => {
-        if (dataT?.responseObject) {
-            setTeamName(dataT.responseObject.data.team.team);
-            setTeamDescription(dataT.responseObject.data.team.description);
+    const fetchdataTeamMembeream = async () => {
+        if (dataTeamMember?.responseObject) {
+            setTeamName(dataTeamMember.responseObject.data.team.team);
+            setTeamDescription(dataTeamMember.responseObject.data.team.description);
 
-            const leader = dataT.responseObject.data.leader;
+            const leader = dataTeamMember.responseObject.data.leader;
             if (leader) {
                 setHeadId(leader.employee_id); // เก็บ id หัวหน้า
                 setHeadName(`${leader.first_name} ${leader.last_name ?? ""}`); // เก็บชื่อหัวหน้า
@@ -170,24 +169,24 @@ export default function EditTeamDetails() {
 
 
     useEffect(() => {
-        // console.log("Data:", dataTeamMember);
-        if (dataT?.responseObject?.data.member) {
-            const formattedData = dataT.responseObject?.data.member.map(
+        // console.log("Data:", dataTeamMembereamMember);
+        if (dataTeamMember?.responseObject?.data.member) {
+            const formattedData = dataTeamMember.responseObject?.data.member.map(
                 (item: TypeMemberInTeamResponse) => ({
                     className: "",
                     cells: [
                         { value: item.employee_code, className: "text-center" },
                         { value: item.first_name + " " + item.last_name, className: "text-left" },
-                        { value: item.position, className: "text-left" },
-                        { value: item.start_date, className: "text-left" },
-                        { value: item.employee_status, className: "text-left" },
+                        { value: item.position, className: "text-center" },
+                        { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-center" },
+                        { value: item.employee_status?.name ?? "-", className: "text-center" }
                     ],
                     data: item,
                 })
             );
             setDataMemberInTeam(formattedData);
         }
-    }, [dataT]);
+    }, [dataTeamMember]);
 
     //fetch ตัวของ employee ที่ยังไม่มีทีม
     const { data: dataEmployee, refetch: refetchEmployee } = useEmployeeNoneTeam({
@@ -349,7 +348,7 @@ export default function EditTeamDetails() {
 
     return (
         <>
-            <h1 className="text-2xl font-bold mb-3">แก้ไขข้อมูลทีม <span className="text-blue-700">{dataT?.responseObject.data.team.team}</span></h1>
+            <h1 className="text-2xl font-bold mb-3">แก้ไขข้อมูลทีม <span className="text-blue-700">{dataTeamMember?.responseObject.data.team.team}</span></h1>
 
 
             <div className="p-7 pb-5 bg-white shadow-lg rounded-lg mb-8">
@@ -476,8 +475,7 @@ export default function EditTeamDetails() {
                     onSearch={handleSearchTeamMember}
                     headers={headerTeams}
                     rowData={dataMemberInTeam}
-                    totalData={dataT?.responseObject?.data.member.length}
-                    onEdit={handleEditOpen}
+                    totalData={dataTeamMember?.responseObject?.data.member.length}
                     onDelete={handleDeleteOpen}
                     hidePagination={true}
                     headerTab={true}
@@ -508,7 +506,7 @@ export default function EditTeamDetails() {
                                 { value: item.first_name + " " + item.last_name, className: "text-left" },
                                 { value: item.position, className: "text-center" },
                                 { value: item.start_date, className: "text-center" },
-                                { value: item.employee_status.status_id, className: "text-center" },
+                                { value: item.employee_status?.status_id, className: "text-center" },
                                 {
                                     value: (
                                         item.employee_id === checkHead ? (

@@ -365,6 +365,7 @@ export default function CreateTeam() {
                     headerTab={true}
                     groupTabs={groupTabs}
                 /> */}
+                
                 <MasterTableFeature
                     title="พนักงานที่ยังไม่มีทีม"
                     hideTitleBtn={true}
@@ -386,20 +387,20 @@ export default function CreateTeam() {
                             cells: [
                                 { value: item.employee_code, className: "text-center" },
                                 { value: item.first_name + " " + item.last_name, className: "text-left" },
-                                { value: item.position, className: "text-center" },
-                                { value: item.start_date, className: "text-center" },
-                                { value: item.employee_status.status_id, className: "text-center" },
+                                { value: item.position ?? "-", className: "text-center" },
+                                { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-center" },
+                                { value: item.employee_status?.name, className: "text-center" },
                                 {
                                     value: (
                                         item.employee_id === checkHead ? (
                                             // หัวหน้าไม่ต้องมีปุ่ม
                                             <div className="text-center text-gray-400">หัวหน้าทีม</div>
-                                        ) : employees.includes(item.employee_id) ? (
+                                        ) : employees.includes(item.employee_code) ? (
                                             <Buttons
                                                 btnType="delete"
                                                 variant="soft"
                                                 className="w-30"
-                                                onClick={() => handleRemoveEmployee(item.employee_id)}
+                                                onClick={() => handleRemoveEmployee(item.employee_code)}
                                             >
                                                 <FaMinus />
                                             </Buttons>
@@ -408,7 +409,7 @@ export default function CreateTeam() {
                                                 btnType="submit"
                                                 variant="solid"
                                                 className="w-30"
-                                                onClick={() => handleAddEmployee(item.employee_id)}
+                                                onClick={() => handleAddEmployee(item.employee_code)}
                                             >
                                                 <FaPlus />
                                             </Buttons>

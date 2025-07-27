@@ -27,7 +27,6 @@ import TextArea from "@/components/customs/textAreas/textarea.main.component";
 
 //Customer Role
 import { useCustomerRole, useSelectCustomerRole } from "@/hooks/useCustomerRole";
-import { TypeRoleResponse } from "@/types/response/response.customerRole";
 
 //Character 
 import { useCustomerCharacter } from "@/hooks/useCustomerCharacter";

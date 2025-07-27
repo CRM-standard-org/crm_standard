@@ -32,6 +32,8 @@ export type AllEmployeeResponse = {
 }
 //get employee by id
 export type TypeEmployeeAddressResponse = {
+    address_id: string,
+    address: string,
     country: {
         country_id: string,
         country_name: string
@@ -55,7 +57,7 @@ export type TypeEmployeeSocialResponse = {
     detail: string
 
 }
-export type saleorder_responsible = {
+export type TypeSaleOrderResponsible = {
     sale_order_id: string,
     sale_order_number: string,
     customer: {
@@ -69,7 +71,7 @@ export type saleorder_responsible = {
     grand_total: number,
     sale_order_status: string
 }
-export type quotation_responsible = {
+export type TypeQuotationResponsible = {
     quotation_id: string,
     quotation_number: string,
     customer: {
@@ -110,8 +112,8 @@ export type TypeEmployeeResponse = {
     end_date: string | null,
     address: TypeEmployeeAddressResponse[],
     detail_social: TypeEmployeeSocialResponse[]
-    quotation_responsible: quotation_responsible[],
-    sale_order_responsible: saleorder_responsible[]
+    quotation_responsible: TypeQuotationResponsible[],
+    sale_order_responsible: TypeSaleOrderResponsible[]
 }
 
 

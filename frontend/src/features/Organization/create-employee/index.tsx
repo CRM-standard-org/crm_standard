@@ -66,6 +66,9 @@ export default function CreateEmployee() {
     // variable form edit employee 
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [passwordError, setPasswordError] = useState<boolean>(false);
+    const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+
     const [employeeCode, setEmployeeCode] = useState("");
     const [employeeRole, setEmployeeRole] = useState<string | null>(null);
 
@@ -331,11 +334,27 @@ export default function CreateEmployee() {
     };
 
     //ยืนยันไดอะล็อค
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             setUploadedFile(file);
             e.target.value = ""; // เคลียร์ input เพื่อให้เลือกไฟล์เดิมได้
+        }
+    };
+    //สำหรับป้องกันรหัสต่ำกว่า 6 ตัว
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newPassword = e.target.value;
+        setPassword(newPassword);
+
+
+        if (newPassword && newPassword.length < 6) {
+            setPasswordError(true);
+            setPasswordErrorMessage("รหัสผ่านต้องมี 6 ตัวอักษรขึ้นไป");
+        } else {
+            // ถ้าเงื่อนไขถูกต้อง ให้ล้าง error
+            setPasswordError(false);
+            setPasswordErrorMessage("");
         }
     };
     const handleConfirm = async () => {
@@ -364,7 +383,6 @@ export default function CreateEmployee() {
         }
 
 
-
         const payload: PayLoadCreateEmployee = {
             employee_code: employeeCode,
             username: username,
@@ -376,14 +394,14 @@ export default function CreateEmployee() {
             position: position,
             phone: telNo,
             social_id: contactOption ?? "",
-            detail_social: contactDetail ?? "",
+            detail: contactDetail ?? "",
             address: address ?? "",
             country_id: country,
             province_id: province,
             district_id: district,
             status_id: employeeStatus,
             team_id: team ?? "",
-            salaly: salary ?? "",
+            salary: salary ?? "",
             start_date: startDate ? dayjs(startDate).format("YYYY-MM-DD") : "",
             end_date: endDate ? dayjs(endDate).format("YYYY-MM-DD") : "",
             birthdate: birthDate ? dayjs(birthDate).format("YYYY-MM-DD") : "",
@@ -468,7 +486,7 @@ export default function CreateEmployee() {
                                 type="password"
                                 id="password"
                                 placeholder=""
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={handlePasswordChange}
                                 value={password}
                                 label="รหัสผ่าน"
                                 labelOrientation="horizontal"
@@ -476,9 +494,11 @@ export default function CreateEmployee() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 nextFields={{ up: "username", down: "employee-code" }}
-                                isError={errorFields.password}
+                                isError={passwordError}
+                                errorMessage={passwordErrorMessage}
                                 require="require"
                             />
+
                         </div>
                         <div className="">
                             <InputAction
@@ -496,7 +516,7 @@ export default function CreateEmployee() {
                                 require="require"
                             />
                         </div>
-                   
+
                         <div className="">
                             <MasterSelectComponent
                                 id="employee-role"
@@ -604,7 +624,7 @@ export default function CreateEmployee() {
 
                             />
                         </div>
-                        
+
                         <div className="">
                             <MasterSelectComponent
                                 id="employee-status"

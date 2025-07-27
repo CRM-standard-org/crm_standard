@@ -24,8 +24,8 @@ import { useAddress } from "@/hooks/useAddress";
 import { TypeAddressResponse } from "@/types/response/response.address";
 import { useResponseToOptions } from "@/hooks/useOptionType";
 import { LabelWithValue } from "@/components/ui/label";
-import { useEmployee } from "@/hooks/useEmployee";
-import { quotation_responsible, TypeEmployeeResponse } from "@/types/response/response.employee";
+import { useEmployeeById } from "@/hooks/useEmployee";
+import { TypeEmployeeResponse, TypeQuotationResponsible, TypeSaleOrderResponsible } from "@/types/response/response.employee";
 import { appConfig } from "@/configs/app.config";
 
 type dateTableType = {
@@ -34,7 +34,7 @@ type dateTableType = {
         value: any;
         className: string;
     }[];
-    data: quotation_responsible; //ตรงนี้
+    data: TypeQuotationResponsible | TypeSaleOrderResponsible;
 }[];
 
 //
@@ -53,8 +53,9 @@ export default function EmployeeDetails() {
     const [dataEmployee, setDataEmployee] = useState<TypeEmployeeResponse[]>();
 
 
+    const [activeTab, setActiveTab] = useState<string | null>('quotation'); // <-- เพิ่มบรรทัดนี้
 
-    const [filterGroup, setFilterGroup] = useState<string | null>(null);
+
     //searchText control
 
     const [searchSocial, setSearchSocial] = useState("");
@@ -63,61 +64,91 @@ export default function EmployeeDetails() {
 
 
     //fetch employee by id
-    const { data: employee, refetch: refetchEmployee } = useEmployee({ employeeId });
+    const { data: employee, refetch: refetchEmployee } = useEmployeeById({ employeeId });
 
+ 
     useEffect(() => {
+        let rawData = [];
+        let formattedData = [];
+    
+        if (activeTab === 'quotation' && employee?.responseObject?.quotation_responsible) {
+            // --- ส่วนของ ใบเสนอราคา ---
+            rawData = employee.responseObject.quotation_responsible;
+            formattedData = rawData.map((item:TypeQuotationResponsible, index:number) => ({
+                className: "",
+                cells: [
+                    { value: index + 1, className: "text-center" },
+                    {
+                        value: <div className="flex flex-col">
+                            {item.customer.company_name}
+                            <div className="flex flex-row space-x-1">
+                                {item.customer.customer_tags && item.customer.customer_tags.map((tag) => (
 
-        if (employee?.responseObject?.quotation_responsible) {
+                                    <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
+                                ))}
 
-            const formattedData = employee?.responseObject?.quotation_responsible?.map(
-                (item: quotation_responsible, index: number) => ({
-                    className: "",
-                    cells: [
-                        { value: index + 1, className: "text-center" },
-                        {
-                            value: <div className="flex flex-col">
-                                {item.customer.company_name}
-                                <div className="flex flex-row space-x-1">
-                                    {item.customer.customer_tags && item.customer.customer_tags.map((tag) => (
-
-                                        <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
-                                    ))}
-
-                                </div>
-                            </div>, className: "text-left"
-                        },
-                        { value: (<RatingShow value={item.priority} className="w-5 h-5" />), className: "text-left" },
-                        { value: item.quotation_number, className: "text-center" },
-                        {
-                            value: (
-                                <div>
+                            </div>
+                        </div>, className: "text-left"
+                    },
+                    { value: (<RatingShow value={item.priority} className="w-5 h-5" />), className: "text-left" },
+                    { value: item.quotation_number, className: "text-center" }, 
+                    { value: new Date(item.issue_date).toLocaleDateString("th-TH"), className: "text-center" },
+                    {
+                        value: (
+                            <div className="flex flex-col">
+                                {item.quotation_status}
+                                <div className="">
                                     {new Date(item.issue_date).toLocaleDateString("th-TH")}
-
                                 </div>
-                            )
-                            , className: "text-center"
-                        },
-                        {
-                            value: (
-                                <div className="flex flex-col">
-                                    {item.quotation_status}
-                                    <div className="">
-                                        {new Date(item.issue_date).toLocaleDateString("th-TH")}
-                                    </div>
+                            </div>
+                        ), className: "text-left"
+                    },
+                    { value: item.grand_total.toLocaleString(), className: "text-center" },
+                ],
+                data: item,
+            }));
+    
+        } else if (activeTab === 'saleorder' && employee?.responseObject?.sale_order_responsible) {
+            // --- ส่วนของ ใบสั่งขาย ---
+            rawData = employee.responseObject.sale_order_responsible;
+            formattedData = rawData.map((item:TypeSaleOrderResponsible, index:number) => ({
+                className: "",
+                cells: [
+                    { value: index + 1, className: "text-center" },
+                    {
+                        value: <div className="flex flex-col">
+                            {item.customer.company_name}
+                            <div className="flex flex-row space-x-1">
+                                {item.customer.customer_tags && item.customer.customer_tags.map((tag) => (
+
+                                    <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
+                                ))}
+
+                            </div>
+                        </div>, className: "text-left"
+                    },
+                    { value: (<RatingShow value={item.priority} className="w-5 h-5" />), className: "text-left" },
+                    { value: item.sale_order_number, className: "text-center" },
+                    { value: new Date(item.created_at).toLocaleDateString("th-TH"), className: "text-center" },
+                    {
+                        value: (
+                            <div className="flex flex-col">
+                                {item.sale_order_status}
+                                <div className="">
+                                    {new Date(item.created_at).toLocaleDateString("th-TH")}
                                 </div>
-                            ), className: "text-left"
-                        },
-                        { value: item.grand_total.toLocaleString(), className: "text-center" },
-
-                    ],
-                    data: item,
-                })
-
-            );
-            setData(formattedData);
+                            </div>
+                        ), className: "text-left"
+                    },
+                    { value: item.grand_total.toLocaleString(), className: "text-center" },
+                ],
+                data: item,
+            }));
         }
-    }, [employee?.responseObject?.quotation_responsible]);
-
+    
+        setData(formattedData);
+    
+    }, [employee, activeTab]); 
 
 
     const listContact = async () => {
@@ -142,62 +173,61 @@ export default function EmployeeDetails() {
         {
             id: "quotation",
             name: "ใบเสนอราคา",
-            onChange: () => setFilterGroup(null)
+            onChange: () => setActiveTab("quotation") 
         },
         {
             id: "saleorder",
             name: "ใบสั่งขาย",
-            onChange: () => setFilterGroup(null)
+            onChange: () => setActiveTab("saleorder") 
         },
-
     ];
-    const mockData = [
-        {
-            className: "",
-            cells: [
-                { value: "1", className: "text-center" },
-                {
-                    value: (
-                        <div className="flex flex-col">
-                            บริษัทจอมมี่ จำกัด
-                            <div className="flex flex-row space-x-1">
-                                <TagCustomer nameTag="B2B" color="#CC0033" />
+    // const mockData = [
+    //     {
+    //         className: "",
+    //         cells: [
+    //             { value: "1", className: "text-center" },
+    //             {
+    //                 value: (
+    //                     <div className="flex flex-col">
+    //                         บริษัทจอมมี่ จำกัด
+    //                         <div className="flex flex-row space-x-1">
+    //                             <TagCustomer nameTag="B2B" color="#CC0033" />
 
-                            </div>
-                        </div>
-                    ), className: "text-left"
-                },
-                { value: (<RatingShow value={3} className="w-5 h-5" />), className: "text-left" },
-                {
-                    value: (
-                        <div className="flex flex-col">
-                            Q#00000000000
-                            <div className="">
-                                p#11223344455
+    //                         </div>
+    //                     </div>
+    //                 ), className: "text-left"
+    //             },
+    //             { value: (<RatingShow value={3} className="w-5 h-5" />), className: "text-left" },
+    //             {
+    //                 value: (
+    //                     <div className="flex flex-col">
+    //                         Q#00000000000
+    //                         <div className="">
+    //                             p#11223344455
 
-                            </div>
-                        </div>
-                    ), className: "text-left"
-                },
-                { value: "12/2/2024", className: "text-center" },
-                {
-                    value: (
-                        <div className="flex flex-col">
-                            รับสินค้าแล้ว
-                            <div className="">
-                                16/2/2024
-                            </div>
-                        </div>
-                    ), className: "text-left"
-                },
-                { value: "", className: "text-left" },
-            ],
-            data: {
-                color_name: "Red",
-                color_id: 1,
-            },
-        }
-    ];
+    //                         </div>
+    //                     </div>
+    //                 ), className: "text-left"
+    //             },
+    //             { value: "12/2/2024", className: "text-center" },
+    //             {
+    //                 value: (
+    //                     <div className="flex flex-col">
+    //                         รับสินค้าแล้ว
+    //                         <div className="">
+    //                             16/2/2024
+    //                         </div>
+    //                     </div>
+    //                 ), className: "text-left"
+    //             },
+    //             { value: "", className: "text-left" },
+    //         ],
+    //         data: {
+    //             color_name: "Red",
+    //             color_id: 1,
+    //         },
+    //     }
+    // ];
     const headers = [
         { label: "หมายเลขการขาย", colSpan: 1, className: "min-w-20" },
         { label: "ลูกค้า", colSpan: 1, className: "min-w-40" },
@@ -208,6 +238,7 @@ export default function EmployeeDetails() {
         { label: "มูลค่า", colSpan: 1, className: "min-w-40" },
     ];
 
+    
     const profileUrl = employee?.responseObject?.profile_picture
         ? `${appConfig.baseApi}${employee?.responseObject?.profile_picture}`
         : null;
@@ -224,7 +255,7 @@ export default function EmployeeDetails() {
                         <h1 className="text-xl font-semibold">ข้อมูลพนักงาน</h1>
 
 
-                        <Link to="/edit-employee-details">
+                        <Link to={`/edit-employee-details/${employeeId}`}>
                             <Buttons
                                 btnType="primary"
                                 variant="outline"
@@ -238,6 +269,7 @@ export default function EmployeeDetails() {
                     </div>
 
                     <div className="border-b-2 border-main mb-6"></div>
+
                     <div className="flex justify-center xl:justify-start items-center space-x-4 mb-3">
                         <div className="flex items-center space-x-4">
                             <img
@@ -349,23 +381,22 @@ export default function EmployeeDetails() {
 
                             <div className="">
 
-                                <LabelWithValue label="ประเทศ" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ประเทศ" value={`${employee?.responseObject?.address[0]?.country?.country_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                            </div>
+                            <div className="">
+                                <LabelWithValue label="จังหวัด" value={`${employee?.responseObject?.address[0]?.province?.province_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+
 
                             </div>
                             <div className="">
 
-                                <LabelWithValue label="จังหวัด" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
-
-                            </div>
-                            <div className="">
-
-                                <LabelWithValue label="อำเภอ" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="อำเภอ" value={`${employee?.responseObject?.address[0]?.district?.district_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                             <div className="">
 
 
-                                <LabelWithValue label="ที่อยู่" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ที่อยู่" value={`${employee?.responseObject?.address[0]?.address|| "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                         </div>
@@ -393,10 +424,10 @@ export default function EmployeeDetails() {
                                 />
                             </div>
                             <div className="">
-                                <LabelWithValue label="ช่องทางการติดต่อ" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ช่องทางการติดต่อ" value={`${employee?.responseObject?.detail_social[0]?.social.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
                             <div className="">
-                                <LabelWithValue label="LINE" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="LINE" value={`${employee?.responseObject?.detail_social[0]?.detail ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
                             </div>
 
 

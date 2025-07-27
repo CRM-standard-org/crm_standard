@@ -81,7 +81,7 @@ export const useAllEmployee = ({
         })
     );
 };
-//get all employoee
+//get  employoee by id
 function fetchEmployees({
     employeeId,
 }: {
@@ -98,7 +98,7 @@ function fetchEmployees({
     });
 }
 
-export const useEmployee = ({
+export const useEmployeeById = ({
     employeeId
 }: {
  
