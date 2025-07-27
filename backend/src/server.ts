@@ -7,7 +7,6 @@ import path from 'path';
 
 import { env } from "@common/utils/envConfig";
 import { pino } from "pino";
-import { userRouter } from "@modules/users/userRouter";
 import { authRouter } from "@modules/auth/authRouter";
 import { employeeRouter } from "@modules/employee/employeeRouter";
 import { tagRouter } from "@modules/tag/tagRouter";
@@ -29,8 +28,6 @@ import { saleOrderRouter } from "@modules/saleOrder/saleOrderRouter";
 import { activityRouter } from "@modules/activity/activityRouter";
 import { companyRouter } from "@modules/company/companyRouter";
 
-// test case
-import { colorRouter } from "@modules/ms_color/colorRouter";
 import { roleRouter } from "@modules/role/roleRouter";
 
 const logger = pino({ name: "server start" });
@@ -45,7 +42,6 @@ app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(helmet());
 
 // Routes
-app.use("/v1/user", userRouter);
 app.use("/v1/auth", authRouter);
 app.use("/v1/tag", tagRouter);
 app.use("/v1/character", characterRouter);
@@ -67,7 +63,6 @@ app.use("/v1/sale-order", saleOrderRouter);
 app.use("/v1/activity", activityRouter);
 app.use("/v1/company", companyRouter);
 
-app.use("/v1/color", colorRouter);
 app.use("/v1/role", roleRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

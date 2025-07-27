@@ -7,66 +7,15 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Role => Admin, User, User-Box, Owner, Manager, Technician 
+// Role 
 model roles {
   role_id    String    @id @default(uuid()) @db.Uuid
   role_name  String    @unique @db.VarChar(15)
   created_at DateTime  @default(now())
   updated_at DateTime? @updatedAt
 
-  // permissions permissions[]
-  users    users[]
   employee employees[]
 }
-
-//--------------------- test ---------------------
-
-model users {
-  employee_id      String    @id @default(uuid()) @db.Uuid //
-  employee_code    String?   @unique @db.VarChar(50)
-  username         String    @unique @db.VarChar(50) // username == email
-  password         String    @db.VarChar(255)
-  is_active        Boolean   @default(true)
-  role             roles     @relation(fields: [role_id], references: [role_id])
-  role_id          String    @db.Uuid
-  email            String    @db.VarChar(50)
-  first_name       String    @db.VarChar(20)
-  last_name        String?   @db.VarChar(20)
-  birthday         String?   @db.VarChar(10)
-  phone_number     String?   @db.VarChar(10)
-  line_id          String?   @db.VarChar(20)
-  addr_number      String?   @db.VarChar(10)
-  addr_alley       String?   @db.VarChar(50)
-  addr_street      String?   @db.VarChar(100)
-  addr_subdistrict String?   @db.VarChar(50)
-  addr_district    String?   @db.VarChar(50)
-  addr_province    String?   @db.VarChar(50)
-  addr_postcode    String?   @db.VarChar(5)
-  position         String?   @db.VarChar(20)
-  remark           String?   @db.VarChar(255)
-  employee_image   String?   @db.VarChar(100)
-  created_at       DateTime  @default(now())
-  created_by       String?   @db.Uuid
-  updated_at       DateTime? @updatedAt
-  updated_by       String?   @db.Uuid
-
-  // master_color_create master_color[] @relation("ColorCreatedBy")
-  // master_color_update master_color[] @relation("ColorUpdatedBy")
-}
-
-model master_color {
-  color_id   String    @id @default(uuid()) @db.Uuid
-  color_name String
-  created_at DateTime  @default(now())
-  created_by String    @db.Uuid
-  updated_at DateTime? @updatedAt
-  updated_by String    @db.Uuid
-
-  created_by_user employees @relation("ColorCreatedBy", fields: [created_by], references: [employee_id])
-  updated_by_user employees @relation("ColorUpdatedBy", fields: [updated_by], references: [employee_id])
-}
-
-//--------------------- end test ---------------------
 
 model Company {
   company_id          String    @id @default(uuid()) @db.Uuid
@@ -127,10 +76,6 @@ model employees {
   role            roles           @relation(fields: [role_id], references: [role_id])
 
   company_update Company[] @relation("CompanyUpdatedBy")
-
-  // test
-  master_color_create master_color[] @relation("ColorCreatedBy")
-  master_color_update master_color[] @relation("ColorUpdatedBy")
 
   // customer
   customer_create Customer[] @relation("CustomerCreatedBy")

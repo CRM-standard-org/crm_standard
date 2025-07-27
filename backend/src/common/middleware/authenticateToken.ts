@@ -7,7 +7,6 @@ import { handleServiceResponse } from "@common/utils/httpHandlers";
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { verify } from "jsonwebtoken";
-import { userRepository } from "@modules/users/userRepository";
 import { authRepository } from "@modules/auth/authRepository";
 import { roleRepository } from "@modules/role/roleRepository";
 
