@@ -6,20 +6,12 @@ import { LuPencil } from "react-icons/lu";
 import MasterSelectComponent, { OptionType } from "@/components/customs/select/select.main.component";
 import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
-import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
-import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import { useColor } from "@/hooks/useColor";
 import { Link } from "react-router-dom";
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import CheckboxMainComponent from "@/components/customs/checkboxs/checkbox.main.component";

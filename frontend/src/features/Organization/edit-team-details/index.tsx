@@ -7,12 +7,7 @@ import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
@@ -22,21 +17,8 @@ import { FaMinus } from "react-icons/fa";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { Link } from "react-router-dom";
-import TextArea from "@/components/customs/textAreas/textarea.main.component";
-import TagSelectComponent from "@/components/customs/tagCustomer/tagselect.main.component";
-import { OptionColorType } from "@/components/customs/tagCustomer/tagselect.main.component";
 
-//Customer Role
-import { useCustomerRole } from "@/hooks/useCustomerRole";
 
-//Character 
-import { useCustomerCharacter } from "@/hooks/useCustomerCharacter";
-import { TypeCharacterResponse } from "@/types/response/response.customerCharacter";
-import Rating from "@/components/customs/rating/rating.main.component";
-import { setPriority } from "os";
-import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
-import RatingShow from "@/components/customs/rating/rating.show.component";
-import { LuPencil } from "react-icons/lu";
 import { useTeamMember } from "@/hooks/useTeam";
 import { deleteMemberTeam, editMemberTeam, editTeam, postTeam } from "@/services/team.service";
 

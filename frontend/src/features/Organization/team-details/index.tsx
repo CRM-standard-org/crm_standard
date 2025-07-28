@@ -7,12 +7,7 @@ import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
@@ -167,28 +162,8 @@ export default function TeamDetails() {
     }, [searchText]);
 
 
-    //ยืนยันไดอะล็อค
-    const handleConfirm = async () => {
-        if (!colorsName) {
-            showToast("กรุณาระบุสี", false);
-            return;
-        }
-        try {
-            const response = await postColor({
-                color_name: colorsName, // ใช้ชื่อ field ที่ตรงกับ type
-            });
 
-            if (response.statusCode === 200) {
-                setColorsName("");
-                showToast("สร้างรายการสีเรียบร้อยแล้ว", true);
-
-            } else {
-                showToast("รายการสีนี้มีอยู่แล้ว", false);
-            }
-        } catch {
-            showToast("ไม่สามารถสร้างรายการสีได้", false);
-        }
-    };
+ 
 
     //tabs บน headertable
     const groupTabs = [
