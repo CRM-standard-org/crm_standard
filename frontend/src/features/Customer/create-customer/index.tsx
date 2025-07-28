@@ -458,6 +458,7 @@ export default function CreateCustomer() {
             showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
             return;
         }
+        
         try {
             const response = await postCustomer({
                 company_name: company, // ใช้ชื่อ field ที่ตรงกับ type

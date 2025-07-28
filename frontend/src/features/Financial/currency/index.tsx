@@ -45,6 +45,8 @@ export default function Currency() {
   const [selectedItem, setSelectedItem] = useState<TypeCurrencyResponse | null>(null);
 
   const { showToast } = useToast();
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
   //
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -132,8 +134,15 @@ export default function Currency() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!currencyName) {
-      showToast("กรุณาระบุให้ครบทุกช่อง", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!currencyName) errorMap.currencyName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
     try {
@@ -157,15 +166,17 @@ export default function Currency() {
   };
 
   const handleEditConfirm = async () => {
-    if (!currencyName) {
-      showToast("กรุณาระบุให้ครบทุกช่อง", false);
-      return;
-    }
-    if (!selectedItem) {
-      showToast("กรุณาระบุสกุลเงิน", false);
-      return;
-    }
+    const errorMap: Record<string, boolean> = {};
 
+    if (!currencyName) errorMap.editCurrencyName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+      return;
+    }
     try {
       const response = await updateCurrency(selectedItem.currency_id, {
         currency_name: currencyName, // ใช้ชื่อ field ที่ตรงกับ type
@@ -253,21 +264,18 @@ export default function Currency() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="currency-name"
             placeholder="ชื่อสกุลเงิน"
             onChange={(e) => setCurrencyName(e.target.value)}
             value={currencyName}
             label="ชื่อสกุลเงิน"
             labelOrientation="horizontal"
             onAction={handleConfirm}
-
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.currencyName}
           />
-      
-
-    
-
         </div>
       </DialogComponent>
 
@@ -283,7 +291,7 @@ export default function Currency() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="currency-name"
             placeholder="ชื่อสกุลเงิน"
             onChange={(e) => setCurrencyName(e.target.value)}
             value={currencyName}
@@ -292,6 +300,8 @@ export default function Currency() {
             onAction={handleEditConfirm}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.editCurrencyName}
           />
      
 

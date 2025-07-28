@@ -78,8 +78,8 @@ export default function EditTeamDetails() {
     // const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [dataMemberInTeam, setDataMemberInTeam] = useState<dateTableType>([]);
 
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
-    const [selectedTags, setSelectedTags] = useState<OptionColorType[]>([]);
+
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
     const { showToast } = useToast();
     //
@@ -231,15 +231,7 @@ export default function EditTeamDetails() {
 
         }
     }, [searchTextTeamMember, searchTextEmployee]);
-    //เปิด
-    const handleCreateOpen = () => {
-
-        setIsCreateDialogOpen(true);
-    };
-    const handleEditOpen = (item: TypeMemberInTeamResponse) => {
-        setSelectedItem(item);
-        setIsEditDialogOpen(true);
-    };
+   
     const handleDeleteOpen = (item: TypeMemberInTeamResponse) => {
         setSelectedItem(item);
         setIsDeleteDialogOpen(true);
@@ -247,19 +239,22 @@ export default function EditTeamDetails() {
     };
 
     //ปิด
-    const handleCreateClose = () => {
-        setIsCreateDialogOpen(false);
-    };
-    const handleEditClose = () => {
-        setIsEditDialogOpen(false);
-    };
+   
     const handleDeleteClose = () => {
         setIsDeleteDialogOpen(false);
     };
     //ยืนยันไดอะล็อค
     const handleConfirmTeamDetails = async () => {
-        if (!teamName || !teamDescription || !headId) {
-            showToast("กรุณาระบุข้อมูลให้ครบทุกช่อง", false);
+        
+        const errorMap: Record<string, boolean> = {};
+
+        if (!teamName) errorMap.teamName = true;
+        if (!headId) errorMap.headId = true;
+ 
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
         try {
@@ -374,6 +369,8 @@ export default function EditTeamDetails() {
                                 classNameInput="w-full"
                                  nextFields={{ up: "team-detail", down: "head-team" }}
                                 require="require"
+                                isError={errorFields.teamName}
+
                             />
                         </div>
                         <div className="">
@@ -409,6 +406,8 @@ export default function EditTeamDetails() {
                                 }
                                 nextFields={{ up: "team-name", down: "team-detail" }}
                                 require="require"
+                                isError={errorFields.headId}
+
                             />
 
 
@@ -425,7 +424,6 @@ export default function EditTeamDetails() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 nextFields={{ up: "head-team", down: "team-name" }}
-                                require="require"
                             />
                         </div>
 

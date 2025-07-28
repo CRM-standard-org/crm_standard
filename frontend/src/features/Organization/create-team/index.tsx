@@ -66,6 +66,8 @@ export default function CreateTeam() {
     const [employees, setEmployees] = useState<string[]>([]);
 
     const { showToast } = useToast();
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
     //
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -173,32 +175,19 @@ export default function CreateTeam() {
 
         }
     }, [searchText]);
-    //เปิด
-    const handleCreateOpen = () => {
 
-        setIsCreateDialogOpen(true);
-    };
-
-    const handleDeleteOpen = (item: TypeAllEmployeeResponse) => {
-
-        setIsDeleteDialogOpen(true);
-
-    };
-
-    //ปิด
-    const handleCreateClose = () => {
-        setIsCreateDialogOpen(false);
-    };
-    const handleEditClose = () => {
-        setIsEditDialogOpen(false);
-    };
-    const handleDeleteClose = () => {
-        setIsDeleteDialogOpen(false);
-    };
     //ยืนยันไดอะล็อค
     const handleConfirm = async () => {
-        if (!teamName || !teamDescription || !headId) {
-            showToast("กรุณาระบุข้อมูลให้ครบทุกช่อง", false);
+       
+        const errorMap: Record<string, boolean> = {};
+
+        if (!teamName) errorMap.teamName = true;
+        if (!headId) errorMap.headId = true;
+ 
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
         try {
@@ -259,7 +248,7 @@ export default function CreateTeam() {
     ];
 
 
-   
+
 
     return (
         <>
@@ -288,6 +277,7 @@ export default function CreateTeam() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "team-detail", down: "head-team" }}
                                 require="require"
+                                isError={errorFields.teamName}
                             />
                         </div>
                         <div className="">
@@ -317,6 +307,7 @@ export default function CreateTeam() {
                                 classNameSelect="w-full"
                                 nextFields={{ up: "team-name", down: "team-detail" }}
                                 require="require"
+                                isError={errorFields.headId}
                             />
 
 
@@ -333,7 +324,6 @@ export default function CreateTeam() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 nextFields={{ up: "head-team", down: "team-name" }}
-                                require="require"
                             />
                         </div>
 
@@ -365,7 +355,7 @@ export default function CreateTeam() {
                     headerTab={true}
                     groupTabs={groupTabs}
                 /> */}
-                
+
                 <MasterTableFeature
                     title="พนักงานที่ยังไม่มีทีม"
                     hideTitleBtn={true}

@@ -44,6 +44,8 @@ export default function CustomerCharacter() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<TypeCharacterResponse | null>(null);
 
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
   const { showToast } = useToast();
   //
   const navigate = useNavigate();
@@ -70,7 +72,7 @@ export default function CustomerCharacter() {
           cells: [
             { value: index + 1, className: "text-center" },
             { value: item.character_name, className: "text-left" },
-            { value: item.character_description, className: "text-center" },
+            { value: item.character_description ?? "-", className: "text-center" },
           ],
           data: item,
         })
@@ -136,11 +138,17 @@ export default function CustomerCharacter() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!characterName || !characterDescription) {
-      showToast("กรุณาระบุให้ครบทุกช่อง", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!characterName) errorMap.characterName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
-    console.log(characterName, characterDescription)
     try {
       const response = await postCharacter({
         character_name: characterName, // ใช้ชื่อ field ที่ตรงกับ type
@@ -163,12 +171,15 @@ export default function CustomerCharacter() {
   };
 
   const handleEditConfirm = async () => {
-    if (!characterName || !characterDescription) {
-      showToast("กรุณาระบุให้ครบทุกช่อง", false);
-      return;
-    }
-    if (!selectedItem) {
-      showToast("กรุณาระบุนิสัย", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!characterName) errorMap.editCharacterName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
 
@@ -269,8 +280,11 @@ export default function CustomerCharacter() {
             label="ชื่อนิสัย"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "character-detail", down: "character-detail" }}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.characterName}
           />
 
           <InputAction
@@ -281,6 +295,7 @@ export default function CustomerCharacter() {
             label="รายละเอียดนิสัย"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "character-name", down: "character-name" }}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
           />
@@ -308,8 +323,11 @@ export default function CustomerCharacter() {
             label="ชื่อนิสัย"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "character-detail", down: "character-detail" }}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.editCharacterName}
           />
           <InputAction
             id="character-detail"
@@ -319,6 +337,7 @@ export default function CustomerCharacter() {
             label="รายละเอียดนิสัย"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "character-name", down: "character-name" }}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
           />
