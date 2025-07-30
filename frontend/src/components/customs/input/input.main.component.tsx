@@ -165,15 +165,10 @@ const InputAction: React.FC<InputActionProps> = ({
 
 
   return (
-    // style={{
-    //   display: "flex",
-    //   flexDirection: labelOrientation === "horizontal" ? "row" : "column",
-    //   alignItems: labelOrientation === "horizontal" ? "center" : undefined,
-    //   gap: labelOrientation === "horizontal" ? "0.5rem" : undefined,
-    // }}
     <div
       className={`${className || ""} flex flex-col sm:flex-row items-start sm:items-center gap-2`}
     >
+      {/* Label ยังคงเหมือนเดิม */}
       {label && (
         <label
           htmlFor={id}
@@ -184,29 +179,34 @@ const InputAction: React.FC<InputActionProps> = ({
         </label>
       )}
 
-      <TextField.Root
-        ref={inputRef}
-        className={`h-input_main ${classNameInput} ${isError ? 'ring-2 ring-red-500 animate-shake' : ''
-          }`}
-        size={size}
-        placeholder={placeholder}
-        value={value}
-        defaultValue={defaultValue}
-        max={maxValue}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        id={id}
-        disabled={disabled}
-        type={type}
-        maxLength={maxLength}
-        autoComplete="off"
-      >
-        {iconLeft && <TextField.Slot>{iconLeft}</TextField.Slot>}
-      </TextField.Root>
+      <div className="flex flex-col w-full"> 
+        <TextField.Root
+          ref={inputRef}
+          className={`h-input_main ${classNameInput} ${isError ? 'ring-2 ring-red-500 animate-shake' : ''
+            }`}
+          size={size}
+          placeholder={placeholder}
+          value={value}
+          defaultValue={defaultValue}
+          max={maxValue}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          id={id}
+          disabled={disabled}
+          type={type}
+          maxLength={maxLength}
+          autoComplete="off"
+        >
+          {iconLeft && <TextField.Slot>{iconLeft}</TextField.Slot>}
+        </TextField.Root>
 
-      {errorMessage && (
-        <div className="text-red-600 pt-1 text-sm"> {errorMessage}</div>
-      )}
+        {/* Error Message จะอยู่ในกลุ่มเดียวกับ Input แล้ว */}
+        {errorMessage && (
+          <div className="text-red-600 pt-1 text-sm"> {errorMessage}</div>
+        )}
+      </div>
+    
+
     </div>
   );
 };

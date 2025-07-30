@@ -27,7 +27,9 @@ export type TypeMemberInTeamResponse = {
     last_name: null;
     position: null;
     start_date: null;
-    employee_status: null;
+    employee_status: {
+        name:string
+    } | null;
 
 };
 

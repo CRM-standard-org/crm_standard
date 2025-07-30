@@ -3,18 +3,13 @@ import MasterTableFeature from "@/components/customs/display/master.main.compone
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-  postColor,
-  updateColor,
-  deleteColor,
-} from "@/services/color.service";
+
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useColor } from "@/hooks/useColor";
 
 //fetch tag
 import { useTag } from "@/hooks/useCustomerTag";
@@ -29,7 +24,7 @@ import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main
 import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
 import { useResponseToOptions } from "@/hooks/useOptionType";
 import { OptionType } from "@/components/customs/select/select.main.component";
-import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { TypeAllEmployeeResponse, TypeEmployeeResponse } from "@/types/response/response.employee";
 import { cancelQuotation } from "@/services/quotation.service";
 import TextArea from "@/components/customs/textAreas/textarea.main.component";
 import { TypeAllSaleOrderResponse } from "@/types/response/response.saleorder";
@@ -84,7 +79,7 @@ export default function SaleOrder() {
   const fetchDataMemberInteam = async () => {
     const employeeList = dataEmployee?.responseObject?.data ?? [];
     return {
-      responseObject: employeeList.map((item: TypeEmployeeResponse) => ({
+      responseObject: employeeList.map((item: TypeAllEmployeeResponse) => ({
         id: item.employee_id,
         name: `${item.first_name} ${item.last_name || ""}`,
       })),

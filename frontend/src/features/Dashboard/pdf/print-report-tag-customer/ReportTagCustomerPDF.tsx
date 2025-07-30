@@ -40,7 +40,7 @@ const ReportTagCustomerPDF: React.FC<ReportTagCustomerProps> = ({
                 <View style={styles.headerRow}>
                     <View style={styles.companyInfo}>
                         <Image src={companyLogoBase64} style={styles.logo} />
-                        <Text style={styles.companyName}>รายงานยอดขายประจำปี</Text>
+                        <Text style={styles.companyName}>รายงานวิเคราะห์ยอดขายตามแท็กลูกค้า</Text>
                         <Text style={styles.companySub}>บริษัท CRM Manager (DEMO)</Text>
                     </View>
                 </View>

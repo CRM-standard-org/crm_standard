@@ -1,14 +1,9 @@
-export const GET_COLOR_ALL = "/v1/color/get";
-export const GET_COLOR_ALL_NO_PAGINATION = "/v1/color/get_all";
-export const CREATE_COLOR = "/v1/color/create";
-export const UPDATE_COLOR = "/v1/color/update";
-export const DELETE_COLOR = "/v1/color/delete";
-export const SEARCH_COLOR = "/v1/color/search";
+
 
 // Auth
 export const LOGIN = "/v1/auth/login";
 export const AUTH_STATUS = "/v1/user/auth-status";
-export const LOGOUT = "/v1/user/logout";
+export const LOGOUT = "/v1/auth/logout";
 export const GET_USERNAME = "/v1/user/usernames";
 
 
@@ -82,6 +77,8 @@ export const GET_ALL_EMPLOYEE ="/v1/employee/get-employee"
 export const SELECT_RESPONSIBLE = "/v1/employee/select-responsible";
 export const SELECT_EMPLOYEE = "/v1/employee/select-employee";
 export const CREATE_EMPLOYEE = "/v1/employee/create";
+export const GET_EMPLOYEE_BY_ID = "/v1/employee/get";
+export const UPDATE_EMPLOYEE = "/v1/employee/update";
 
 //address
 export const SELECT_ADDRESS = "/v1/address/select";

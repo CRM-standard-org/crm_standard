@@ -3,12 +3,7 @@ import MasterTableFeature from "@/components/customs/display/master.main.compone
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-  postColor,
-  updateColor,
-  deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import {
   ComposedChart,
@@ -37,7 +32,7 @@ import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main
 import { pdf } from "@react-pdf/renderer";
 import ReportYearPDF from "../pdf/print-report-year/ReportYearPDF";
 
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 import { useRef } from "react";
 
 type dateTableType = {

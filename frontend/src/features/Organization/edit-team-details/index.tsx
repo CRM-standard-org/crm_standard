@@ -7,12 +7,7 @@ import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
@@ -22,28 +17,15 @@ import { FaMinus } from "react-icons/fa";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { Link } from "react-router-dom";
-import TextArea from "@/components/customs/textAreas/textarea.main.component";
-import TagSelectComponent from "@/components/customs/tagCustomer/tagselect.main.component";
-import { OptionColorType } from "@/components/customs/tagCustomer/tagselect.main.component";
 
-//Customer Role
-import { useCustomerRole } from "@/hooks/useCustomerRole";
 
-//Character 
-import { useCustomerCharacter } from "@/hooks/useCustomerCharacter";
-import { TypeCharacterResponse } from "@/types/response/response.customerCharacter";
-import Rating from "@/components/customs/rating/rating.main.component";
-import { setPriority } from "os";
-import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
-import RatingShow from "@/components/customs/rating/rating.show.component";
-import { LuPencil } from "react-icons/lu";
 import { useTeamMember } from "@/hooks/useTeam";
 import { deleteMemberTeam, editMemberTeam, editTeam, postTeam } from "@/services/team.service";
 
 
 //employee
 import { useEmployeeNoneTeam } from "@/hooks/useEmployee";
-import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { TypeAllEmployeeResponse, TypeEmployeeResponse } from "@/types/response/response.employee";
 import { TypeMemberInTeamResponse } from "@/types/response/response.team";
 
 type dateTableType = {
@@ -78,8 +60,8 @@ export default function EditTeamDetails() {
     // const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [dataMemberInTeam, setDataMemberInTeam] = useState<dateTableType>([]);
 
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
-    const [selectedTags, setSelectedTags] = useState<OptionColorType[]>([]);
+
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
     const { showToast } = useToast();
     //
@@ -112,8 +94,7 @@ export default function EditTeamDetails() {
         { label: "ตำแหน่ง", colSpan: 1, className: "w-auto" },
         { label: "วันเริ่มทำงาน", colSpan: 1, className: "w-auto " },
         { label: "สถานะ", colSpan: 1, className: "w-auto" },
-        { label: "ย้าย", colSpan: 1, className: "w-auto" },
-        { label: "ลบ", colSpan: 1, className: "w-auto" },
+        { label: "เอาออก", colSpan: 1, className: "w-auto" },
     ];
     //header ของพนักงานที่ไม่มีทีม
     const headers = [
@@ -131,7 +112,7 @@ export default function EditTeamDetails() {
     if (!teamId) {
         throw Error;
     }
-    const { data: dataT, refetch: refetchTeamMember } = useTeamMember({
+    const { data: dataTeamMember, refetch: refetchTeamMember } = useTeamMember({
         team_id: teamId,
         page: page,
         pageSize: pageSize,
@@ -139,11 +120,11 @@ export default function EditTeamDetails() {
     });
 
     useEffect(() => {
-        fetchDataTeam();
-    }, [dataT])
+        fetchdataTeamMembeream();
+    }, [dataTeamMember])
 
     const fetchDataMemberInTeam = async () => {
-        const member = dataT?.responseObject?.data.member ?? [];
+        const member = dataTeamMember?.responseObject?.data.member ?? [];
         return {
             responseObject: member.map((item: TypeMemberInTeamResponse) => ({
                 id: item.employee_id,
@@ -152,12 +133,12 @@ export default function EditTeamDetails() {
             })),
         };
     };
-    const fetchDataTeam = async () => {
-        if (dataT?.responseObject) {
-            setTeamName(dataT.responseObject.data.team.team);
-            setTeamDescription(dataT.responseObject.data.team.description);
+    const fetchdataTeamMembeream = async () => {
+        if (dataTeamMember?.responseObject) {
+            setTeamName(dataTeamMember.responseObject.data.team.team);
+            setTeamDescription(dataTeamMember.responseObject.data.team.description);
 
-            const leader = dataT.responseObject.data.leader;
+            const leader = dataTeamMember.responseObject.data.leader;
             if (leader) {
                 setHeadId(leader.employee_id); // เก็บ id หัวหน้า
                 setHeadName(`${leader.first_name} ${leader.last_name ?? ""}`); // เก็บชื่อหัวหน้า
@@ -170,24 +151,24 @@ export default function EditTeamDetails() {
 
 
     useEffect(() => {
-        // console.log("Data:", dataTeamMember);
-        if (dataT?.responseObject?.data.member) {
-            const formattedData = dataT.responseObject?.data.member.map(
+        // console.log("Data:", dataTeamMembereamMember);
+        if (dataTeamMember?.responseObject?.data.member) {
+            const formattedData = dataTeamMember.responseObject?.data.member.map(
                 (item: TypeMemberInTeamResponse) => ({
                     className: "",
                     cells: [
                         { value: item.employee_code, className: "text-center" },
                         { value: item.first_name + " " + item.last_name, className: "text-left" },
-                        { value: item.position, className: "text-left" },
-                        { value: item.start_date, className: "text-left" },
-                        { value: item.employee_status, className: "text-left" },
+                        { value: item.position, className: "text-center" },
+                        { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-center" },
+                        { value: item.employee_status?.name ?? "-", className: "text-center" }
                     ],
                     data: item,
                 })
             );
             setDataMemberInTeam(formattedData);
         }
-    }, [dataT]);
+    }, [dataTeamMember]);
 
     //fetch ตัวของ employee ที่ยังไม่มีทีม
     const { data: dataEmployee, refetch: refetchEmployee } = useEmployeeNoneTeam({
@@ -232,15 +213,7 @@ export default function EditTeamDetails() {
 
         }
     }, [searchTextTeamMember, searchTextEmployee]);
-    //เปิด
-    const handleCreateOpen = () => {
-
-        setIsCreateDialogOpen(true);
-    };
-    const handleEditOpen = (item: TypeMemberInTeamResponse) => {
-        setSelectedItem(item);
-        setIsEditDialogOpen(true);
-    };
+   
     const handleDeleteOpen = (item: TypeMemberInTeamResponse) => {
         setSelectedItem(item);
         setIsDeleteDialogOpen(true);
@@ -248,19 +221,22 @@ export default function EditTeamDetails() {
     };
 
     //ปิด
-    const handleCreateClose = () => {
-        setIsCreateDialogOpen(false);
-    };
-    const handleEditClose = () => {
-        setIsEditDialogOpen(false);
-    };
+   
     const handleDeleteClose = () => {
         setIsDeleteDialogOpen(false);
     };
     //ยืนยันไดอะล็อค
     const handleConfirmTeamDetails = async () => {
-        if (!teamName || !teamDescription || !headId) {
-            showToast("กรุณาระบุข้อมูลให้ครบทุกช่อง", false);
+        
+        const errorMap: Record<string, boolean> = {};
+
+        if (!teamName) errorMap.teamName = true;
+        if (!headId) errorMap.headId = true;
+ 
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
         try {
@@ -349,7 +325,7 @@ export default function EditTeamDetails() {
 
     return (
         <>
-            <h1 className="text-2xl font-bold mb-3">แก้ไขข้อมูลทีม <span className="text-blue-700">{dataT?.responseObject.data.team.team}</span></h1>
+            <h1 className="text-2xl font-bold mb-3">แก้ไขข้อมูลทีม <span className="text-blue-700">{dataTeamMember?.responseObject.data.team.team}</span></h1>
 
 
             <div className="p-7 pb-5 bg-white shadow-lg rounded-lg mb-8">
@@ -375,6 +351,8 @@ export default function EditTeamDetails() {
                                 classNameInput="w-full"
                                  nextFields={{ up: "team-detail", down: "head-team" }}
                                 require="require"
+                                isError={errorFields.teamName}
+
                             />
                         </div>
                         <div className="">
@@ -410,6 +388,8 @@ export default function EditTeamDetails() {
                                 }
                                 nextFields={{ up: "team-name", down: "team-detail" }}
                                 require="require"
+                                isError={errorFields.headId}
+
                             />
 
 
@@ -426,7 +406,6 @@ export default function EditTeamDetails() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 nextFields={{ up: "head-team", down: "team-name" }}
-                                require="require"
                             />
                         </div>
 
@@ -476,8 +455,7 @@ export default function EditTeamDetails() {
                     onSearch={handleSearchTeamMember}
                     headers={headerTeams}
                     rowData={dataMemberInTeam}
-                    totalData={dataT?.responseObject?.data.member.length}
-                    onEdit={handleEditOpen}
+                    totalData={dataTeamMember?.responseObject?.data.member.length}
                     onDelete={handleDeleteOpen}
                     hidePagination={true}
                     headerTab={true}
@@ -501,14 +479,14 @@ export default function EditTeamDetails() {
                     onSearch={handleSearchEmployee}
                     headers={headers}
                     rowData={
-                        (dataEmployee?.responseObject?.data ?? []).map((item: TypeEmployeeResponse) => ({
+                        (dataEmployee?.responseObject?.data ?? []).map((item: TypeAllEmployeeResponse) => ({
                             className: "",
                             cells: [
                                 { value: item.employee_code, className: "text-center" },
                                 { value: item.first_name + " " + item.last_name, className: "text-left" },
                                 { value: item.position, className: "text-center" },
                                 { value: item.start_date, className: "text-center" },
-                                { value: item.employee_status.status_id, className: "text-center" },
+                                { value: item.employee_status?.status_id, className: "text-center" },
                                 {
                                     value: (
                                         item.employee_id === checkHead ? (

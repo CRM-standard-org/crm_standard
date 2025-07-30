@@ -116,7 +116,7 @@ const ForcastSalePDF: React.FC<ForcastSalePDFProps> = ({ chartImage1, chartImage
                 <View style={styles.headerRow}>
                     <View style={styles.companyInfo}>
                         <Image src={companyLogoBase64} style={styles.logo} />
-                        <Text style={styles.companyName}>รายงานยอดขายประจำปี</Text>
+                        <Text style={styles.companyName}>รายงานพยากรณ์ยอดขาย</Text>
                         <Text style={styles.companySub}>บริษัท CRM Manager (DEMO)</Text>
                         <Text style={styles.companySubSmall}>ปี 2024</Text>
                     </View>

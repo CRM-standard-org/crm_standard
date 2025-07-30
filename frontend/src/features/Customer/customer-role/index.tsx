@@ -39,6 +39,8 @@ export default function CustomerRole() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<TypeCustomerRoleResponse | null>(null);
 
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
   const { showToast } = useToast();
   //
   const navigate = useNavigate();
@@ -63,7 +65,7 @@ export default function CustomerRole() {
           cells: [
             { value: index + 1, className: "text-center" },
             { value: item.name, className: "text-left" },
-            { value: item.description, className: "text-center" },
+            { value: item.description ?? "-", className: "text-center" },
           ],
           data: item,
         })
@@ -82,7 +84,7 @@ export default function CustomerRole() {
     { label: "ลบ", colSpan: 1, className: "min-w-10" },
   ];
 
-  
+
 
   //handle
   const handleSearch = () => {
@@ -130,8 +132,16 @@ export default function CustomerRole() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!roleName && !roleDescription) {
-      showToast("กรุณาระบุบทบาท", false);
+
+    const errorMap: Record<string, boolean> = {};
+
+    if (!roleName) errorMap.roleName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
     try {
@@ -156,15 +166,18 @@ export default function CustomerRole() {
   };
 
   const handleEditConfirm = async () => {
-    if (!roleName && !roleDescription) {
-      showToast("กรุณาระบุชื่อสี", false);
-      return;
-    }
-    if (!selectedItem) {
-      showToast("กรุณาระบุชื่อสี", false);
-      return;
-    }
+    
+    const errorMap: Record<string, boolean> = {};
 
+    if (!roleName) errorMap.editRoleName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+      return;
+    }
     try {
       const response = await updateCustomerRole(selectedItem.customer_role_id, {
         name: roleName, // ใช้ชื่อ field ที่ตรงกับ type
@@ -255,24 +268,30 @@ export default function CustomerRole() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="role-name"
             placeholder="ชื่อบทบาท"
             onChange={(e) => setRoleName(e.target.value)}
             value={roleName}
             label="ชื่อบทบาท"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "role-detail", down: "role-detail" }}
+
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+
+            isError={errorFields.roleName}
           />
           <InputAction
-            id="tag-detail"
+            id="role-detail"
             placeholder="รายละเอียดบทบาท"
             onChange={(e) => setRoleDescription(e.target.value)}
             value={roleDescription}
             label="รายละเอียดบทบาท"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "role-name", down: "role-name" }}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
           />
@@ -291,7 +310,7 @@ export default function CustomerRole() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="role-name"
             placeholder="ชื่อบทบาท"
             onChange={(e) => setRoleName(e.target.value)}
             value={roleName}
@@ -300,9 +319,13 @@ export default function CustomerRole() {
             onAction={handleEditConfirm}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            nextFields={{ up: "role-detail", down: "role-detail" }}
+            require="require"
+            isError={errorFields.editRoleName}
+
           />
           <InputAction
-            id="tag-detail"
+            id="role-detail"
             placeholder="รายละเอียดบทบาท"
             onChange={(e) => setRoleDescription(e.target.value)}
             value={roleDescription}
@@ -311,6 +334,8 @@ export default function CustomerRole() {
             onAction={handleEditConfirm}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            nextFields={{ up: "role-detail", down: "role-detail" }}
+
           />
         </div>
       </DialogComponent>

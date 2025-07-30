@@ -56,7 +56,7 @@ const DialogComponent = ({
           justify="end"
           className="w-full px-6 pt-4 pb-6 left-0 bottom-0 absolute "
         >
-          <Dialog.Close>
+          {/* <Dialog.Close> */}
             <Buttons
               btnType={confirmBtnType ?? "submit"}
               onClick={onConfirm}
@@ -64,7 +64,7 @@ const DialogComponent = ({
             >
               {confirmText}
             </Buttons>
-          </Dialog.Close>
+          {/* </Dialog.Close> */}
           <Dialog.Close>
             <Buttons btnType="cancel" onClick={onClose}>
               {cancelText}

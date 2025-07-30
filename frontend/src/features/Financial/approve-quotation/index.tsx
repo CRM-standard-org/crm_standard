@@ -3,12 +3,7 @@ import MasterTableFeature from "@/components/customs/display/master.main.compone
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-  postColor,
-  updateColor,
-  deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
@@ -19,7 +14,7 @@ import RatingShow from "@/components/customs/rating/rating.show.component";
 import { TypeAllQuotationResponse } from "@/types/response/response.quotation";
 import { useAllQuotations } from "@/hooks/useQuotation";
 import { useSelectEmployee } from "@/hooks/useEmployee";
-import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { TypeAllEmployeeResponse, TypeEmployeeResponse } from "@/types/response/response.employee";
 type dateTableType = {
   className: string;
   cells: {
@@ -68,7 +63,7 @@ export default function ApproveQuotation() {
   const fetchDataMemberInteam = async () => {
     const employeeList = dataEmployee?.responseObject?.data ?? [];
     return {
-      responseObject: employeeList.map((item: TypeEmployeeResponse) => ({
+      responseObject: employeeList.map((item: TypeAllEmployeeResponse) => ({
         id: item.employee_id,
         name: `${item.first_name} ${item.last_name || ""}`,
       })),

@@ -45,6 +45,8 @@ export default function Products() {
   const [selectedItem, setSelectedItem] = useState<TypeProductResponse | null>(null);
 
   const { showToast } = useToast();
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
   //
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,7 +77,7 @@ export default function Products() {
           cells: [
             { value: index + 1, className: "text-center" },
             { value: item.product_name, className: "text-left" },
-            { value: item.product_description, className: "text-center" },
+            { value: item.product_description ?? "-", className: "text-center" },
             { value: item.group_product.group_product_name, className: "text-center" },
             { value: item.unit.unit_name, className: "text-center" },
             { value: item.unit_price, className: "text-center" },
@@ -186,17 +188,21 @@ export default function Products() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!productName || !productDescription || !price || !group || !unit) {
-      showToast("กรุณาระบุสินค้า", false);
+
+    const errorMap: Record<string, boolean> = {};
+
+    if (!productName) errorMap.productName = true;
+    if (!price) errorMap.price = true;
+    if (!group) errorMap.group = true;
+    if (!unit) errorMap.unit = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
-    console.log({
-      product_name: productName,
-      product_description: productDescription,
-      unit_price: Number(price),
-      group_product_id: group,
-      unit_id: unit,
-    });
     try {
       const response = await postProduct({
         product_name: productName, // ใช้ชื่อ field ที่ตรงกับ type
@@ -224,21 +230,20 @@ export default function Products() {
   };
 
   const handleEditConfirm = async () => {
-    if (!productName || !productDescription || !price || !group || !unit) {
-      showToast("กรุณาระบุสินค้า", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!productName) errorMap.editProductName = true;
+    if (!price) errorMap.editPrice = true;
+    if (!group) errorMap.editGroup = true;
+    if (!unit) errorMap.editUnit = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
-    if (!selectedItem) {
-      showToast("กรุณาระบุสินค้า", false);
-      return;
-    }
-    console.log({
-      product_name: productName,
-      product_description: productDescription,
-      unit_price: price,
-      group_product_id: group,
-      unit_id: unit,
-    });
     try {
       const response = await updateProduct(selectedItem.product_id, {
         product_name: productName, // ใช้ชื่อ field ที่ตรงกับ type
@@ -336,28 +341,34 @@ export default function Products() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="product-name"
             placeholder=""
             onChange={(e) => setProductName(e.target.value)}
             value={productName}
             label="ชื่อสินค้า"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "price", down: "product-detail" }}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.productName}
           />
           <InputAction
-            id="tag-name"
+            id="product-detail"
             placeholder=""
             onChange={(e) => setProductDescription(e.target.value)}
             value={productDescription}
             label="รายละเอียดสินค้า"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "product-name", down: "group" }}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+
           />
           <MasterSelectComponent
+            id="group"
             onChange={(option) => setGroup(option ? String(option.value) : null)}
             fetchDataFromGetAPI={fetchDataGroupDropdown}
             onInputChange={handleGroupProductSearch}
@@ -367,11 +378,15 @@ export default function Products() {
             label="กลุ่มสินค้า"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "product-detail", down: "unit" }}
             classNameLabel="w-60"
             classNameSelect="w-full"
+            require="require"
+            isError={errorFields.group}
 
           />
           <MasterSelectComponent
+            id="unit"
             onChange={(option) => setUnit(option ? String(option.value) : null)}
             fetchDataFromGetAPI={fetchDataUnitDropdown}
             onInputChange={handleUnitSearch}
@@ -381,20 +396,26 @@ export default function Products() {
             label="หน่วยสินค้า"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "group", down: "price" }}
             classNameLabel="w-60"
             classNameSelect="w-full"
+            require="require"
+            isError={errorFields.unit}
           />
           <InputAction
+            id="price"
             type="number"
-            id="tag-name"
             placeholder=""
             onChange={(e) => setPrice(Number(e.target.value))}
             value={price.toString()}
             label="ราคาหน่วย"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "unit", down: "product-name" }}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.price}
           />
         </div>
       </DialogComponent>
@@ -411,28 +432,38 @@ export default function Products() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+                        id="product-name"
+
             placeholder=""
             onChange={(e) => setProductName(e.target.value)}
             value={productName}
             label="ชื่อสินค้า"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "price", down: "product-detail" }}
+
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.editProductName}
           />
           <InputAction
-            id="tag-name"
+                        id="product-detail"
+
             placeholder=""
             onChange={(e) => setProductDescription(e.target.value)}
             value={productDescription}
             label="รายละเอียดสินค้า"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "product-name", down: "group" }}
+
             classNameLabel="w-60 flex "
             classNameInput="w-full"
           />
           <MasterSelectComponent
+            id="group"
+
             onChange={(option) => setGroup(option ? String(option.value) : null)}
             fetchDataFromGetAPI={fetchDataGroupDropdown}
             onInputChange={handleGroupProductSearch}
@@ -442,11 +473,15 @@ export default function Products() {
             label="กลุ่มสินค้า"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "product-detail", down: "unit" }}
             classNameLabel="w-60"
             classNameSelect="w-full"
             defaultValue={{ label: groupName, value: group }}
+            require="require"
+            isError={errorFields.editGroup}
           />
           <MasterSelectComponent
+            id="unit"
             onChange={(option) => setUnit(option ? String(option.value) : null)}
             fetchDataFromGetAPI={fetchDataUnitDropdown}
             onInputChange={handleUnitSearch}
@@ -456,20 +491,27 @@ export default function Products() {
             label="หน่วยสินค้า"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "group", down: "price" }}
             classNameLabel="w-60"
             classNameSelect="w-full"
             defaultValue={{ label: unitName, value: unit }}
+            require="require"
+            isError={errorFields.editUnit}
           />
           <InputAction
-            id="tag-name"
+                        id="price"
+
             placeholder=""
             onChange={(e) => setPrice(Number(e.target.value))}
             value={price.toString()}
             label="ราคาหน่วย"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "unit", down: "product-name" }}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.editPrice}
           />
         </div>
       </DialogComponent>

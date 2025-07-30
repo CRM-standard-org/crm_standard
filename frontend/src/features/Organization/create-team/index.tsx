@@ -8,12 +8,7 @@ import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
@@ -38,7 +33,7 @@ import { postTeam } from "@/services/team.service";
 
 //employee
 import { useEmployeeNoneTeam } from "@/hooks/useEmployee";
-import { TypeEmployeeResponse } from "@/types/response/response.employee";
+import { TypeAllEmployeeResponse, TypeEmployeeResponse } from "@/types/response/response.employee";
 
 type dateTableType = {
     className: string;
@@ -46,7 +41,7 @@ type dateTableType = {
         value: any;
         className: string;
     }[];
-    data: TypeEmployeeResponse; //ตรงนี้
+    data: TypeAllEmployeeResponse; //ตรงนี้
 }[];
 
 //
@@ -66,6 +61,8 @@ export default function CreateTeam() {
     const [employees, setEmployees] = useState<string[]>([]);
 
     const { showToast } = useToast();
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
     //
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -90,7 +87,7 @@ export default function CreateTeam() {
     const fetchDataEmployees = async () => {
         const roleList = dataEmployee?.responseObject?.data ?? [];
         return {
-            responseObject: roleList.map((item: TypeEmployeeResponse) => ({
+            responseObject: roleList.map((item: TypeAllEmployeeResponse) => ({
                 id: item.employee_id,
                 employee_code: item.employee_code,
                 name: item.first_name + " " + item.last_name,
@@ -173,32 +170,19 @@ export default function CreateTeam() {
 
         }
     }, [searchText]);
-    //เปิด
-    const handleCreateOpen = () => {
 
-        setIsCreateDialogOpen(true);
-    };
-
-    const handleDeleteOpen = (item: TypeEmployeeResponse) => {
-
-        setIsDeleteDialogOpen(true);
-
-    };
-
-    //ปิด
-    const handleCreateClose = () => {
-        setIsCreateDialogOpen(false);
-    };
-    const handleEditClose = () => {
-        setIsEditDialogOpen(false);
-    };
-    const handleDeleteClose = () => {
-        setIsDeleteDialogOpen(false);
-    };
     //ยืนยันไดอะล็อค
     const handleConfirm = async () => {
-        if (!teamName || !teamDescription || !headId) {
-            showToast("กรุณาระบุข้อมูลให้ครบทุกช่อง", false);
+       
+        const errorMap: Record<string, boolean> = {};
+
+        if (!teamName) errorMap.teamName = true;
+        if (!headId) errorMap.headId = true;
+ 
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
         try {
@@ -259,7 +243,7 @@ export default function CreateTeam() {
     ];
 
 
-   
+
 
     return (
         <>
@@ -288,6 +272,7 @@ export default function CreateTeam() {
                                 classNameInput="w-full"
                                 nextFields={{ up: "team-detail", down: "head-team" }}
                                 require="require"
+                                isError={errorFields.teamName}
                             />
                         </div>
                         <div className="">
@@ -317,6 +302,7 @@ export default function CreateTeam() {
                                 classNameSelect="w-full"
                                 nextFields={{ up: "team-name", down: "team-detail" }}
                                 require="require"
+                                isError={errorFields.headId}
                             />
 
 
@@ -333,7 +319,6 @@ export default function CreateTeam() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 nextFields={{ up: "head-team", down: "team-name" }}
-                                require="require"
                             />
                         </div>
 
@@ -365,6 +350,7 @@ export default function CreateTeam() {
                     headerTab={true}
                     groupTabs={groupTabs}
                 /> */}
+
                 <MasterTableFeature
                     title="พนักงานที่ยังไม่มีทีม"
                     hideTitleBtn={true}
@@ -381,25 +367,25 @@ export default function CreateTeam() {
                     onSearch={handleSearch}
                     headers={headerTeams}
                     rowData={
-                        (dataEmployee?.responseObject?.data ?? []).map((item: TypeEmployeeResponse) => ({
+                        (dataEmployee?.responseObject?.data ?? []).map((item: TypeAllEmployeeResponse) => ({
                             className: "",
                             cells: [
                                 { value: item.employee_code, className: "text-center" },
                                 { value: item.first_name + " " + item.last_name, className: "text-left" },
-                                { value: item.position, className: "text-center" },
-                                { value: item.start_date, className: "text-center" },
-                                { value: item.employee_status.status_id, className: "text-center" },
+                                { value: item.position ?? "-", className: "text-center" },
+                                { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-center" },
+                                { value: item.employee_status?.name, className: "text-center" },
                                 {
                                     value: (
                                         item.employee_id === checkHead ? (
                                             // หัวหน้าไม่ต้องมีปุ่ม
                                             <div className="text-center text-gray-400">หัวหน้าทีม</div>
-                                        ) : employees.includes(item.employee_id) ? (
+                                        ) : employees.includes(item.employee_code) ? (
                                             <Buttons
                                                 btnType="delete"
                                                 variant="soft"
                                                 className="w-30"
-                                                onClick={() => handleRemoveEmployee(item.employee_id)}
+                                                onClick={() => handleRemoveEmployee(item.employee_code)}
                                             >
                                                 <FaMinus />
                                             </Buttons>
@@ -408,7 +394,7 @@ export default function CreateTeam() {
                                                 btnType="submit"
                                                 variant="solid"
                                                 className="w-30"
-                                                onClick={() => handleAddEmployee(item.employee_id)}
+                                                onClick={() => handleAddEmployee(item.employee_code)}
                                             >
                                                 <FaPlus />
                                             </Buttons>

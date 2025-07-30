@@ -6,20 +6,12 @@ import { LuPencil } from "react-icons/lu";
 import MasterSelectComponent, { OptionType } from "@/components/customs/select/select.main.component";
 import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
-import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
-import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import { useColor } from "@/hooks/useColor";
 import { Link } from "react-router-dom";
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import CheckboxMainComponent from "@/components/customs/checkboxs/checkbox.main.component";
@@ -126,15 +118,16 @@ export default function CustomerDetails() {
     const [searchCharacter, setSearchCharacter] = useState("");
 
     const [filterGroup, setFilterGroup] = useState<string | null>(null);
+    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
 
     //fetch follow quotation
-    const { data: dataFollowQuotation} = useFollowQuotation({
+    const { data: dataFollowQuotation } = useFollowQuotation({
         customerId
     });
     //fetch follow sale total
-    const { data: dataFollowSaleTotal} = useFollowSaleTotal({
+    const { data: dataFollowSaleTotal } = useFollowSaleTotal({
         customerId
-    }); 
+    });
     // fetch customer role
     const { data: dataCustomerRole, refetch: refetchRole } = useSelectCustomerRole({
         searchText: searchRole,
@@ -408,6 +401,8 @@ export default function CustomerDetails() {
         const social = contact?.detail_social.find((s) => s !== null);
         const character = contact?.customer_character.find((character) => character !== null);
 
+
+
         if (contact && social && character) {
             setSelectedContactItem(contact);
             setFirstContact(contact.name);
@@ -420,7 +415,6 @@ export default function CustomerDetails() {
             setContactOption(social?.social.social_id);
             setContactNameOption(social?.social.name);
             setContactDetail(social?.detail);
-            setContactNameOption(social?.social.name);
             setCharacter(character.character.character_id);
             setCharacterName(character.character.character_name);
 
@@ -492,9 +486,21 @@ export default function CustomerDetails() {
     };
 
     //ยืนยันไดอะล็อค
+    //สร้างผู้ติดต่อใหม่
     const handleCreateContactConfirm = async () => {
-        if (!firstContact || !telNo || !telNoExtension || !position || !email || !role || !contactOption || !contactDetail || !character) {
-            showToast("กรุณาระบุให้ครบทุกช่อง", false);
+
+        const errorMap: Record<string, boolean> = {};
+
+        if (!firstContact) errorMap.firstContact = true;
+        if (!telNo) errorMap.telNo = true;
+        if (!email) errorMap.email = true;
+        if (!role) errorMap.role = true;
+
+
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
 
@@ -531,14 +537,20 @@ export default function CustomerDetails() {
             showToast("ไม่สามารถสร้างผู้ติดต่อได้", false);
         }
     };
-
+    //แก้ไขผู้ติดต่อใหม่
     const handleEditContactConfirm = async () => {
-        if (!firstContact || !telNo || !telNoExtension || !position || !email || !role || !contactOption || !contactDetail || !character) {
-            showToast("กรุณาระบุให้ครบทุกช่อง", false);
-            return;
-        }
-        if (!selectedContactItem) {
-            showToast("กรุณาระบุแท็ก", false);
+        const errorMap: Record<string, boolean> = {};
+
+        if (!firstContact) errorMap.editFirstContact = true;
+        if (!telNo) errorMap.editTelNo = true;
+        if (!email) errorMap.editEmail = true;
+        if (!role) errorMap.editRole = true;
+
+
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
 
@@ -577,6 +589,7 @@ export default function CustomerDetails() {
             console.error(error); // Log the error for debugging
         }
     };
+    //ลบผู้ติดต่อ
     const handleDeleteContactConfirm = async () => {
         if (!selectedContactItem) {
             showToast("กรุณาระบุผู้ติดต่อที่ต้องการลบ", false);
@@ -607,13 +620,24 @@ export default function CustomerDetails() {
             showToast("ไม่สามารถลบรายการผู้ติดต่อได้", false);
         }
     };
-
+    //สร้างที่อยู่ใหม่
     const handleCreateAddressConfirm = async () => {
-        if (!placename || !address || !country || !province || !district) {
-            showToast("กรุณาระบุให้ครบทุกช่อง", false);
+
+        const errorMap: Record<string, boolean> = {};
+
+        if (!placename) errorMap.placename = true;
+        if (!address) errorMap.address = true;
+        if (!country) errorMap.country = true;
+        if (!province || provinceOptions.length === 0) { errorMap.province = true; }
+        if (!district || districtOptions.length === 0) { errorMap.district = true; }
+
+
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
-
         try {
             const response = await postCustomerAddress(customerId, {
                 customer_place_name: placename,
@@ -639,17 +663,23 @@ export default function CustomerDetails() {
             showToast("ไม่สามารถสร้างที่อยู่ใหม่ได้", false);
         }
     };
-
+    //แก้ไขที่อยู่
     const handleEditAddressConfirm = async () => {
-        if (!address || !placename || !country || !province || !district) {
-            showToast("กรุณาระบุให้ครบทุกช่อง", false);
-            return;
-        }
-        if (!selectedAddressItem) {
-            showToast("กรุณาระบุที่อยู่", false);
-            return;
-        }
+        const errorMap: Record<string, boolean> = {};
 
+        if (!placename) errorMap.editPlaceName = true;
+        if (!address) errorMap.editAddress = true;
+        if (!country) errorMap.editCountry = true;
+        if (!province || provinceOptions.length === 0) { errorMap.editProvince = true; }
+        if (!district || districtOptions.length === 0) { errorMap.editDistrict = true; }
+
+
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
+            return;
+        }
         try {
             const response = await updateCustomerAddress(customerId, {
                 address_id: selectedAddressItem.address_id,
@@ -667,7 +697,7 @@ export default function CustomerDetails() {
                 setCountry(null);
                 setProvince(null);
                 setDistrict(null);
-                setIsEditAddressOpen(false);
+                handleEditAddressClose();
                 refetchCustomer();
             } else {
                 showToast("ที่อยู่นี้มีอยู่แล้ว", false);
@@ -677,6 +707,7 @@ export default function CustomerDetails() {
             console.error(error); // Log the error for debugging
         }
     };
+    //ลบที่อยู่
     const handleDeleteAddressConfirm = async () => {
         if (!selectedAddressItem) {
             showToast("กรุณาระบุที่อยู่ที่ต้องการลบ", false);
@@ -712,7 +743,6 @@ export default function CustomerDetails() {
 
     //handle เลือกที่อยู่
     const handleSelectMainContact = async (contactId: string) => {
-
 
         setSelectedMainContact(contactId);
 
@@ -796,6 +826,9 @@ export default function CustomerDetails() {
                             <div className="mt-6">
                                 <h1 className="text-xl font-semibold mb-1">บันทึกเพิ่มเติม</h1>
                                 <div className="border-b-2 border-main mb-3"></div>
+                                <p className="ps-2 text-blue-600">
+                                    {dataCustomer?.note}
+                                </p>
                             </div>
 
                         </div>
@@ -823,8 +856,7 @@ export default function CustomerDetails() {
 
                                     </div>
                                 </div>
-                                <LabelWithValue label="ความสำคัญ" value={<RatingShow value={dataCustomer?.priority ?? 0} className="w-6 h-6" />
-                                } classNameLabel="sm:w-1/2" />
+                                <LabelWithValue label="ความสำคัญ" value={<RatingShow value={dataCustomer?.priority ?? 0} className="w-6 h-6" />} classNameLabel="sm:w-1/2" />
                             </div>
 
                         </div>
@@ -866,7 +898,7 @@ export default function CustomerDetails() {
 
                 </div>
                 {/* รายชื่อผู้ติดต่อ ที่อยู่จัดส่ง */}
-                <div className="lg:row-span-4 bg-white rounded-xl shadow-md h-[800px] lg:h-[800px] h-auto overflow-auto">
+                <div className="lg:row-span-4 bg-white rounded-xl shadow-md h-[800px] overflow-auto">
 
                     <div className="mt-4 px-5 pt-2">
                         <div className="flex justify-between items-center border-b pb-1 mb-2">
@@ -1057,7 +1089,7 @@ export default function CustomerDetails() {
                 >
                     <div className="flex flex-col space-y-5">
                         <InputAction
-                            id="contact-person"
+                            id="first-contact"
                             placeholder=""
                             onChange={(e) => setFirstContact(e.target.value)}
                             value={firstContact}
@@ -1066,9 +1098,13 @@ export default function CustomerDetails() {
                             onAction={handleCreateContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
+                            nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "character"}`, down: "telno" }}
+                            require="require"
+                            isError={errorFields.firstContact}
+
                         />
                         <InputAction
-                            id="contact-person"
+                            id="telno"
                             placeholder=""
                             onChange={(e) => setTelNo(e.target.value)}
                             value={telNo}
@@ -1077,31 +1113,39 @@ export default function CustomerDetails() {
                             onAction={handleCreateContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
+                            nextFields={{ up: "first-contact", down: "telno-extension" }}
+
+                            require="require"
+                            isError={errorFields.telNo}
+
                         />
                         <InputAction
-                            id="contact-person"
+                            id="telno-extension"
                             placeholder=""
                             onChange={(e) => setTelNoExtension(e.target.value)}
                             value={telNoExtension}
                             label="เบอร์โทรศัพท์ (ต่อ)"
                             labelOrientation="horizontal"
                             onAction={handleCreateContactConfirm}
+                            nextFields={{ up: "telno", down: "position" }}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
                         />
                         <InputAction
-                            id="contact-person"
+                            id="position"
                             placeholder=""
                             onChange={(e) => setPosition(e.target.value)}
                             value={position}
                             label="ตำแหน่ง"
                             labelOrientation="horizontal"
                             onAction={handleCreateContactConfirm}
+                            nextFields={{ up: "telno-extension", down: "email" }}
+
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
                         />
                         <InputAction
-                            id="contact-person"
+                            id="email"
                             placeholder=""
                             onChange={(e) => setEmail(e.target.value)}
                             value={email}
@@ -1110,6 +1154,10 @@ export default function CustomerDetails() {
                             onAction={handleCreateContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
+                            nextFields={{ up: "position", down: "role" }}
+                            require="require"
+                            isError={errorFields.email}
+
                         />
                         <MasterSelectComponent
                             id="role"
@@ -1125,7 +1173,9 @@ export default function CustomerDetails() {
                             onAction={handleCreateContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
-                            nextFields={{ left: "company-placename", right: "company-placename", up: "customer-tag", down: "company-email" }}
+                            require="require"
+                            nextFields={{ up: "email", down: "contact-option" }}
+                            isError={errorFields.role}
 
                         />
                         <MasterSelectComponent
@@ -1143,6 +1193,7 @@ export default function CustomerDetails() {
                             label="ช่องทางติดต่อ"
                             labelOrientation="horizontal"
                             onAction={handleCreateContactConfirm}
+                            nextFields={{ up: "role", down: `${contactOption ? contactOption?.toLowerCase() : "character"}` }}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full"
                         />
@@ -1156,6 +1207,7 @@ export default function CustomerDetails() {
                                 label={contactNameOption}
                                 labelOrientation="horizontal"
                                 onAction={handleCreateContactConfirm}
+                                nextFields={{ up: "contact-option", down: "character" }}
                                 classNameLabel="w-40 min-w-20 flex "
                                 classNameInput="w-full"
                             />
@@ -1173,6 +1225,7 @@ export default function CustomerDetails() {
                             label="นิสัยลูกค้า"
                             labelOrientation="horizontal"
                             onAction={handleCreateContactConfirm}
+                            nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}`, down: "first-contact" }}
                             classNameLabel="w-40 min-w-20 flex"
                             classNameSelect="w-full "
                         />
@@ -1191,7 +1244,7 @@ export default function CustomerDetails() {
                 >
                     <div className="flex flex-col space-y-5">
                         <InputAction
-                            id="contact-person"
+                            id="first-contact"
                             placeholder=""
                             onChange={(e) => setFirstContact(e.target.value)}
                             value={firstContact}
@@ -1200,9 +1253,12 @@ export default function CustomerDetails() {
                             onAction={handleEditContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
+                            nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "character"}`, down: "telno" }}
+                            require="require"
+                            isError={errorFields.editFirstContact}
                         />
                         <InputAction
-                            id="contact-person"
+                            id="telno"
                             placeholder=""
                             onChange={(e) => setTelNo(e.target.value)}
                             value={telNo}
@@ -1211,31 +1267,37 @@ export default function CustomerDetails() {
                             onAction={handleEditContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
+                            nextFields={{ up: "first-contact", down: "telno-extension" }}
+                            require="require"
+                            isError={errorFields.editTelNo}
                         />
                         <InputAction
-                            id="contact-person"
+                            id="telno-extension"
                             placeholder=""
                             onChange={(e) => setTelNoExtension(e.target.value)}
                             value={telNoExtension}
                             label="เบอร์โทรศัพท์ (ต่อ)"
                             labelOrientation="horizontal"
                             onAction={handleEditContactConfirm}
+                            nextFields={{ up: "telno", down: "position" }}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
+
                         />
                         <InputAction
-                            id="contact-person"
+                            id="position"
                             placeholder=""
                             onChange={(e) => setPosition(e.target.value)}
                             value={position}
                             label="ตำแหน่ง"
                             labelOrientation="horizontal"
                             onAction={handleEditContactConfirm}
+                            nextFields={{ up: "telno-extension", down: "email" }}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
                         />
                         <InputAction
-                            id="contact-person"
+                            id="email"
                             placeholder=""
                             onChange={(e) => setEmail(e.target.value)}
                             value={email}
@@ -1244,6 +1306,9 @@ export default function CustomerDetails() {
                             onAction={handleEditContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
+                            nextFields={{ up: "position", down: "role" }}
+                            require="require"
+                            isError={errorFields.editEmail}
                         />
                         <MasterSelectComponent
                             id="role"
@@ -1260,8 +1325,9 @@ export default function CustomerDetails() {
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
                             defaultValue={{ label: roleName, value: role }}
-                            nextFields={{ left: "company-placename", right: "company-placename", up: "customer-tag", down: "company-email" }}
-
+                            nextFields={{ up: "email", down: "contact-option" }}
+                            require="require"
+                            isError={errorFields.editRole}
                         />
                         <MasterSelectComponent
                             id="contact-option"
@@ -1278,6 +1344,7 @@ export default function CustomerDetails() {
                             label="ช่องทางติดต่อ"
                             labelOrientation="horizontal"
                             onAction={handleEditContactConfirm}
+                            nextFields={{ up: "role", down: `${contactOption ? contactOption?.toLowerCase() : "character"}` }}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full"
                             defaultValue={{ label: contactNameOption, value: contactOption }}
@@ -1292,6 +1359,7 @@ export default function CustomerDetails() {
                                 label={contactNameOption}
                                 labelOrientation="horizontal"
                                 onAction={handleEditContactConfirm}
+                                nextFields={{ up: "contact-option", down: "character" }}
                                 classNameLabel="w-40 min-w-20 flex "
                                 classNameInput="w-full"
                             />
@@ -1309,6 +1377,7 @@ export default function CustomerDetails() {
                             label="นิสัยลูกค้า"
                             labelOrientation="horizontal"
                             onAction={handleEditContactConfirm}
+                            nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}`, down: "first-contact" }}
                             classNameLabel="w-40 min-w-20 flex"
                             classNameSelect="w-full "
                             defaultValue={{ label: characterName, value: character }}
@@ -1337,8 +1406,9 @@ export default function CustomerDetails() {
                             onAction={handleCreateAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex  "
                             classNameInput="w-full"
-                            nextFields={{ left: "country", right: "country", up: "company-district", down: "address" }}
-
+                            nextFields={{ up: "district", down: "address" }}
+                            require="require"
+                            isError={errorFields.placename}
                         />
                         <TextArea
                             id="address"
@@ -1350,8 +1420,9 @@ export default function CustomerDetails() {
                             onAction={handleCreateAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
-                            nextFields={{ left: "province", right: "province", up: "placename", down: "team" }}
-
+                            nextFields={{ up: "placename", down: "country" }}
+                            require="require"
+                            isError={errorFields.address}
                         />
                         <DependentSelectComponent
                             id="country"
@@ -1368,8 +1439,9 @@ export default function CustomerDetails() {
                             onAction={handleCreateAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
-                            nextFields={{ left: "placename", right: "placename", up: "note", down: "province" }}
-
+                            nextFields={{up: "address", down: "province" }}
+                            require="require"
+                            isError={errorFields.country}
                         />
                         <DependentSelectComponent
                             id="province"
@@ -1385,8 +1457,9 @@ export default function CustomerDetails() {
                             onAction={handleCreateAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
-                            nextFields={{ left: "address", right: "address", up: "country", down: "district" }}
-
+                            nextFields={{up: "country", down: "district" }}
+                            require="require"
+                            isError={errorFields.province}
                         />
                         <DependentSelectComponent
                             id="district"
@@ -1403,8 +1476,9 @@ export default function CustomerDetails() {
                             onAction={handleCreateAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
-                            nextFields={{ left: "address", right: "address", up: "province", down: "responsible-telno" }}
-
+                            nextFields={{ up: "province", down: "placename" }}
+                            require="require"
+                            isError={errorFields.district}
                         />
                     </div>
                 </DialogComponent>
@@ -1430,8 +1504,9 @@ export default function CustomerDetails() {
                             onAction={handleEditAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex"
                             classNameInput="w-full"
-                            nextFields={{ left: "country", right: "country", up: "company-district", down: "address" }}
-
+                            nextFields={{ up: "district", down: "address" }}
+                            require="require"
+                            isError={errorFields.editPlaceName}
                         />
                         <TextArea
                             id="address"
@@ -1443,8 +1518,9 @@ export default function CustomerDetails() {
                             onAction={handleEditAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameInput="w-full"
-                            nextFields={{ left: "province", right: "province", up: "placename", down: "team" }}
-
+                            nextFields={{ up: "placename", down: "country" }}
+                            require="require"
+                            isError={errorFields.editAddress}
                         />
                         <DependentSelectComponent
                             id="country"
@@ -1461,8 +1537,9 @@ export default function CustomerDetails() {
                             onAction={handleEditAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
-                            nextFields={{ left: "placename", right: "placename", up: "note", down: "province" }}
-
+                            nextFields={{up: "address", down: "province" }}
+                            require="require"
+                            isError={errorFields.editCountry}
                         />
                         <DependentSelectComponent
                             id="province"
@@ -1478,8 +1555,9 @@ export default function CustomerDetails() {
                             onAction={handleEditAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
-                            nextFields={{ left: "address", right: "address", up: "country", down: "district" }}
-
+                            nextFields={{up: "country", down: "district" }}
+                            require="require"
+                            isError={errorFields.editProvince}
                         />
                         <DependentSelectComponent
                             id="district"
@@ -1496,8 +1574,9 @@ export default function CustomerDetails() {
                             onAction={handleEditAddressConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
-                            nextFields={{ left: "address", right: "address", up: "province", down: "responsible-telno" }}
-
+                            nextFields={{ up: "province", down: "placename" }}
+                            require="require"
+                            isError={errorFields.editDistrict}
                         />
                     </div>
                 </DialogComponent>
@@ -1525,7 +1604,7 @@ export default function CustomerDetails() {
                     cancelText="ยกเลิก"
                 >
                     <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการลบที่อยู่นี้?</p>
-                    <p>ชื่อ : <span className="text-red-500">{selectedAddressItem?.address}</span></p>
+                    <p>ชื่อ : <span className="text-red-500">{selectedAddressItem?.place_name}</span></p>
                 </DialogComponent>
 
             </div>

@@ -35,6 +35,8 @@ export default function ProductUnit() {
   const [selectedItem, setSelectedItem] = useState<TypeUnitResponse | null>(null);
 
   const { showToast } = useToast();
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
   //
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -42,10 +44,9 @@ export default function ProductUnit() {
   const pageSize = searchParams.get("pageSize") ?? "25";
   const [searchTextDebouce, setSearchTextDebouce] = useState("");
 
-  const [allQuotation, setAllQuotation] = useState<any[]>([]);
-  const [quotation, setQuotation] = useState<any[]>([]);
 
-  const { data: dataUnit, refetch: refetchUnit} = useUnit({
+
+  const { data: dataUnit, refetch: refetchUnit } = useUnit({
     page: page,
     pageSize: pageSize,
     searchText: searchTextDebouce,
@@ -68,7 +69,7 @@ export default function ProductUnit() {
     }
   }, [dataUnit]);
 
- 
+
   //
   const headers = [
     { label: "ลำดับ", colSpan: 1, className: "min-w-10" },
@@ -124,8 +125,15 @@ export default function ProductUnit() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!unit) {
-      showToast("กรุณาระบุหน่วยสินค้า", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!unit) errorMap.unit = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
     try {
@@ -148,12 +156,15 @@ export default function ProductUnit() {
   };
 
   const handleEditConfirm = async () => {
-    if (!unit) {
-      showToast("กรุณาระบุชื่อหน่วยสินค้า", false);
-      return;
-    }
-    if (!selectedItem) {
-      showToast("กรุณาระบุชื่อหน่วยสินค้า", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!unit) errorMap.editUnit = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
 
@@ -166,7 +177,7 @@ export default function ProductUnit() {
         showToast("แก้ไขหน่วยสินค้าเรียบร้อยแล้ว", true);
         setUnit("");
         setIsEditDialogOpen(false);
-        
+
         refetchUnit();
       } else {
         showToast("หน่วยสินค้านี้มีอยู่แล้ว", false);
@@ -247,7 +258,7 @@ export default function ProductUnit() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="unit-name"
             placeholder=""
             onChange={(e) => setUnit(e.target.value)}
             value={unit}
@@ -256,8 +267,10 @@ export default function ProductUnit() {
             onAction={handleConfirm}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.unit}
           />
-         
+
         </div>
       </DialogComponent>
 
@@ -273,7 +286,7 @@ export default function ProductUnit() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="unit-name"
             placeholder=""
             onChange={(e) => setUnit(e.target.value)}
             value={unit}
@@ -282,8 +295,10 @@ export default function ProductUnit() {
             onAction={handleEditConfirm}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.editUnit}
           />
-      
+
         </div>
       </DialogComponent>
 

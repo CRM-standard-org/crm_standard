@@ -10,12 +10,7 @@ import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
 import { IconButton, Dialog } from "@radix-ui/themes";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
@@ -27,7 +22,6 @@ import TextArea from "@/components/customs/textAreas/textarea.main.component";
 
 //Customer Role
 import { useCustomerRole, useSelectCustomerRole } from "@/hooks/useCustomerRole";
-import { TypeRoleResponse } from "@/types/response/response.customerRole";
 
 //Character 
 import { useCustomerCharacter } from "@/hooks/useCustomerCharacter";

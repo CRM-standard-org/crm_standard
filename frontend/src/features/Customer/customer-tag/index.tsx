@@ -45,6 +45,8 @@ export default function CustomerTag() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<TypeTagColorResponse | null>(null);
 
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
   const { showToast } = useToast();
   //
   const navigate = useNavigate();
@@ -70,7 +72,7 @@ export default function CustomerTag() {
           cells: [
             { value: index + 1, className: "text-center" },
             { value: item.tag_name, className: "text-left" },
-            { value: item.tag_description, className: "text-left" },
+            { value: item.tag_description ?? "-", className: "text-left" },
             {
               value: (
                 <div
@@ -148,11 +150,19 @@ export default function CustomerTag() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!tagName || !tagDetails || !tagColor) {
-      showToast("กรุณาระบุให้ครบทุกช่อง", false);
+
+    const errorMap: Record<string, boolean> = {};
+
+    if (!tagName) errorMap.tagName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
-    console.log(tagName, tagDetails, tagColor)
+
     try {
       const response = await postTag({
         tag_name: tagName, // ใช้ชื่อ field ที่ตรงกับ type
@@ -177,14 +187,18 @@ export default function CustomerTag() {
   };
 
   const handleEditConfirm = async () => {
-    if (!tagName || !tagDetails || !tagColor) {
-      showToast("กรุณาระบุให้ครบทุกช่อง", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!tagName) errorMap.editTagName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
-    if (!selectedItem) {
-      showToast("กรุณาระบุแท็ก", false);
-      return;
-    }
+
 
     try {
       const response = await updateTag(selectedItem.tag_id, {
@@ -285,8 +299,12 @@ export default function CustomerTag() {
             label="ชื่อแท็ก"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "tag-detail", down: "tag-detail" }}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.tagName}
+
           />
 
           <InputAction
@@ -297,6 +315,7 @@ export default function CustomerTag() {
             label="รายละเอียดแท็ก"
             labelOrientation="horizontal"
             onAction={handleConfirm}
+            nextFields={{ up: "tag-name", down: "tag-name" }}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
           />
@@ -325,8 +344,12 @@ export default function CustomerTag() {
             label="ชื่อแท็ก"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "tag-name", down: "tag-name" }}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.editTagName}
+
           />
           <InputAction
             id="tag-detail"
@@ -336,6 +359,7 @@ export default function CustomerTag() {
             label="รายละเอียดแท็ก"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
+            nextFields={{ up: "tag-detail", down: "tag-detail" }}
             classNameLabel="w-40 min-w-20 flex "
             classNameInput="w-full"
           />

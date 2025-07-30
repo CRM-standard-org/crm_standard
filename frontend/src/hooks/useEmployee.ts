@@ -1,4 +1,4 @@
-import { getAllEmployees, getEmployeeNoTeam, selectEmployee, selectEmployeeStatus, selectResponsible } from "@/services/employee.service";
+import { getAllEmployees, getEmployee, getEmployeeNoTeam, selectEmployee, selectEmployeeStatus, selectResponsible } from "@/services/employee.service";
 import { PayLoadFilterEmployee } from "@/types/response/response.employee";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
@@ -78,6 +78,36 @@ export const useAllEmployee = ({
             pageSize,
             searchText,
             payload,
+        })
+    );
+};
+//get  employoee by id
+function fetchEmployees({
+    employeeId,
+}: {
+    employeeId: string,
+
+}) {
+
+    return queryOptions({
+        queryKey: ["getEmployee", employeeId],
+        queryFn: () => getEmployee(employeeId),
+        staleTime: 10 * 1000,
+        refetchInterval: 10 * 1000,
+        retry: false,
+    });
+}
+
+export const useEmployeeById = ({
+    employeeId
+}: {
+ 
+    employeeId: string,
+
+}) => {
+    return useQuery(
+        fetchEmployees({
+            employeeId
         })
     );
 };

@@ -1,20 +1,11 @@
 import { useEffect, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
-import InputAction from "@/components/customs/input/input.main.component";
-// import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-  postColor,
-  updateColor,
-  deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
-import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useColor } from "@/hooks/useColor";
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import { TypeAllActivityResponse } from "@/types/response/response.activity";
 import { useAllActivities } from "@/hooks/useCustomerActivity";
@@ -38,7 +29,6 @@ type dateTableType = {
 //
 export default function CustomerActivity() {
   const [searchText, setSearchText] = useState("");
-  const [colorsName, setColorsName] = useState("");
   // const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [data, setData] = useState<dateTableType>([]);
 
@@ -411,10 +401,7 @@ const fetchDataCustomerDropdown = async () => {
 
 
   //เปิด
-  const handleCreateOpen = () => {
-    setColorsName("");
-    setIsCreateDialogOpen(true);
-  };
+ 
   const handleEditOpen = (item: TypeAllActivityResponse) => {
     navigate(`/edit-customer-activity/${item.activity_id}`);
   };
@@ -490,7 +477,6 @@ const fetchDataCustomerDropdown = async () => {
         headers={headers}
         rowData={data}
         totalData={dataActitvities?.responseObject?.totalCount}
-        onPopCreate={handleCreateOpen}
         onCreateBtn={true} // ให้มีปุ่ม create เพิ่มมารป่าว
         onCreateBtnClick={handleNavCreate}
         nameCreateBtn="+ สร้างบันทึกกิจกรรม"

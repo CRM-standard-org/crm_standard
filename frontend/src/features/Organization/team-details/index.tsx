@@ -7,12 +7,7 @@ import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
@@ -32,7 +27,6 @@ import { TypeCharacterResponse } from "@/types/response/response.customerCharact
 
 import Rating from "@/components/customs/rating/rating.main.component";
 //employee
-import { useEmployee } from "@/hooks/useEmployee";
 import { TypeEmployeeResponse } from "@/types/response/response.employee";
 
 import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
@@ -137,9 +131,9 @@ export default function TeamDetails() {
                     cells: [
                         { value: item.employee_code, className: "text-center" },
                         { value: item.first_name + " " + item.last_name, className: "text-left" },
-                        { value: item.position, className: "text-left" },
-                        { value: item.start_date, className: "text-left" },
-                        { value: item.employee_status, className: "text-left" },
+                        { value: item.position ?? "-", className: "text-center" },
+                        { value: new Date(item.start_date).toLocaleDateString("th-TH") ?? "-", className: "text-center" },
+                        { value: item.employee_status?.name ?? "-", className: "text-center" }
                     ],
                     data: item,
                 })
@@ -149,7 +143,7 @@ export default function TeamDetails() {
         fetchDataLeader();
     }, [dataTeamMember, dataLeader]);
 
-
+    console.log(dataMemberInTeam)
     const fetchDataLeader = async () => {
 
         if (dataTeamMember?.responseObject?.data.leader) {
@@ -168,28 +162,8 @@ export default function TeamDetails() {
     }, [searchText]);
 
 
-    //ยืนยันไดอะล็อค
-    const handleConfirm = async () => {
-        if (!colorsName) {
-            showToast("กรุณาระบุสี", false);
-            return;
-        }
-        try {
-            const response = await postColor({
-                color_name: colorsName, // ใช้ชื่อ field ที่ตรงกับ type
-            });
 
-            if (response.statusCode === 200) {
-                setColorsName("");
-                showToast("สร้างรายการสีเรียบร้อยแล้ว", true);
-
-            } else {
-                showToast("รายการสีนี้มีอยู่แล้ว", false);
-            }
-        } catch {
-            showToast("ไม่สามารถสร้างรายการสีได้", false);
-        }
-    };
+ 
 
     //tabs บน headertable
     const groupTabs = [
@@ -208,8 +182,7 @@ export default function TeamDetails() {
         { label: "ตำแหน่ง", colSpan: 1, className: "w-auto" },
         { label: "วันเริ่มทำงาน", colSpan: 1, className: "w-auto" },
         { label: "สถานะ", colSpan: 1, className: "w-auto" },
-        { label: "ย้าย", colSpan: 1, className: "w-auto" },
-        { label: "ลบ", colSpan: 1, className: "w-auto" },
+        { label: "เอาออก", colSpan: 1, className: "w-auto" },
     ];
     //handle
     const handleSearch = () => {
@@ -411,7 +384,6 @@ export default function TeamDetails() {
                 headers={headers}
                 rowData={dataMemberInTeam}
                 totalData={dataTeamMember?.responseObject?.data.member.length}
-                onEdit={handleEditOpen}
                 onDelete={handleDeleteOpen}
                 hidePagination={true}
                 headerTab={true}
@@ -441,7 +413,7 @@ export default function TeamDetails() {
                 confirmText="ยืนยัน"
                 cancelText="ยกเลิก"
             >
-                <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?</p>
+                <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการเอาออกจากทีม?</p>
                 <p>ชื่อ : <span className="text-red-500">{selectedItem?.first_name} {selectedItem?.last_name}</span></p>
             </DialogComponent>
         </>
