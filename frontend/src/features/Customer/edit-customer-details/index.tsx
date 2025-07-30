@@ -420,10 +420,10 @@ export default function EditCustomerDetails() {
                 navigate(`/customer-details/${customerId}`)
 
             } else {
-                showToast("ลูกค้าท่านนี้มีอยู่แล้ว", false);
+                showToast("ไม่สามารถแก้ไขลูกค้าได้", false);
             }
         } catch {
-            showToast("ไม่สามารถสร้างลูกค้าได้", false);
+            showToast("ไม่สามารถแก้ไขลูกค้าได้", false);
         }
     };
 

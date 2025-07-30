@@ -2,7 +2,7 @@
 
 // Auth
 export const LOGIN = "/v1/auth/login";
-export const AUTH_STATUS = "/v1/user/auth-status";
+export const AUTH_STATUS = "/v1/auth/auth-status";
 export const LOGOUT = "/v1/auth/logout";
 export const GET_USERNAME = "/v1/user/usernames";
 

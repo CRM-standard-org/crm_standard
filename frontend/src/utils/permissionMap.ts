@@ -1,12 +1,4 @@
 export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
-  สี: {
-    Admin: "A",
-    Owner: "A",
-    Manager: "A",
-    Technician: "A",
-    Sale: "A",
-    Accounting: "A",
-  },
   ติดตามกระบวนการขาย: {
     Admin: "A",
     Owner: "A",
@@ -20,7 +12,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Owner: "A",
     Manager: "A",
     Technician: "A",
-    Sale: "A",
+    Sale: "N",
     Accounting: "A",
   },
   คาดการณ์ยอดขาย: {
@@ -28,7 +20,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Owner: "A",
     Manager: "A",
     Technician: "A",
-    Sale: "A",
+    Sale: "N",
     Accounting: "A",
   },
   รายงาน: {
@@ -36,7 +28,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Owner: "A",
     Manager: "A",
     Technician: "A",
-    Sale: "A",
+    Sale: "N",
     Accounting: "A",
   },
   การจัดการลูกค้า: {
@@ -63,7 +55,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  บทบาทลูกค้า: {
+  นิสัย: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -71,7 +63,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  นิสัยลูกค้า: {
+  บทบาทลูกค้า: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -87,7 +79,15 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  dashboard: {
+  ช่องทางการติดต่อ: {
+    Admin: "A",
+    Owner: "N",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
+  },
+  ใบเสนอราคา: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -95,7 +95,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  วิธีการชำระเงิน:{
+  อนุมัติใบเสนอราคา: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -103,7 +103,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  สกุลเงิน:{
+  ใบสั่งขาย: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -111,7 +111,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  ใบเสนอราคา:{
+  สินค้า: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -119,7 +119,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  อนุมัติใบเสนอสินค้า:{
+  กลุ่มสินค้า: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -127,7 +127,7 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  ใบสั่งขาย:{
+  หน่วยสินค้า: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -135,7 +135,71 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  สินค้าทั้งหมด:{
+  การจัดการข้อมูลบริษัท: {
+    Admin: "A",
+    Owner: "A",
+    Manager: "A",
+    Technician: "A",
+    Sale: "N",
+    Accounting: "A",
+  },
+  พนักงาน: {
+    Admin: "A",
+    Owner: "A",
+    Manager: "A",
+    Technician: "A",
+    Sale: "N",
+    Accounting: "A",
+  },
+  การจัดการทีม: {
+    Admin: "A",
+    Owner: "A",
+    Manager: "A",
+    Technician: "A",
+    Sale: "N",
+    Accounting: "A",
+  },
+  สิทธิการเข้าถึง: {
+    Admin: "A",
+    Owner: "N",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
+  },
+  สถานะพนักงาน: {
+    Admin: "A",
+    Owner: "A",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
+  },
+  ภาษี: {
+    Admin: "A",
+    Owner: "N",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
+  },
+  สกุลเงิน: {
+    Admin: "A",
+    Owner: "N",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
+  },
+  ช่องทางการชำระเงิน: {
+    Admin: "A",
+    Owner: "N",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
+  },
+  กลุ่มโซเชียล: {
     Admin: "A",
     Owner: "A",
     Manager: "A",
@@ -143,44 +207,22 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "A",
     Accounting: "A",
   },
-  กลุ่มสินค้า:{
+  บริษัท: {
     Admin: "A",
     Owner: "A",
-    Manager: "A",
-    Technician: "A",
-    Sale: "A",
-    Accounting: "A",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
   },
-  หน่วยสินค้า:{
+  บทบาท: {
     Admin: "A",
     Owner: "A",
-    Manager: "A",
-    Technician: "A",
-    Sale: "A",
-    Accounting: "A",
+    Manager: "N",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "N",
   },
-  การจัดการข้อมูลบริษัท:{
-    Admin: "A",
-    Owner: "A",
-    Manager: "A",
-    Technician: "A",
-    Sale: "A",
-    Accounting: "A",
-  },
-  พนักงาน:{
-    Admin: "A",
-    Owner: "A",
-    Manager: "A",
-    Technician: "A",
-    Sale: "A",
-    Accounting: "A",
-  },
-  การจัดการทีม:{
-    Admin: "A",
-    Owner: "A",
-    Manager: "A",
-    Technician: "A",
-    Sale: "A",
-    Accounting: "A",
-  }
+
+  
 };

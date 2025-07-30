@@ -194,31 +194,31 @@ export default function PaymentMethod() {
       const response = await deletePayment(selectedItem.payment_method_id);
 
       if (response.statusCode === 200) {
-        showToast("ลบวิธีการชำระเงินเรียบร้อยแล้ว", true);
+        showToast("ลบช่องทางการชำระเงินเรียบร้อยแล้ว", true);
         setIsDeleteDialogOpen(false);
         setSearchParams({ page: "1", pageSize });
         refetchPayment();
       }
       else if (response.statusCode === 400) {
         if (response.message === "Color in quotation") {
-          showToast("ไม่สามารถลบวิธีการชำระเงินได้ เนื่องจากมีใบเสนอราคาอยู่", false);
+          showToast("ไม่สามารถลบช่องทางการชำระเงินได้ เนื่องจากมีใบเสนอราคาอยู่", false);
         }
         else {
-          showToast("ไม่สามารถลบวิธีการชำระเงินได้", false);
+          showToast("ไม่สามารถลบช่องทางการชำระเงินได้", false);
         }
       }
       else {
-        showToast("ไม่สามารถลบวิธีการชำระเงินได้", false);
+        showToast("ไม่สามารถลบช่องทางการชำระเงินได้", false);
       }
     } catch (error) {
-      showToast("ไม่สามารถลบวิธีการชำระเงินได้", false);
+      showToast("ไม่สามารถลบช่องทางการชำระเงินได้", false);
     }
   };
 
   return (
     <div>
       <MasterTableFeature
-        title="วิธีการชำระเงิน"
+        title="ช่องทางการชำระเงิน"
         hideTitleBtn={true}
         inputs={[
           {
@@ -238,14 +238,14 @@ export default function PaymentMethod() {
         onDelete={handleDeleteOpen}
         onCreateBtn={true}
         onCreateBtnClick={handleCreateOpen}
-        nameCreateBtn="+ เพิ่มวิธีการชำระเงิน"
+        nameCreateBtn="+ เพิ่มช่องทางการชำระเงิน"
       />
 
       {/* สร้าง */}
       <DialogComponent
         isOpen={isCreateDialogOpen}
         onClose={handleCreateClose}
-        title="สร้างวิธีการชำระเงิน"
+        title="สร้างช่องทางการชำระเงิน"
         onConfirm={handleConfirm}
         confirmText="ยืนยัน"
         cancelText="ยกเลิก"
@@ -254,10 +254,10 @@ export default function PaymentMethod() {
         <div className="flex flex-col space-y-5">
           <InputAction
             id="payment-name"
-            placeholder="ชื่อวิธีการชำระเงิน"
+            placeholder="ชื่อช่องทางการชำระเงิน"
             onChange={(e) => setPaymentMethodName(e.target.value)}
             value={paymentMethodName}
-            label="ชื่อวิธีการชำระเงิน"
+            label="ชื่อช่องทางการชำระเงิน"
             labelOrientation="horizontal"
             onAction={handleConfirm}
             classNameLabel="w-60 flex "
@@ -273,7 +273,7 @@ export default function PaymentMethod() {
       <DialogComponent
         isOpen={isEditDialogOpen}
         onClose={handleEditClose}
-        title="แก้ไขวิธีการชำระเงิน"
+        title="แก้ไขช่องทางการชำระเงิน"
         onConfirm={handleEditConfirm}
         confirmText="ยืนยัน"
         cancelText="ยกเลิก"
@@ -282,10 +282,10 @@ export default function PaymentMethod() {
         <div className="flex flex-col space-y-5">
           <InputAction
             id="payment-name"
-            placeholder="ชื่อวิธีการชำระเงิน"
+            placeholder="ชื่อช่องทางการชำระเงิน"
             onChange={(e) => setPaymentMethodName(e.target.value)}
             value={paymentMethodName}
-            label="ชื่อวิธีการชำระเงิน"
+            label="ชื่อช่องทางการชำระเงิน"
             labelOrientation="horizontal"
             onAction={handleEditConfirm}
             classNameLabel="w-60 flex "

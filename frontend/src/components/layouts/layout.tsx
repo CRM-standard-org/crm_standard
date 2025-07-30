@@ -25,14 +25,8 @@ const MainLayout = () => {
   const navigate = useNavigate();
   const { setLocalProfileData, profile } = useLocalProfileData();
 
-  //ข้อมูลบริษัท
-  const [dataCompany, setDataCompany] = useState<TypeCompanyResponse>();
-  const { data: companyDetails } = useCompany();
-  useEffect(() => {
-    if (companyDetails?.responseObject) {
-      setDataCompany(companyDetails.responseObject)
-    }
-  }, [companyDetails])
+
+ 
   const handleLogout = async () => {
     getLogout()
       .then((response) => {
@@ -77,7 +71,7 @@ const MainLayout = () => {
   const editprofile = () => {
 
     //navigate('/eidit/companies', { state: { customer_id: profile.company_id} });
-    navigate(`/edit-info-company/${dataCompany?.company_id}`);
+    // navigate(`/edit-info-company/${dataCompany?.company_id}`);
   }
 
   const rawSidebarItems = [
@@ -141,7 +135,7 @@ const MainLayout = () => {
           url: `/customer-role`,
         },
         {
-          title: "นิสัยลูกค้า",
+          title: "นิสัย",
           url: `/customer-character`,
         },
         {
@@ -161,7 +155,7 @@ const MainLayout = () => {
           url: `/quotation`,
         },
         {
-          title: "อนุมัติใบเสนอสินค้า",
+          title: "อนุมัติใบเสนอราคา",
           url: `/approve-quotation`,
         },
         {
@@ -169,7 +163,7 @@ const MainLayout = () => {
           url: `/sale-order`,
         },
         {
-          title: "วิธีการชำระเงิน",
+          title: "ช่องทางการชำระเงิน",
           url: `/payment-method`,
         },
         {
@@ -185,7 +179,7 @@ const MainLayout = () => {
       disable: true,
       items: [
         {
-          title: "สินค้าทั้งหมด",
+          title: "สินค้า",
           url: `/products`,
         },
         {
@@ -259,9 +253,9 @@ const MainLayout = () => {
     ],
     sidebarFooter: {
       profile: {
-        name: (dataCompany?.name_th ?? ""),
+        name:  "",
         // avatar: profile?.image_url ?? "/images/avatar2.png",
-        avatar: `${appConfig.baseApi}${dataCompany?.logo}`,
+        avatar: "/images/avatar2.png",
       },
       items: [
         {
