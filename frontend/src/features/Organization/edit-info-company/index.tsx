@@ -347,7 +347,6 @@ export default function EditInfoCompany() {
                                             <img
                                                 src={`${appConfig.baseApi}${dataCompany.logo}`}
                                                 alt="Company Logo"
-                                                crossOrigin="anonymous"
                                                 className="w-full h-full object-cover rounded-full"
                                             />
                                         ) : (

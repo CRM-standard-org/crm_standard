@@ -1,9 +1,13 @@
 import { Avatar, Box, Flex, Link, Text } from "@radix-ui/themes";
 import { useLocalProfileData } from "@/zustand/useProfile";
 import SidebarTriggerCustom from "@/components/customs/button/sidebarTriggerCustom";
+import { appConfig } from "@/configs/app.config";
 
 const NavbarProfileInfo = () => {
   const { profile } = useLocalProfileData();
+  const profilePicture = profile?.profile_picture ?
+    `${appConfig.baseApi}${profile?.profile_picture}`
+    : null;
   return (
     // <HoverCard.Root>
     //   <HoverCard.Trigger>
@@ -30,7 +34,7 @@ const NavbarProfileInfo = () => {
       <Box className=" relative">
         <Box className=" w-3 h-3 rounded-full bg-green-600 absolute border-white border-2 bottom-0 right-0"></Box>
         <Avatar
-          src="/images/avatar2.png"
+          src={profilePicture || "/images/avatar2.png"}
           fallback={"/images/avatar2.png"}
           size={"2"}
         />

@@ -21,6 +21,7 @@ import { deleteCustomer } from "@/services/customer.service";
 import { useTeam } from "@/hooks/useTeam";
 import { TypeTeamResponse } from "@/types/response/response.team";
 import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
+import { TypeAllEmployeeResponse } from "@/types/response/response.employee";
 type dateTableType = {
   className: string;
   cells: {
@@ -81,16 +82,16 @@ export default function ManageCustomer() {
     setSearchTeam(searchText);
     refetchTeam();
   };
-  //fetch Member in team 
-  const { data: dataTeamMember, refetch: refetchTeamMember } = useSelectResponsible({
-    team_id: teamId ?? "",
+  //fetch Employee
+
+  const { data: dataEmployee, refetch: refetchEmployee } = useSelectEmployee({
     searchText: searchEmployee,
   });
 
   const fetchDataMemberInteam = async () => {
-    const member = dataTeamMember?.responseObject.data ?? [];
+    const employeeList = dataEmployee?.responseObject?.data ?? [];
     return {
-      responseObject: member.map((item) => ({
+      responseObject: employeeList.map((item: TypeAllEmployeeResponse) => ({
         id: item.employee_id,
         name: `${item.first_name} ${item.last_name || ""}`,
       })),
@@ -99,8 +100,9 @@ export default function ManageCustomer() {
 
   const handleEmployeeSearch = (searchText: string) => {
     setSearchEmployee(searchText);
-    refetchTeam();
+    refetchEmployee();
   };
+
   //fetch ข้อมูล tag ลูกค้า
 
   const { data: dataTag, refetch: refetchTag } = useSelectTag({

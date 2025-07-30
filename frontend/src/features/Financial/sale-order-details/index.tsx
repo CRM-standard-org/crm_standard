@@ -650,7 +650,6 @@ export default function SaleOrderDetails() {
                                                     src={fileUrl}
                                                     alt={`preview-${index}`}
                                                     className="w-full h-full object-cover rounded cursor-pointer"
-                                                    crossOrigin="anonymous"
                                                     onClick={() => setPreviewImage(fileUrl)}
                                                 />
                                             </div>
@@ -666,7 +665,6 @@ export default function SaleOrderDetails() {
                                                 src={previewImage}
                                                 className="max-h-[80vh] object-contain"
                                                 alt="Full preview"
-                                                crossOrigin="anonymous"
                                             />
                                         </Dialog.Content>
                                     </Dialog.Root>
@@ -932,7 +930,6 @@ export default function SaleOrderDetails() {
                                         src={fileUrl}
                                         alt={`preview-${index}`}
                                         className="w-full h-full object-cover rounded cursor-pointer"
-                                        crossOrigin="anonymous"
                                         onClick={() => setPreviewImage(fileUrl)}
                                     />
                                 </div>
@@ -955,7 +952,6 @@ export default function SaleOrderDetails() {
                                 src={previewImage}
                                 className="max-h-[80vh] object-contain"
                                 alt="Full preview"
-                                crossOrigin="anonymous"
                             />
                         </Dialog.Content>
                     </Dialog.Root>

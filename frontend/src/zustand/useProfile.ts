@@ -1,42 +1,25 @@
-import { MS_USER_ALL } from "@/types/response/response.user";
+import { TypeAuth } from "@/types/response/response.auth"; 
 import { create } from "zustand";
 
 interface LocalProfileData {
-  profile: MS_USER_ALL;
-  setLocalProfileData: (data: MS_USER_ALL) => void;
+  profile: TypeAuth;
+  setLocalProfileData: (data: TypeAuth) => void;
 }
 
-// Define a default user profile
-const defaultProfile: MS_USER_ALL = {
+const defaultProfile: TypeAuth = {
   employee_id: "",
-  username: "",
-  password: "",
-  email: "",
   first_name: "",
   last_name: "",
-  role_id: "",
-  birthday: undefined,
-  phone_number: "",
-  line_id: "",
-  addr_number: "",
-  addr_alley: "",
-  addr_street: "",
-  addr_subdistrict: "",
-  addr_district: "",
-  addr_province: "",
-  addr_postcode: "",
-  position: "",
-  remark: "",
-  created_at: undefined,
-  updated_at: undefined,
-  created_by: "",
-  updated_by: "",
-  role: undefined,
+  role: {
+    role_id: "",
+    role_name: "",
+  },
+  profile_picture: "",
 };
 
 export const useLocalProfileData = create<LocalProfileData>()((set) => ({
   profile: defaultProfile,
-  setLocalProfileData: (data: MS_USER_ALL) => {
+  setLocalProfileData: (data: TypeAuth) => {
     set({ profile: data });
   },
 }));

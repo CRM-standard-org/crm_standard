@@ -509,7 +509,6 @@ export default function EditEmployeeDetails() {
                                 <img
                                     src={`${appConfig.baseApi}${employee?.responseObject?.profile_picture}`}
                                     alt="Profile"
-                                    crossOrigin="anonymous"
                                     className="w-full h-full object-cover rounded-full"
                                 />
                             ) : (

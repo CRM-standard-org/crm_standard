@@ -12,9 +12,10 @@ import { useAllActivities } from "@/hooks/useCustomerActivity";
 import { deleteActivity } from "@/services/activity.service";
 import { useTeam } from "@/hooks/useTeam";
 import { TypeTeamResponse } from "@/types/response/response.team";
-import { useSelectResponsible } from "@/hooks/useEmployee";
+import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
 import { useAllCustomer } from "@/hooks/useCustomer";
 import { TypeAllCustomerResponse } from "@/types/response/response.customer";
+import { TypeAllEmployeeResponse } from "@/types/response/response.employee";
 
 
 type dateTableType = {
@@ -215,16 +216,16 @@ const fetchDataCustomerDropdown = async () => {
     setSearchTeam(searchText);
     refetchTeam();
   };
-  //fetch Member in team 
-  const { data: dataTeamMember, refetch: refetchTeamMember } = useSelectResponsible({
-    team_id: teamId ?? "",
+   //fetch Employee
+
+   const { data: dataEmployee, refetch: refetchEmployee } = useSelectEmployee({
     searchText: searchEmployee,
   });
 
   const fetchDataMemberInteam = async () => {
-    const member = dataTeamMember?.responseObject.data ?? [];
+    const employeeList = dataEmployee?.responseObject?.data ?? [];
     return {
-      responseObject: member.map((item) => ({
+      responseObject: employeeList.map((item: TypeAllEmployeeResponse) => ({
         id: item.employee_id,
         name: `${item.first_name} ${item.last_name || ""}`,
       })),
@@ -233,8 +234,9 @@ const fetchDataCustomerDropdown = async () => {
 
   const handleEmployeeSearch = (searchText: string) => {
     setSearchEmployee(searchText);
-    refetchTeam();
+    refetchEmployee();
   };
+
   const dropdown = [
     {
       placeholder: "ลูกค้า",

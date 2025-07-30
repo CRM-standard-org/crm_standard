@@ -1875,7 +1875,6 @@ export default function EditInfoQuotation() {
                                                     src={fileUrl}
                                                     alt={`preview-${index}`}
                                                     className="w-full h-full object-cover rounded cursor-pointer"
-                                                    crossOrigin="anonymous"
                                                     onClick={() => setPreviewImage(fileUrl)}
                                                 />
                                             )}

@@ -2151,7 +2151,6 @@ export default function EditSaleOrder() {
                                                     src={fileUrl}
                                                     alt={`preview-${index}`}
                                                     className="w-full h-full object-cover rounded cursor-pointer"
-                                                    crossOrigin="anonymous"
                                                     onClick={() => setPreviewImage(fileUrl)}
                                                 />
                                             )}
@@ -2978,7 +2977,6 @@ export default function EditSaleOrder() {
                                         src={fileUrl}
                                         alt={`preview-${index}`}
                                         className="w-full h-full object-cover rounded cursor-pointer"
-                                        crossOrigin="anonymous"
                                         onClick={() => setPreviewImage(fileUrl)}
                                     />
                                 </div>
@@ -3001,7 +2999,6 @@ export default function EditSaleOrder() {
                                 src={previewImage}
                                 className="max-h-[80vh] object-contain"
                                 alt="Full preview"
-                                crossOrigin="anonymous"
                             />
                         </Dialog.Content>
                     </Dialog.Root>

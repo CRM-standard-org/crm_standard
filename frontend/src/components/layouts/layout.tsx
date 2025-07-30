@@ -17,8 +17,6 @@ import { FaCalendarDay } from "react-icons/fa";
 import { useLocalProfileData } from "@/zustand/useProfile";
 import { permissionMap } from "@/utils/permissionMap";
 import PermissionRedirect from "@/utils/permissionRedirect";
-import { useCompany } from "@/hooks/useCompany";
-import { TypeCompanyResponse } from "@/types/response/response.company";
 import { appConfig } from "@/configs/app.config";
 
 const MainLayout = () => {
@@ -26,7 +24,7 @@ const MainLayout = () => {
   const { setLocalProfileData, profile } = useLocalProfileData();
 
 
- 
+
   const handleLogout = async () => {
     getLogout()
       .then((response) => {
@@ -48,25 +46,18 @@ const MainLayout = () => {
   useEffect(() => {
     getAuthStatus()
       .then((response) => {
-        if (response.statusCode === 200) {
-          if (response.message == "Authentication required") {
-            navigate("/login");
-          }
+        if (response.statusCode === 200 && response.responseObject) {
+          setLocalProfileData(response.responseObject);
+        } else if (response.message === "Authentication required") {
+          navigate("/login");
         }
       })
       .catch((error) => {
         console.error("Error checking authentication status:", error.message);
+
+        navigate("/login");
       });
-
-
-
-    // getUserProfie().then((res) => {
-    //   if (res.responseObject) {
-    //     setLocalProfileData(res.responseObject);
-    //     console.log("response", res);
-    //   }
-    // });
-  }, []);
+  }, [navigate, setLocalProfileData]);
 
   const editprofile = () => {
 
@@ -214,6 +205,10 @@ const MainLayout = () => {
 
   ];
 
+  const profilePicture = profile?.profile_picture ?
+    `${appConfig.baseApi}${profile?.profile_picture}`
+    : null;
+
   // ฟังก์ชันกรองเฉพาะเมนูที่ role ของ user มีสิทธิ์ (A หรือ R)
   const filteredSidebarItems = rawSidebarItems
     .map((item) => {
@@ -253,9 +248,9 @@ const MainLayout = () => {
     ],
     sidebarFooter: {
       profile: {
-        name:  "",
-        // avatar: profile?.image_url ?? "/images/avatar2.png",
-        avatar: "/images/avatar2.png",
+
+        name: `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`,
+        avatar: profilePicture ?? "/images/avatar2.png",
       },
       items: [
         {
@@ -265,7 +260,6 @@ const MainLayout = () => {
             console.log("logout");
             handleLogout();
           },
-
         },
         {
           icon: <IoIosLogOut className="text-theme-yellow" />,
@@ -275,7 +269,6 @@ const MainLayout = () => {
             editprofile();
           },
         },
-
       ],
     },
   };
@@ -295,7 +288,7 @@ const MainLayout = () => {
       >
         <NavbarMain />
         <SidebarComponent data={dataSidebar} />
-        
+      
         <SidebarInset className="m-0 p-0 bg-[#F6F7F9] w-full max-w-full">
           {/* <header className="clas flex shrink-0 items-center gap-2">
             <div className="flex items-center gap-2 p-4">
