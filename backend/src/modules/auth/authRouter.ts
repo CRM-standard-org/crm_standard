@@ -25,7 +25,6 @@ export const authRouter = (() => {
 
     router.get("/auth-status", authenticateToken, async (req: Request, res: Response) => {
         const employee_id = req.token.payload.uuid;
-        console.log("employee_id", employee_id);
         const ServiceResponse = await authService.authStatus(req, employee_id);
         handleServiceResponse(ServiceResponse, res);
     })

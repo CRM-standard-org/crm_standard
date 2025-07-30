@@ -65,7 +65,17 @@ app.use("/v1/company", companyRouter);
 
 app.use("/v1/role", roleRouter);
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    setHeaders: (res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin"); // สำคัญสำหรับรูป
+    },
+  })
+);
 
 app.use(errorHandler());
 export { app, logger };
