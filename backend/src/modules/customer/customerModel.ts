@@ -57,8 +57,8 @@ export type TypePayloadCustomer = {
 export type TypePayloadCompany = {
     company_name : string;
     type : string;
-    email : string;
-    phone : string;
+    company_email : string;
+    company_phone : string;
     tax_id : string;
     note : string;
     priority : number;
@@ -144,8 +144,8 @@ export const UpdateSchema = z.object({
     body: z.object({
         company_name: z.string().min(1).max(50).optional(),
         type: z.string().max(50).optional(),
-        email: z.string().max(50).optional(),
-        phone: z.string().max(15).optional(),
+        company_email: z.string().max(50).optional(),
+        company_phone: z.string().max(15).optional(),
         tax_id: z.string().max(50).optional(),
         note: z.string().max(50).optional(),
         priority: z.number().min(1).max(5).optional(),
@@ -155,9 +155,9 @@ export const UpdateSchema = z.object({
         employee_id: z.string().min(1).max(50).optional(),
         place_name: z.string().max(50).optional(),
         address: z.string().max(50).optional(),
-        country_id: z.string().min(1).max(50).optional(),
-        province_id: z.string().min(1).max(50).optional(),
-        district_id: z.string().min(1).max(50).optional(),
+        country_id: z.string().max(50).optional(),
+        province_id: z.string().max(50).optional(),
+        district_id: z.string().max(50).optional(),
         tag_id: z.array(z.string().min(1)).optional(),
     })
 })

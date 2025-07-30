@@ -292,10 +292,14 @@ export const customerRepository = {
 
     update: async (cust_id: string , payload: TypePayloadCompany, employee_id: string) => {
         const setForm = Object.fromEntries(
-            Object.entries(payload).map(([key,value]) => [
-                key,
-                typeof value === 'string' ? value.trim() : value    
-            ])
+            Object.entries(payload).map(([key, value]) => {
+                if (typeof value === 'string') {
+                const trimmed = value.trim();
+                return [key, trimmed === '' ? null : trimmed];
+                }
+                // หากเป็น undefined ให้แปลงเป็น null
+                return [key, value === undefined ? null : value];
+            })
         ) as TypePayloadCompany;
         cust_id = cust_id.trim();
         employee_id = employee_id.trim();
@@ -329,8 +333,8 @@ export const customerRepository = {
             data: {
                 company_name: setForm.company_name,
                 type: setForm.type,
-                email: setForm.email,
-                phone: setForm.phone,
+                email: setForm.company_email,
+                phone: setForm.company_phone,
                 tax_id: setForm.tax_id,
                 note: setForm.note,
                 priority: setForm.priority,

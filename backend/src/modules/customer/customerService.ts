@@ -103,8 +103,8 @@ export const customerService = {
             const {
                 company_name ,
                 type ,
-                email ,
-                phone ,
+                company_email ,
+                company_phone ,
                 tax_id ,
                 note ,
                 priority ,
@@ -117,15 +117,15 @@ export const customerService = {
                 country_id ,
                 province_id ,
                 district_id ,
-            } = { ...checkCustomer , ...payload } as TypePayloadCompany;
+            } = { ...checkCustomer , ...payload } 
 
             const data = await customerRepository.update(
                 cust_id , 
                 {
                     company_name ,
                     type ,
-                    email ,
-                    phone ,
+                    company_email: company_email ?? checkCustomer.email ,
+                    company_phone:  company_phone ?? checkCustomer.phone ,
                     tax_id ,
                     note ,
                     priority ,

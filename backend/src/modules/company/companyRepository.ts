@@ -87,7 +87,7 @@ export const companyRepository = {
 
         const check = await prisma.company.findFirst({ where: { company_id } });
 
-        if(files && files.length == 1){
+        if(check && files && files.length == 1){
             fs.unlink(`src${check?.logo}`, (err: Error) => {
                 if (err) console.log("not found file", err);
             });

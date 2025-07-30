@@ -1,0 +1,2551 @@
+{
+	"info": {
+		"_postman_id": "137a8a73-0c02-4bb3-b77e-ba775438fe98",
+		"name": "CRM",
+		"description": "# **ตัวของ users ไม่ได้ใช้ ให้ไปใช้ของ employee**",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "36305586"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "Log in",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"myzero0139@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/auth/login"
+					},
+					"response": []
+				},
+				{
+					"name": "Log out",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"myzero0139@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/auth/logout"
+					},
+					"response": []
+				},
+				{
+					"name": "auth status",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"myzero0139@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/auth/auth-status"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tag",
+			"item": [
+				{
+					"name": "create tag",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tag_name\": \"B2C\",\r\n  \"color\": \"#12344\",\r\n  \"tag_description\": \"bla lalalala\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/tag/create"
+					},
+					"response": []
+				},
+				{
+					"name": "list all tag",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/tag/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "select tag",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/v1/tag/select?search=B",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"v1",
+								"tag",
+								"select"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "B"
+								}
+							]
+						},
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "list tag",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/tag/get/26e29da4-2915-4a69-85bd-7be03aabd821"
+					},
+					"response": []
+				},
+				{
+					"name": "edit tag",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"tag_name\" : \"B2B\",\r\n  \"color\" : \"#13146\",\r\n  \"tag_description\": \"sss\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/tag/update/b0e644b6-a014-495d-bae5-333ca45d7438"
+					},
+					"response": []
+				},
+				{
+					"name": "delete tag",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/tag/delete/26e29da4-2915-4a69-85bd-7be03aabd821"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "group product",
+			"item": [
+				{
+					"name": "create group product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"group_product_name\": \"เหล็กกa\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/group-product/create"
+					},
+					"response": []
+				},
+				{
+					"name": "list all group product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/group-product/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "select group product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/group-product/select",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "list group product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/group-product/get/12ddf7f6-5c54-4f02-9101-dfad508a038d"
+					},
+					"response": []
+				},
+				{
+					"name": "edit group product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"group_product_name\": \"เหล็ก1\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/group-product/update/4dbad79d-a77a-4a42-9c40-72d9ad538e24"
+					},
+					"response": []
+				},
+				{
+					"name": "delete group product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/group-product/delete/c356ef48-150e-4adc-9aa9-e128ec8536b0"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "product",
+			"item": [
+				{
+					"name": "create product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"product_name\": \"ตะปู\",\r\n  \"product_description\": \"ตะปูยาว 5 เมตร\",\r\n  \"unit_price\": 60,\r\n  \"unit_id\": \"f400645c-3cd3-442f-8e0b-2dd8183f3fd7\",\r\n  \"group_product_id\": \"8de8e26e-873b-4a2f-920b-ec74e09214aa\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/product/create"
+					},
+					"response": []
+				},
+				{
+					"name": "list all product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/product/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "select product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/product/select",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "list product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/product/get/d7596630-a3c4-4e23-9f6d-297d61301bd1"
+					},
+					"response": []
+				},
+				{
+					"name": "edit product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"product_name\": \"ตะปูยาว\",\r\n  \"product_description\": \"ตะปูยาว 5 เมตร\",\r\n  \"unit_price\": \"60\",\r\n  \"unit_id\": \"5911fd1e-3ed8-48f5-920d-2c15eb850246\",\r\n  \"group_product_id\": \"66150cae-d0d5-4cad-a2ae-a12069cbf628\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/product/update/af8fa64c-6392-4f74-942b-da0d5f0b58a8"
+					},
+					"response": []
+				},
+				{
+					"name": "delete product",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/product/delete/159aa554-3802-4705-8e0f-4ffc787bc01b"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "unit",
+			"item": [
+				{
+					"name": "create unit",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"unit_name\": \"a\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/unit/create"
+					},
+					"response": []
+				},
+				{
+					"name": "list all unit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/unit/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "select unit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/unit/select",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "list unit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/unit/get"
+					},
+					"response": []
+				},
+				{
+					"name": "edit unit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"unit_name\": \"แผ่น1\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/unit/update/3c775248-b928-4132-a557-2a5f28d84a2c"
+					},
+					"response": []
+				},
+				{
+					"name": "delete unit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/unit/delete/49399fc5-4bc8-4ec0-83c6-bda29a583bcd"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "payment method",
+			"item": [
+				{
+					"name": "create payment method",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"payment_method_name\": \"ธนาคาร\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/payment-method/create"
+					},
+					"response": []
+				},
+				{
+					"name": "list all payment method",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/payment-method/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "select payment method",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/payment-method/select",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "list payment method",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/payment-method/get/df6332b3-53fc-4981-aee8-7cd51f928356"
+					},
+					"response": []
+				},
+				{
+					"name": "edit payment method",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"payment_method_name\": \"เงินสด\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/payment-method/update/df6332b3-53fc-4981-aee8-7cd51f928356"
+					},
+					"response": []
+				},
+				{
+					"name": "delete payment method",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/payment-method/delete/df6332b3-53fc-4981-aee8-7cd51f928356"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "currency",
+			"item": [
+				{
+					"name": "create currency",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"currency_name\": \"THB\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/currency/create"
+					},
+					"response": []
+				},
+				{
+					"name": "list all currency",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/currency/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "select currency",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/currency/select",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "list currency",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/currency/get/b9dbb8bc-6a65-4d47-ae4f-e8ff529fcfd1"
+					},
+					"response": []
+				},
+				{
+					"name": "edit currency",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"currency_name\": \"THB\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/currency/update/b9dbb8bc-6a65-4d47-ae4f-e8ff529fcfd1"
+					},
+					"response": []
+				},
+				{
+					"name": "delete currency",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/currency/delete/124b8ede-9169-4b3a-bd91-1f67410b7b33"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "character",
+			"item": [
+				{
+					"name": "create character",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"character_name\": \"จริงจัง\",\r\n  \"character_description\": \"เป็นงาน เป็นการ\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/character/create"
+					},
+					"response": []
+				},
+				{
+					"name": "list all character",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/character/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**\n\nมี query ของ page , limit ด้วยนะ"
+					},
+					"response": []
+				},
+				{
+					"name": "select character",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/character/select",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**\n\nมี query ของ page , limit ด้วยนะ"
+					},
+					"response": []
+				},
+				{
+					"name": "list character",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/character/get/f379b32c-526e-402d-80de-1a9cb03c6876"
+					},
+					"response": []
+				},
+				{
+					"name": "edit character",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"character_name\" : \"เฮฮา\",\r\n  \"character_description\": \"รื่นเริง\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/character/update/f379b32c-526e-402d-80de-1a9cb03c6876"
+					},
+					"response": []
+				},
+				{
+					"name": "delete character",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/character/delete/3c1e52de-06b5-407d-96c8-fcc8ec20e407"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "customerRole",
+			"item": [
+				{
+					"name": "create Customer Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"B\",\r\n  \"description\": \"blaaaa\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer-role/create"
+					},
+					"response": []
+				},
+				{
+					"name": "list all Customer Role",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/customer-role/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**\n\nมี query ของ page , limit ด้วยนะ"
+					},
+					"response": []
+				},
+				{
+					"name": "select Customer Role",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/customer-role/select",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**\n\nมี query ของ page , limit ด้วยนะ"
+					},
+					"response": []
+				},
+				{
+					"name": "list Customer Role",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/customer-role/get/c2eadfd4-b3b2-444b-8d02-0b3f8679192a"
+					},
+					"response": []
+				},
+				{
+					"name": "edit Customer Role",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\" : \"A\",\r\n  \"description\": \"not data\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer-role/update/c2eadfd4-b3b2-444b-8d02-0b3f8679192a"
+					},
+					"response": []
+				},
+				{
+					"name": "delete Customer Role",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/customer-role/delete/c2eadfd4-b3b2-444b-8d02-0b3f8679192a"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "team",
+			"item": [
+				{
+					"name": "create team",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"test B\",\r\n    \"description\": \"team test B\",\r\n    \"head_id\": \"cb68cb10-b224-4045-8194-d77915dcc308\",\r\n    \"head_name\": \"myzero\",\r\n    \"employees_id\": [\"4c351ae0-53b2-4b74-9490-b98f39a7c175\",\"dfccd963-ccc8-4165-b96f-69c9aec977f9\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/team/create"
+					},
+					"response": []
+				},
+				{
+					"name": "get all team",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/team/get",
+						"description": "มี page , limit , search เหมือนอันอื่นเลย ใส่หรือไม่ใส่ก็ได้"
+					},
+					"response": []
+				},
+				{
+					"name": "get team",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/team/get/6392ba33-604a-480e-8813-b5c701e7170b",
+						"description": "ไว้แสดงรายละเอียดทีมนั้นๆ"
+					},
+					"response": []
+				},
+				{
+					"name": "search employee",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"employee_code\": \"K1000\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/team/search-employee",
+						"description": "ใช้สำหรับค้นหาพนักงานเพื่อเพิ่มเข้าทีม"
+					},
+					"response": []
+				},
+				{
+					"name": "delete member team",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"employee_id\": \"4c351ae0-53b2-4b74-9490-b98f39a7c175\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/team/delete-member/dd6b4adf-d420-472b-838e-424eedafd9e6",
+						"description": "ใช้สำหรับลบสมาชิกออกจากทีม"
+					},
+					"response": []
+				},
+				{
+					"name": "edit team",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"A\",\r\n    \"description\": \"team A\",\r\n    \"head_id\": \"dfccd963-ccc8-4165-b96f-69c9aec977f9\",\r\n    \"head_name\":\"warin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/team/team/60527bf3-8458-43c5-8722-4053609b262c",
+						"description": "ส่วนนี้จะใช้สำหรับแก้ name , description ของทีม"
+					},
+					"response": []
+				},
+				{
+					"name": "edit team member",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"employee_code\": [\"K1000\",\"K1001\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/team/team-member/1068f543-e8e8-44f1-aa81-4b87da94d91c",
+						"description": "ใช้สำหรับเพิ่มสมาชิกเข้าทีม"
+					},
+					"response": []
+				},
+				{
+					"name": "delete team",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"employee_id\": \"4c351ae0-53b2-4b74-9490-b98f39a7c175\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/team/delete/dd6b4adf-d420-472b-838e-424eedafd9e6",
+						"description": "#### สำหรับลบทีม **note!! แต่จะลบก็ต่อเมื่อทีมนั้นไม่มีสมาชิกอยูู่ในทีมแล้ว**"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "social",
+			"item": [
+				{
+					"name": "select social",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/social/select"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "vat",
+			"item": [
+				{
+					"name": "select vat",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/vat/select"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "role",
+			"item": [
+				{
+					"name": "select role",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/role/select"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "employee status",
+			"item": [
+				{
+					"name": "select employee status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/employee-status/select"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "employee",
+			"item": [
+				{
+					"name": "get all employee none team",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/employee/none-team"
+					},
+					"response": []
+				},
+				{
+					"name": "get all employee",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"is_active\": true,\r\n    \"status\": \"พนักงานประจำ\" //[\"ทดลองงาน\", \"พนักงานประจำ\", \"เลิกจ้าง\", \"ฝึกงาน\", \"ลาหยุด\", \"ถูกเลิกจ้าง\", \"เกษียณ\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/employee/get-employee"
+					},
+					"response": []
+				},
+				{
+					"name": "select responsible team",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/employee/select-responsible/6392ba33-604a-480e-8813-b5c701e7170b"
+					},
+					"response": []
+				},
+				{
+					"name": "select employee",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/employee/select-employee"
+					},
+					"response": []
+				},
+				{
+					"name": "create emp",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "emp",
+									"type": "file",
+									"src": "postman-cloud:///1efa4294-0d99-4370-8a43-cdc5c187febc"
+								},
+								{
+									"key": "payload",
+									"value": "{\n    \"employee_code\":  \"U1001\",\n    \"username\": \"the.second@gmail.com\",\n    \"password\" : \"123456\",\n    \"email\": \"the.second@gmail.com\",\n    \"first_name\": \"the\",\n    \"last_name\" : \"second\", \n    \"role_id\": \"4ca8b4b6-f98d-4801-b341-aeb77018fa5d\",\n    \"position\": \"ประธาน\",\n    \"phone\":  \"0147852369\",\n    \"social_id\": \"abb216f0-51ad-4554-ba5c-3bcd5698693f\",  \n    \"detail_social\": \"the.first\",  \n    \"address\":  \"ไม่บอก\", \n    \"country_id\": \"a25ddbc2-213e-4414-a0f0-15f6a09b7d9a\",\n    \"province_id\": \"dbe922f9-ed92-4fa2-bf1a-cffdd4c3f786\",\n    \"district_id\": \"96f1d408-47e7-4d4e-a013-1061cbf83477\",\n    \"status_id\":  \"68c7cac0-7e0c-4fa5-adca-53d42c301561\",\n    \"team_id\": \"8d67202d-d44b-4e74-8a3e-5e577e007c03\",  \n    \"salary\": \"1000000\", \n    \"start_date\": \"2025-04-11\", \n    \"end_date\": \"2080-12-31\", \n    \"birthdate\": \"2025-01-01\"   \n}",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/employee/create",
+						"description": "# ส่วนที่ไม่จำเป็น\n\n\"last_name\" : \"first\", // ไม่จำเป็น\n\n\"social_id\": \"abb216f0-51ad-4554-ba5c-3bcd5698693f\", // ไม่จำเป็น\n\n\"detail_social\": \"the.first\", // ไม่จำเป็น\n\n\"address\": \"ไม่บอก\", // ไม่จำเป็น\n\n\"team_id\": \"8d67202d-d44b-4e74-8a3e-5e577e007c03\", // ไม่จำเป็น\n\n\"salaly\": \"1000000\", // ไม่จำเป็น\n\n\"start_date\": \"2025-04-11\", // ไม่จำเป็น\n\n\"end_date\": \"2080-12-31\", // ไม่จำเป็น\n\n\"birthdate\": \"2025-01-01\" // ไม่จำเป็น}EndFragment"
+					},
+					"response": []
+				},
+				{
+					"name": "get id employee",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/employee/get/a3726e87-8673-478c-88ca-322470e2c254"
+					},
+					"response": []
+				},
+				{
+					"name": "update emp",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "emp",
+									"type": "file",
+									"src": "postman-cloud:///1efa4294-0d99-4370-8a43-cdc5c187febc",
+									"disabled": true
+								},
+								{
+									"key": "payload",
+									"value": "{\n    \"username\": \"the.second@gmail.com\",\n    \"password\" : \"123456\",\n    \"email\": \"the.seconds@gmail.com\",\n    \"first_name\": \"the\",\n    \"last_name\" : \"second\", \n    \"role_id\": \"4ca8b4b6-f98d-4801-b341-aeb77018fa5d\",\n    \"position\": \"ประธาน\",\n    \"phone\":  \"0147852369\",\n    \"social_id\": \"abb216f0-51ad-4554-ba5c-3bcd5698693f\",  \n    \"detail\": \"the.first\",  \n    \"address\":  \"ไม่บอก\", \n    \"country_id\": \"a25ddbc2-213e-4414-a0f0-15f6a09b7d9a\",\n    \"province_id\": \"dbe922f9-ed92-4fa2-bf1a-cffdd4c3f786\",\n    \"district_id\": \"96f1d408-47e7-4d4e-a013-1061cbf83477\",\n    \"status_id\":  \"68c7cac0-7e0c-4fa5-adca-53d42c301561\",\n    \"salary\": 20000, \n    \"start_date\": \"2025-04-11\", \n    \"end_date\": \"2080-12-31\", \n    \"birthdate\": \"2025-01-01\"   \n}",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/employee/update/a3726e87-8673-478c-88ca-322470e2c254",
+						"description": "# ส่วนที่ไม่จำเป็น\n\n\"last_name\" : \"first\", // ไม่จำเป็น\n\n\"social_id\": \"abb216f0-51ad-4554-ba5c-3bcd5698693f\", // ไม่จำเป็น\n\n\"detail_social\": \"the.first\", // ไม่จำเป็น\n\n\"address\": \"ไม่บอก\", // ไม่จำเป็น\n\n\"team_id\": \"8d67202d-d44b-4e74-8a3e-5e577e007c03\", // ไม่จำเป็น\n\n\"salaly\": \"1000000\", // ไม่จำเป็น\n\n\"start_date\": \"2025-04-11\", // ไม่จำเป็น\n\n\"end_date\": \"2080-12-31\", // ไม่จำเป็น\n\n\"birthdate\": \"2025-01-01\" // ไม่จำเป็น}EndFragment"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "address",
+			"item": [
+				{
+					"name": "select address",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/address/select"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "customer",
+			"item": [
+				{
+					"name": "create customer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"company_name\" : \"myzero0139 co.,LDT\",\r\n    \"type\" : \"บจก.\",\r\n    \"company_email\" : \"myzero@gmail.com\",\r\n    \"company_phone\" : \"0987654321\",\r\n    \"tax_id\" : \"0994000163011\",\r\n    \"note\" : \"ไม่มี สำหรับทดสอบ\",\r\n    \"priority\" : 5,\r\n    \"place_name\" : \"ร้านกาแฟอร่อย\",\r\n    \"address\" : \"ซอยประชาชื่น 99\",\r\n    \"country_id\" : \"51ac49a7-40ae-4c47-bd2b-f8af12503b93\",\r\n    \"province_id\" : \"a5cb0320-31c6-415a-8fbc-a6fe69ed814f\",\r\n    \"district_id\" : \"9cb5f5e6-10f6-4405-9707-17635ae5fa27\",\r\n    \"tag_id\" : [\"5c7d1521-46f3-46c4-bfb4-19e3f262dedf\",\"0f7eeca5-e4a8-4058-9c88-059b88679697\"],\r\n    \"customer_name\" : \"Myzero\",\r\n    \"customer_email\" : \"por@gmail.com\",\r\n    \"customer_phone\" : \"0123456789\",\r\n    \"customer_phone_extension\" : \"+66123456789\",\r\n    \"position\" : \"CEO\",\r\n    \"customer_role_id\" : \"25185a32-4470-422c-ae1e-21c6e28e6348\",\r\n    \"character_id\" : \"3f8b866e-b231-4aa8-ad5b-729a83f84e0a\",\r\n    \"detail\" : \"pr001.tw\", // คือพวกชื่อเฟส ไอดีไลน์ ชื่อไอจี\r\n    \"social_id\" : \"19a09ae1-2e91-42f2-8d47-f76bc6639c49\",\r\n    \"customer_place_name\" : \"ร้านอาหาร\",\r\n    \"customer_address\" : \"ประชาชื่น 100\",\r\n    \"customer_country_id\" : \"51ac49a7-40ae-4c47-bd2b-f8af12503b93\",\r\n    \"customer_province_id\" : \"a5cb0320-31c6-415a-8fbc-a6fe69ed814f\",\r\n    \"customer_district_id\" : \"9cb5f5e6-10f6-4405-9707-17635ae5fa27\",\r\n    \"employee_id\" : \"97e5e359-217a-4bd6-a963-08d9cb307513\",\r\n    \"team_id\" : \"6392ba33-604a-480e-8813-b5c701e7170b\",\r\n    \"emp_phone\" : \"0998563175\",\r\n    \"emp_email\" : \"mr.por@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/create"
+					},
+					"response": []
+				},
+				{
+					"name": "update customer",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"company_name\" : \"myzero01 co.,LDT\",\r\n    \"type\" : \"หจก.\",\r\n    \"company_email\" : \"myzero1@gmail.com\",\r\n    \"company_phone\" : \"0987654322\",\r\n    \"tax_id\" : \"0994000163012\",\r\n    \"note\" : \"ไม่มี สำหรับทดสอบ เท่านั้น\",\r\n    \"priority\" : 5,\r\n    \"place_name\" : \"ร้านกาแฟอร่อย มากๆ\",\r\n    \"address\" : \"ซอยประชาชื่น 98\",\r\n    \"country_id\" : \"79122365-42ea-4222-b702-913a55e406f9\",\r\n    \"province_id\" : \"99db46eb-226a-4689-9303-e82bcabbce7e\",\r\n    \"district_id\" : \"dd9a4c18-8b6e-4451-b627-bbd8078e4f76\",\r\n    \"employee_id\" : \"cb68cb10-b224-4045-8194-d77915dcc308\",\r\n    \"team_id\" : \"0d8caeb6-8118-467e-bdc0-2f58f53090bb\",\r\n    \"resp_phone\" : \"0998563173\",\r\n    \"resp_email\" : \"mr.por1@gmail.com\",\r\n    \"tag_id\": [\"723bc1d4-c42c-415f-bfc9-0051dee1858a\"]\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/update/74a86a9b-c3e8-4c08-8c67-39f4472af01b"
+					},
+					"response": []
+				},
+				{
+					"name": "add customer contact",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customer_name\" : \"ssssssss\",\r\n    \"customer_phone\" : \"0123456789\",\r\n    \"customer_phone_extension\" : \"+66123456789\",\r\n    \"position\" : \"CEO\",\r\n    \"customer_email\" : \"44444@gmail.com\",\r\n    \"customer_role_id\" : \"d48156dc-9b78-4f48-b0c8-599f60050486\",\r\n    \"social_id\" : \"acff7f54-5fdd-4619-943b-185ed794695f\",\r\n    \"detail\" : \"pr001.tw\",\r\n    \"character_id\": \"d9345051-bec2-46ac-988c-3175a60dda6a\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/customer-contact/35b7a949-cfde-4f1a-9ce4-283b143775c0"
+					},
+					"response": []
+				},
+				{
+					"name": "add customer address",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customer_place_name\" : \"ร้านผลไม้\",\r\n    \"customer_address\" : \"ชินเขต 44\",\r\n    \"customer_country_id\" : \"79122365-42ea-4222-b702-913a55e406f9\",\r\n    \"customer_province_id\" : \"99db46eb-226a-4689-9303-e82bcabbce7e\",\r\n    \"customer_district_id\" : \"dd9a4c18-8b6e-4451-b627-bbd8078e4f76\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/customer-address/35b7a949-cfde-4f1a-9ce4-283b143775c0"
+					},
+					"response": []
+				},
+				{
+					"name": "delete customer",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"company_name\" : \"myzero co.,LDT\",\r\n    \"type\" : \"บจก.\",\r\n    \"company_email\" : \"myzero@gmail.com\",\r\n    \"company_phone\" : \"0987654321\",\r\n    \"tax_id\" : \"0994000163011\",\r\n    \"note\" : \"ไม่มี สำหรับทดสอบ\",\r\n    \"priority\" : 5,\r\n    \"customer_place_name\" : \"ร้านกาแฟอร่อย\",\r\n    \"customer_address\" : \"ซอยประชาชื่น 99\",\r\n    \"customer_country_id\" : \"79122365-42ea-4222-b702-913a55e406f9\",\r\n    \"customer_province_id\" : \"99db46eb-226a-4689-9303-e82bcabbce7e\",\r\n    \"customer_district_id\" : \"dd9a4c18-8b6e-4451-b627-bbd8078e4f76\",\r\n    \"tag_id\" : \"3d16dec8-74b1-40ed-b173-1392e6610c42\",\r\n    \"customer_name\" : \"Myzero\",\r\n    \"customer_email\" : \"por@gmail.com\",\r\n    \"customer_phone\" : \"0123456789\",\r\n    \"position\" : \"CEO\",\r\n    \"customer_role_id\" : \"d48156dc-9b78-4f48-b0c8-599f60050486\",\r\n    \"character_id\" : \"d9345051-bec2-46ac-988c-3175a60dda6a\",\r\n    \"detail\" : \"pr001.tw\", // คือพวกชื่อเฟส ไอดีไลน์ ชื่อไอชี\r\n    \"social_id\" : \"3a665fd3-eef9-491c-9664-426e631bd561\",\r\n    \"place_name\" : \"ร้านอาหาร\",\r\n    \"address\" : \"ประชาชื่น 100\",\r\n    \"country_id\" : \"79122365-42ea-4222-b702-913a55e406f9\",\r\n    \"province_id\" : \"99db46eb-226a-4689-9303-e82bcabbce7e\",\r\n    \"district_id\" : \"dd9a4c18-8b6e-4451-b627-bbd8078e4f76\",\r\n    \"employee_id\" : \"cb68cb10-b224-4045-8194-d77915dcc308\",\r\n    \"team_id\" : \"dd6b4adf-d420-472b-838e-424eedafd9e6\",\r\n    \"responsible_phone\" : \"0998563175\",\r\n    \"responsible_email\" : \"mr.por@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/delete/49d218d8-3e35-4e92-a826-6076befa00f0"
+					},
+					"response": []
+				},
+				{
+					"name": "delete customer contact",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customer_contact_id\" : \"c4b7804f-b85f-4f2b-b44e-9aad89b50123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/delete-contact/35b7a949-cfde-4f1a-9ce4-283b143775c0"
+					},
+					"response": []
+				},
+				{
+					"name": "delete address",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"address_id\" : \"56e53a00-dbbe-4d20-a5b8-7b83a16e81c5\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/delete-address/35b7a949-cfde-4f1a-9ce4-283b143775c0"
+					},
+					"response": []
+				},
+				{
+					"name": "get all customer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"tag_id\": null,\r\n    \"team_id\": null,\r\n    \"responsible_id\":null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/v1/customer/get",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"v1",
+								"customer",
+								"get"
+							],
+							"query": [
+								{
+									"key": "tag",
+									"value": "723bc1d4-c42c-415f-bfc9-0051dee1858a",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get by id customer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/v1/customer/get/4834945f-d614-4ba3-b8ea-e55f79bf6133",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"v1",
+								"customer",
+								"get",
+								"4834945f-d614-4ba3-b8ea-e55f79bf6133"
+							],
+							"query": [
+								{
+									"key": "tag",
+									"value": "723bc1d4-c42c-415f-bfc9-0051dee1858a",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "select customer contact",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/customer/select-customer-contact/29100c4c-8f24-4528-96c4-7e58640ff762"
+					},
+					"response": []
+				},
+				{
+					"name": "select address",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/customer/select-address/29100c4c-8f24-4528-96c4-7e58640ff762"
+					},
+					"response": []
+				},
+				{
+					"name": "change main address",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"address_id\": \"898c0666-d90e-4ebc-ab56-00bed2f79664\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/main-address/35b7a949-cfde-4f1a-9ce4-283b143775c0"
+					},
+					"response": []
+				},
+				{
+					"name": "change main customer contact",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customer_contact_id\": \"b52d29de-dc65-4d94-80c0-1b1e4716cf6c\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/customer/main-contact/35b7a949-cfde-4f1a-9ce4-283b143775c0"
+					},
+					"response": []
+				},
+				{
+					"name": "update customer contact",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customer_contact_id\": \"bcc94e47-94ca-4d4f-a40b-308b1718fe85\",\r\n    \"name\": \"Mr.por\",\r\n    \"phone\": \"0987654321\",\r\n    \"phone_extension\": \"+66987654321\",\r\n    \"position\": \"นังเฉยๆพอ\",\r\n    \"customer_role_id\": \"d48156dc-9b78-4f48-b0c8-599f60050486\",\r\n    \"email\": \"Mr.por@gmail.com\",\r\n    \"social_id\": \"3a665fd3-eef9-491c-9664-426e631bd561\",\r\n    \"detail\": \"bla\",\r\n    \"character_id\":\"d48156dc-9b78-4f48-b0c8-599f60050486\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8081/v1/customer/update-contact/35b7a949-cfde-4f1a-9ce4-283b143775c0"
+					},
+					"response": []
+				},
+				{
+					"name": "update address",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"address_id\": \"898c0666-d90e-4ebc-ab56-00bed2f79664\",\r\n    \"place_name\": \"ร้านกาแฟนั่งชิว1\",\r\n    \"address\": \"5/7 หมู่9 \",\r\n    \"country_id\": \"79122365-42ea-4222-b702-913a55e406f9\",\r\n    \"province_id\": \"57585d7f-b11f-4871-a382-e9063da483ed\",\r\n    \"district_id\": \"44aa9f8f-9bae-4b95-bb81-647957826835\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:8081/v1/customer/update-address/35b7a949-cfde-4f1a-9ce4-283b143775c0"
+					},
+					"response": []
+				},
+				{
+					"name": "get all activity",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/customer/activity/1a69d621-652f-4720-9207-729626b47244"
+					},
+					"response": []
+				},
+				{
+					"name": "follow quotation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/v1/customer/follow-quotation/1a69d621-652f-4720-9207-729626b47244",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"v1",
+								"customer",
+								"follow-quotation",
+								"1a69d621-652f-4720-9207-729626b47244"
+							],
+							"query": [
+								{
+									"key": "tag",
+									"value": "723bc1d4-c42c-415f-bfc9-0051dee1858a",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sale total",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/v1/customer/sale-total/1a69d621-652f-4720-9207-729626b47244",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"v1",
+								"customer",
+								"sale-total",
+								"1a69d621-652f-4720-9207-729626b47244"
+							],
+							"query": [
+								{
+									"key": "tag",
+									"value": "723bc1d4-c42c-415f-bfc9-0051dee1858a",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "quotation",
+			"item": [
+				{
+					"name": "create quotation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "payload",
+									"value": "{\n  \"customer_id\": \"32df2688-ce8d-4ea5-9f11-3a9524327db7\",\n  \"priority\": 5,\n  \"issue_date\": \"2025-06-02\",\n  \"team_id\": \"6392ba33-604a-480e-8813-b5c701e7170b\",\n  \"responsible_employee\": \"97e5e359-217a-4bd6-a963-08d9cb307513\",\n  \"price_date\": \"2025-06-03\",\n  \"shipping_method\": \"บริการจัดส่ง\",\n  \"shipping_remark\": \"test\",\n\n  \"expected_delivery_date\": \"2025-06-06\",\n  \"place_name\": \"ร้านกาแฟอร่อย มากๆ\",\n  \"address\": \"ซอยประชาชื่น 98\",\n  \"country_id\": \"51ac49a7-40ae-4c47-bd2b-f8af12503b93\",\n  \"province_id\": \"a5cb0320-31c6-415a-8fbc-a6fe69ed814f\",\n  \"district_id\": \"9cb5f5e6-10f6-4405-9707-17635ae5fa27\",\n  \"contact_name\": \"Myzero\",\n  \"contact_email\": \"por@gmail.com\",\n  \"contact_phone\": \"0123456789\",\n  \"items\": [\n    {\n      \"product_id\": \"8c40dff4-6bce-4a9f-993d-78ac300031a3\",\n      \"quotation_item_count\": 2,\n      \"unit_id\": \"f400645c-3cd3-442f-8e0b-2dd8183f3fd7\",\n      \"unit_price\": 100,\n      \"unit_discount\": 10,\n      \"unit_discount_percent\": 10,\n      \"quotation_item_price\": 190,\n      \"group_product_id\": \"8de8e26e-873b-4a2f-920b-ec74e09214aa\"\n    },\n    {\n      \"product_id\": \"e72825f4-1f09-4af3-ba88-bad952bd12b9\",\n      \"quotation_item_count\": 2,\n      \"unit_id\": \"f400645c-3cd3-442f-8e0b-2dd8183f3fd7\",\n      \"unit_price\": 20,\n      \"unit_discount\": 0,\n      \"unit_discount_percent\": 0,\n      \"quotation_item_price\": 40,\n      \"group_product_id\": \"8de8e26e-873b-4a2f-920b-ec74e09214aa\"\n    },\n\n  ],\n  \"currency_id\": \"8bfaf842-3f36-43a0-a798-d520d53bf45b\",\n  \"total_amount\": 595,\n  \"special_discount\": 5,\n  \"amount_after_discount\": 565.25,\n  \"vat_id\": \"0bbb87ae-c6b1-4769-a74d-55517786d6cc\",\n  \"vat_amount\": 39.57,\n  \"grand_total\": 604.82,\n  \"additional_notes\" : \"test\",\n  \"payment_term_name\": \"แบ่งชำระ\",\n  \"payment_term_day\": 1,\n  \"payment_term_installment\": 3,\n  \"payment_method_id\": \"f4aecd8b-e8cc-4a62-861c-16fbe606de34\",\n  \"remark\" : \"\",\n  \"expected_closing_date\": \"2025-06-10\",\n  \"payment_term\": [\n    {\n      \"installment_no\": 1,\n      \"installment_price\": 204.82\n    },\n    {\n      \"installment_no\": 2,\n      \"installment_price\": 200.00\n    },\n    {\n      \"installment_no\": 3,\n      \"installment_price\": 200.00\n    }\n  ],\n  \"quotation_status\": \"ระหว่างดำเนินการ\",\n  \"quotation_status_remark\" : \"\"\n}\n",
+									"type": "text"
+								},
+								{
+									"key": "quotation",
+									"type": "file",
+									"src": [
+										"/C:/Users/s6511/Downloads/posAI2.jpg",
+										"/C:/Users/s6511/Downloads/posAI1.jpg"
+									]
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/quotation/create"
+					},
+					"response": []
+				},
+				{
+					"name": "get all quotation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"responsible_id\" : \"97e5e359-217a-4bd6-a963-08d9cb307513\",\r\n    // \"status\" : \"ระหว่างดำเนินการ\",\r\n    \"issue_date\" : \"issue_date\", // เลือกอย่างใดอย่างหนึ่ง\r\n    // \"price_date\" : null, // เลือกอย่างใดอย่างหนึ่ง\r\n    \"start_date\" : \"2025-06-10\",\r\n    \"end_date\" : \"2025-06-23\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/get"
+					},
+					"response": []
+				},
+				{
+					"name": "get by id quotation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/quotation/get/7442a2bb-17ab-4268-8f17-cf98147e5145"
+					},
+					"response": []
+				},
+				{
+					"name": "update company quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customer_id\": \"32df2688-ce8d-4ea5-9f11-3a9524327db7\",\r\n    \"priority\": 4,\r\n    \"issue_date\": \"2025-06-02\",\r\n    \"team_id\": \"6392ba33-604a-480e-8813-b5c701e7170b\",\r\n    \"responsible_employee\": \"97e5e359-217a-4bd6-a963-08d9cb307513\",\r\n    \"price_date\": \"2025-06-03\",\r\n    \"shipping_method\": \"บริการจัดส่ง\",\r\n    \"shipping_remark\": \"test test\",\r\n    \"expected_delivery_date\": \"2025-06-06\",\r\n    \"place_name\": \"ร้านกาแฟอร่อย มากๆ\",\r\n    \"address\": \"ซอยประชาชื่น 98\",\r\n    \"country_id\": \"51ac49a7-40ae-4c47-bd2b-f8af12503b93\",\r\n    \"province_id\": \"a5cb0320-31c6-415a-8fbc-a6fe69ed814f\",\r\n    \"district_id\": \"9cb5f5e6-10f6-4405-9707-17635ae5fa27\",\r\n    \"contact_name\": \"Myzero\",\r\n    \"contact_email\": \"por@gmail.com\",\r\n    \"contact_phone\": \"0123456789\",\r\n    \"expected_closing_date\": \"2025-06-10\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/update-company/cd634d5f-f12d-497a-ab9d-88a25a5a7ece"
+					},
+					"response": []
+				},
+				{
+					"name": "add item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"currency_id\": \"8bfaf842-3f36-43a0-a798-d520d53bf45b\",\r\n    \"items\": [\r\n        {\r\n            \"product_id\": \"7326c094-669c-4210-8b32-a95040024cd5\",\r\n            \"quotation_item_count\": 2,\r\n            \"unit_id\": \"f400645c-3cd3-442f-8e0b-2dd8183f3fd7\",\r\n            \"unit_price\": 100,\r\n            \"unit_discount\": 0,\r\n            \"unit_discount_percent\": 0,\r\n            \"quotation_item_price\": 200,\r\n            \"group_product_id\": \"8de8e26e-873b-4a2f-920b-ec74e09214aa\"\r\n        },\r\n        {\r\n            \"product_id\": \"e72825f4-1f09-4af3-ba88-bad952bd12b9\",\r\n            \"quotation_item_count\": 2,\r\n            \"unit_id\": \"f400645c-3cd3-442f-8e0b-2dd8183f3fd7\",\r\n            \"unit_price\": 100,\r\n            \"unit_discount\": 0,\r\n            \"unit_discount_percent\": 0,\r\n            \"quotation_item_price\": 200,\r\n            \"group_product_id\": \"8de8e26e-873b-4a2f-920b-ec74e09214aa\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/add-item/83f32f98-f46f-4b31-872a-5901684cad1d"
+					},
+					"response": []
+				},
+				{
+					"name": "update item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_item_id\": \"60227d99-24f8-4264-b1c5-36bb68b1e712\",\r\n    \"product_id\": \"8c40dff4-6bce-4a9f-993d-78ac300031a3\",\r\n    \"quotation_item_count\": 2,\r\n    \"unit_id\": \"f400645c-3cd3-442f-8e0b-2dd8183f3fd7\",\r\n    \"unit_price\": 90,\r\n    \"unit_discount\": 0,\r\n    \"unit_discount_percent\": 0,\r\n    \"quotation_item_price\": 180,\r\n    \"group_product_id\": \"8de8e26e-873b-4a2f-920b-ec74e09214aa\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/update-item/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				},
+				{
+					"name": "delete item",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_item_id\": \"60227d99-24f8-4264-b1c5-36bb68b1e712\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/delete-item/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				},
+				{
+					"name": "update payment quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"total_amount\": 20,\r\n    \"special_discount\": 0,\r\n    \"amount_after_discount\": 20,\r\n    // \"vat_id\": \"0bbb87ae-c6b1-4769-a74d-55517786d6cc\",\r\n    \"vat_amount\": 1.40,\r\n    \"grand_total\": 21.40,\r\n    \"additional_notes\" : \"แพงจัง\",\r\n    \"payment_term_name\": \"แบ่งชำระ\",\r\n    \"payment_term_day\": 1,\r\n    \"payment_term_installment\": 3,\r\n    // \"payment_method_id\": \"f4aecd8b-e8cc-4a62-861c-16fbe606de34\",\r\n    \"remark\" : \"ddddกกหดก\",\r\n    \"payment_term\": [\r\n        {\r\n            \"installment_no\": 1,\r\n            \"installment_price\": 7.40\r\n        },\r\n        {\r\n            \"installment_no\": 2,\r\n            \"installment_price\": 7\r\n        },\r\n        {\r\n            \"installment_no\": 3,\r\n            \"installment_price\": 7\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/update-payment/645cf4ae-1c63-43c3-b025-2f6ce0fe0ce7"
+					},
+					"response": []
+				},
+				{
+					"name": "add file",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "quotation",
+									"type": "file",
+									"src": [
+										"/C:/Users/s6511/Downloads/bg-login.jpg",
+										"/C:/Users/s6511/Downloads/ดร.เปรมารัช_Smart Idol.png"
+									]
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/quotation/file/33715aea-be8d-431b-9e02-fb3fc41238c1"
+					},
+					"response": []
+				},
+				{
+					"name": "delete file",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "quotation",
+									"type": "file",
+									"src": [
+										"/C:/Users/s6511/Downloads/bg-login2.jpg",
+										"/C:/Users/s6511/Downloads/ดร.เปรมารัช_Smart Idol.png"
+									]
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/quotation/file/58572a50-adad-4ce2-95e6-09f4896c20c5"
+					},
+					"response": []
+				},
+				{
+					"name": "cancel quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_status\": \"ยกเลิก\",\r\n    \"quotation_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/cancel/c8578448-729a-4ac2-a967-6e2387cec280"
+					},
+					"response": []
+				},
+				{
+					"name": "request approve quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_status\": \"รออนุมัติ\",\r\n    \"quotation_status_remark\": \"อนุมัติให้หน่อย\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/request-approve/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				},
+				{
+					"name": "request edit quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_status\": \"ปรับปรุง\",\r\n    \"quotation_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/request-edit/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				},
+				{
+					"name": "approve quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_status\": \"อนุมัติ\",\r\n    \"quotation_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/approve/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				},
+				{
+					"name": "reject quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_status\": \"ไม่อนุมัติ\",\r\n    \"quotation_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/reject/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				},
+				{
+					"name": "cancel approve quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_status\": \"ยกเลิกคำขออนุมัติ\",\r\n    \"quotation_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/cancel-approve/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				},
+				{
+					"name": "reject deal quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_status\": \"ไม่สำเร็จ\",\r\n    \"quotation_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/reject-deal/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				},
+				{
+					"name": "close deal quotation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quotation_status\": \"สำเร็จ\",\r\n    \"quotation_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/quotation/close-deal/4accc2fe-1112-437e-8ac9-cf82e21cc180"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "sale order",
+			"item": [
+				{
+					"name": "get all sale order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"responsible_id\" : null,\r\n    \"issue_date\" : null, // เลือกอย่างใดอย่างหนึ่ง\r\n    \"price_date\" : null, // เลือกอย่างใดอย่างหนึ่ง\r\n    \"start_date\" : null,\r\n    \"end_date\" : null\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/get"
+					},
+					"response": []
+				},
+				{
+					"name": "get by id sale order",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"responsible_id\" : \"97e5e359-217a-4bd6-a963-08d9cb307513\",\r\n    \"issue_date\" : \"issue_date\", // เลือกอย่างใดอย่างหนึ่ง\r\n    // \"price_date\" : null, // เลือกอย่างใดอย่างหนึ่ง\r\n    \"start_date\" : \"2025-06-10\",\r\n    \"end_date\" : \"2025-06-23\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/get/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "update company",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"shipping_method\": \"บริการจัดส่ง\",\r\n    \"shipping_remark\": \"test test\",\r\n    \"expected_delivery_date\": \"2025-06-06\",\r\n    \"place_name\": \"ร้านกาแฟอร่อย มากๆ\",\r\n    \"address\": \"ซอยประชาชื่น 98\",\r\n    \"country_id\": \"51ac49a7-40ae-4c47-bd2b-f8af12503b93\",\r\n    \"province_id\": \"a5cb0320-31c6-415a-8fbc-a6fe69ed814f\",\r\n    \"district_id\": \"9cb5f5e6-10f6-4405-9707-17635ae5fa27\",\r\n    \"contact_name\": \"Myzero\",\r\n    \"contact_email\": \"por@gmail.com\",\r\n    \"contact_phone\": \"0123456789\"\r\n}\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/update-company/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "update payment detail",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"additional_notes\": \"wow\",\r\n    \"remark\": \"test test\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/payment-detail/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "add file",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "sale-order",
+									"type": "file",
+									"src": [
+										"/C:/Users/s6511/Downloads/ดร.เปรมารัช_Smart Idol.png",
+										"/C:/Users/s6511/Downloads/Logo-airbag.png"
+									]
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/sale-order/file/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "delete file",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "quotation",
+									"type": "file",
+									"src": [
+										"/C:/Users/s6511/Downloads/bg-login2.jpg",
+										"/C:/Users/s6511/Downloads/ดร.เปรมารัช_Smart Idol.png"
+									]
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/sale-order/file/28e341ee-bc89-4fda-97b6-859922895678"
+					},
+					"response": []
+				},
+				{
+					"name": "payment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "payment",
+									"type": "file",
+									"src": "/C:/Users/s6511/Downloads/bg-login.jpg"
+								},
+								{
+									"key": "payload",
+									"value": "{\n    \"payment_date\": \"2025-07-11\",\n    \"payment_term_name\": \"แบ่งชำระ\",\n    \"amount_paid\": 21.4,\n    \"payment_method_id\": \"680cd1e3-7347-4ee9-8bab-cb1f51b1db5d\",\n    \"payment_remark\": \"\"\n}",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/sale-order/payment/bac3d4c0-f2cc-4747-a273-fca8c2cf662a"
+					},
+					"response": []
+				},
+				{
+					"name": "get by id payment file",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"responsible_id\" : \"97e5e359-217a-4bd6-a963-08d9cb307513\",\r\n    \"issue_date\" : \"issue_date\", // เลือกอย่างใดอย่างหนึ่ง\r\n    // \"price_date\" : null, // เลือกอย่างใดอย่างหนึ่ง\r\n    \"start_date\" : \"2025-06-10\",\r\n    \"end_date\" : \"2025-06-23\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/file/4d038fec-0c17-4fd0-9310-d28548945f31"
+					},
+					"response": []
+				},
+				{
+					"name": "payment update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "payment",
+									"type": "file",
+									"src": [
+										"postman-cloud:///1efa20aa-08cf-4620-a578-22938ca83b95",
+										"/C:/Users/s6511/Downloads/ดร.เปรมารัช_Smart Idol.png"
+									]
+								},
+								{
+									"key": "payload",
+									"value": "{\n    \"payment_log_id\": \"4d038fec-0c17-4fd0-9310-d28548945f31\",\n    \"payment_date\": \"2025-07-11\",\n    \"payment_term_name\": \"เต็มจำนวน\",\n    \"amount_paid\": 21.4,\n    \"payment_method_id\": \"f4aecd8b-e8cc-4a62-861c-16fbe606de34\",\n    \"payment_remark\": \"\"\n}",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/sale-order/payment-update/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "delete payment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"payment_log_id\": \"6f81f04e-a3bb-4509-a752-6aea1f2a2294\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/delete-payment/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "manufacture",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"manufacture_factory_date\": \"2025-07-15\",\r\n    \"sale_order_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/manufacture/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "expected manufacture",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"expected_manufacture_factory_date\": \"2025-07-15\",\r\n    \"sale_order_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/expected-manufacture/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "delivery",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"delivery_date_success\": \"2025-07-15\",\r\n    \"sale_order_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/delivery/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "expected delivery",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"expected_delivery_date_success\": \"2025-07-15\",\r\n    \"sale_order_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/expected-delivery/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "receipt",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"receipt_date\": \"2025-07-15\",\r\n    \"sale_order_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/receipt/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "expected receipt",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"expected-receipt_date\": \"2025-07-15\",\r\n    \"sale_order_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/expected-receipt/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				},
+				{
+					"name": "close sale",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sale_order_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/close-sale/739920af-981f-4a7a-bce2-3e58836ab09f"
+					},
+					"response": []
+				},
+				{
+					"name": "reject sale",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sale_order_status_remark\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/sale-order/reject-sale/c2c62e98-7a2f-4edc-9849-17a1d48b15b4"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "activity",
+			"item": [
+				{
+					"name": "create activity",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"customer_id\": \"1a69d621-652f-4720-9207-729626b47244\",\r\n  \"issue_date\": \"2025-07-01\",\r\n  \"activity_time\": \"25:22\",\r\n  \"activity_description\": \"ไม่รู้ ไม่รู้\",\r\n  \"team_id\": \"8d67202d-d44b-4e74-8a3e-5e577e007c03\",\r\n  \"responsible_id\": \"92677ae4-dc44-4644-89da-4ff0cc38e29e\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/activity/create"
+					},
+					"response": []
+				},
+				{
+					"name": "get all activity",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"customer_id\" : \"1a69d621-652f-4720-9207-729626b47244\"\r\n    // \"team_id\" : \"97e5e359-217a-4bd6-a963-08d9cb307513\",\r\n    // \"responsible_id\" : \"97e5e359-217a-4bd6-a963-08d9cb307513\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/activity/get",
+						"description": "**จะไม่มี search ก็ได้ แต่ถ้ามีระบบจะหาคำที่ให้มาไปค้นหาแล้วลิวออกมาให้**"
+					},
+					"response": []
+				},
+				{
+					"name": "get id activity",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/activity/get/e82d37d0-591a-46cd-857c-9eec2334ff29"
+					},
+					"response": []
+				},
+				{
+					"name": "edit activity",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"customer_id\": \"1a69d621-652f-4720-9207-729626b47244\",\r\n  \"issue_date\": \"2025-07-02\",\r\n  \"activity_time\": \"01:22\",\r\n  \"activity_description\": \"ไม่รู้ ไม่รู้\",\r\n  \"team_id\": \"8d67202d-d44b-4e74-8a3e-5e577e007c03\",\r\n  \"responsible_id\": \"92677ae4-dc44-4644-89da-4ff0cc38e29e\"\r\n}\r\n\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/v1/activity/update/e82d37d0-591a-46cd-857c-9eec2334ff29"
+					},
+					"response": []
+				},
+				{
+					"name": "delete activity",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYTllY2U4YjktNDg3Yi00YjBmLTllOWItZmQxZTI1MDJmNGE2IiwiaWF0IjoxNzQ0Nzg3MjE2LCJleHAiOjE3NDQ3OTA4MTZ9.EuxwZUIf6JmHiTXjlboaLinZoxWdy6cNrUME6BTdRjc"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/v1/activity/delete/b9dbb8bc-6a65-4d47-ae4f-e8ff529fcfd1"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "company",
+			"item": [
+				{
+					"name": "get company",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/v1/company/get"
+					},
+					"response": []
+				},
+				{
+					"name": "update company",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "company",
+									"type": "file",
+									"src": "/C:/Users/s6511/Downloads/bg-login2.jpg"
+								},
+								{
+									"key": "payload",
+									"value": "{\n    \"name_th\": \"บลูพีค อินโนเวชั่น จำกัด\",\n    \"name_en\": \"BLUEPEAK INNOVATIONS CO., LTD.\",\n    \"type\": \"การขายส่งคอมพิวเตอร์อุปกรณ์ต่อพ่วงคอมพิวเตอร์และซอฟต์แวร์\",\n    \"website\": \"crm.crmStandard.com\",\n    \"founded_date\": \"2025-06-28\",\n    \"place_name\": \"บลูพีค\",\n    \"address\": \"8/452 หมู่ที่ 3 ตำบลบางบัวทอง อำเภอบางบัวทอง จ.นนทบุรี 11110\",\n    \"country_id\": \"a25ddbc2-213e-4414-a0f0-15f6a09b7d9a\",\n    \"province_id\": \"dbe922f9-ed92-4fa2-bf1a-cffdd4c3f786\",\n    \"district_id\": \"db209bf6-476e-41cd-bcd8-debe17f782fb\",\n    \"phone\": \"0123654789\",\n    \"fax_number\": \"\",\n    \"tax_id\": \"0125568021251\"\n}",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:8081/v1/company/update/71bc6b56-084f-4652-98f0-2845662170dd"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
