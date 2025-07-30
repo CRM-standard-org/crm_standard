@@ -1,18 +1,7 @@
 import { useEffect, useState } from "react";
-import MasterTableFeature from "@/components/customs/display/master.main.component";
-import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 
-import MasterSelectComponent from "@/components/customs/select/select.main.component";
-import Buttons from "@/components/customs/button/button.main.component";
-import InputAction from "@/components/customs/input/input.main.component";
-import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
-
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
+;
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 

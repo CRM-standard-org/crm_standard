@@ -618,7 +618,7 @@ export default function ApproveDetailsQuotation() {
 
         
                 {/* ฝั่งขวา */}
-                <div className="w-full xl:w-[280px] bg-white shadow-lg rounded-lg p-4 self-stretch">
+                <div className="max-h-[600px] xl:max-h-[1920px] w-full xl:w-[280px] bg-white shadow-lg rounded-lg p-4 self-stretch">
                     <h2 className="text-lg font-semibold mb-3">ประวัติใบเสนอราคา</h2>
 
                     {dataQuotation?.status.map((status, index) => {

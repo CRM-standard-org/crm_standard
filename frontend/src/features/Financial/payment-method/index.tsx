@@ -36,6 +36,8 @@ export default function PaymentMethod() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<TypePaymentmethodResponse | null>(null);
 
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
   const { showToast } = useToast();
   //
   const navigate = useNavigate();
@@ -120,8 +122,15 @@ export default function PaymentMethod() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!paymentMethodName) {
-      showToast("กรุณาระบุวิธีการชำระเงิน", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!paymentMethodName) errorMap.paymentMethodName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
     try {
@@ -144,12 +153,15 @@ export default function PaymentMethod() {
   };
 
   const handleEditConfirm = async () => {
-    if (!paymentMethodName) {
-      showToast("กรุณาระบุให้ครบทุกช่อง", false);
-      return;
-    }
-    if (!selectedItem) {
-      showToast("กรุณาระบุวิธีการชำระเงิน", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!paymentMethodName) errorMap.editPaymentMethodName = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
 
@@ -241,7 +253,7 @@ export default function PaymentMethod() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="payment-name"
             placeholder="ชื่อวิธีการชำระเงิน"
             onChange={(e) => setPaymentMethodName(e.target.value)}
             value={paymentMethodName}
@@ -250,6 +262,8 @@ export default function PaymentMethod() {
             onAction={handleConfirm}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.paymentMethodName}
           />
 
         </div>
@@ -267,7 +281,7 @@ export default function PaymentMethod() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="payment-name"
             placeholder="ชื่อวิธีการชำระเงิน"
             onChange={(e) => setPaymentMethodName(e.target.value)}
             value={paymentMethodName}
@@ -276,6 +290,8 @@ export default function PaymentMethod() {
             onAction={handleEditConfirm}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.editPaymentMethodName}
           />
 
         </div>

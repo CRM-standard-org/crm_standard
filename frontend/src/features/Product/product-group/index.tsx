@@ -36,6 +36,8 @@ export default function ProductGroup() {
   const [selectedItem, setSelectedItem] = useState<TypeGroupProductResponse | null>(null);
 
   const { showToast } = useToast();
+  const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
+
   //
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,8 +45,6 @@ export default function ProductGroup() {
   const pageSize = searchParams.get("pageSize") ?? "25";
   const [searchTextDebouce, setSearchTextDebouce] = useState("");
 
-  const [allQuotation, setAllQuotation] = useState<any[]>([]);
-  const [quotation, setQuotation] = useState<any[]>([]);
 
   const { data: dataGroupProduct, refetch: refetchGroupProduct} = useProductGroup({
     page: page,
@@ -124,8 +124,15 @@ export default function ProductGroup() {
 
   //ยืนยันไดอะล็อค
   const handleConfirm = async () => {
-    if (!groupProduct) {
-      showToast("กรุณาระบุกลุ่มสินค้า", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!groupProduct) errorMap.groupProduct = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
     try {
@@ -148,12 +155,15 @@ export default function ProductGroup() {
   };
 
   const handleEditConfirm = async () => {
-    if (!groupProduct) {
-      showToast("กรุณาระบุกลุ่มสินค้า", false);
-      return;
-    }
-    if (!selectedItem) {
-      showToast("กรุณาระบุกลุ่มสินค้า", false);
+    const errorMap: Record<string, boolean> = {};
+
+    if (!groupProduct) errorMap.editGroupProduct = true;
+
+
+    setErrorFields(errorMap);
+
+    if (Object.values(errorMap).some((v) => v)) {
+      showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
       return;
     }
 
@@ -247,7 +257,7 @@ export default function ProductGroup() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="group-product"
             placeholder=""
             onChange={(e) => setGroupProduct(e.target.value)}
             value={groupProduct}
@@ -256,6 +266,8 @@ export default function ProductGroup() {
             onAction={handleConfirm}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.groupProduct}
           />
           
         </div>
@@ -273,7 +285,7 @@ export default function ProductGroup() {
       >
         <div className="flex flex-col space-y-5">
           <InputAction
-            id="tag-name"
+            id="group-product"
             placeholder=""
             onChange={(e) => setGroupProduct(e.target.value)}
             value={groupProduct}
@@ -282,6 +294,8 @@ export default function ProductGroup() {
             onAction={handleEditConfirm}
             classNameLabel="w-60 flex "
             classNameInput="w-full"
+            require="require"
+            isError={errorFields.editGroupProduct}
           />
           
         </div>

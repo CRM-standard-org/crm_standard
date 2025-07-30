@@ -10,12 +10,7 @@ import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
 import { IconButton, Dialog } from "@radix-ui/themes";
-import {
 
-    postColor,
-    updateColor,
-    deleteColor,
-} from "@/services/color.service";
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
@@ -1059,7 +1054,7 @@ export default function EditSaleOrder() {
 
     //ยืนยัน แก้ไข การชำระเงิน
     const handleEditPaymentConfirm = async () => {
-        console.log("edit paymaent")
+        
         // const payment_term_day = paymentCondition === "เต็มจำนวน" ? payDay : undefined;
         // const payment_term_installment = paymentCondition === "แบ่งชำระ" ? installments : undefined;
         // const payment_term = paymentCondition === "เต็มจำนวน"
@@ -1210,16 +1205,19 @@ export default function EditSaleOrder() {
     //ยืนยันไดอะล็อค
     //สร้างประวัติชำระเงิน
     const handleCreatePaymentLogConfirm = async () => {
-        const missingFields: string[] = [];
+        
 
-        if (!paymentDate) missingFields.push("วันที่ชำระ");
-        if (!updatePaymentCondition) missingFields.push("เงื่อนไขการชำระเงิน");
-        if (!paymentValue) missingFields.push("จำนวนเงินที่ชำระ");
-        if (!updatePaymentOption) missingFields.push("วิธีการชำระเงิน");
+        const errorMap: Record<string, boolean> = {};
 
+        if (!paymentDate) errorMap.paymentDate = true;
+        if (!updatePaymentCondition) errorMap.updatePaymentCondition = true;
+        if (!paymentValue) errorMap.paymentValue = true;
+        if (!updatePaymentOption) errorMap.updatePaymentOption = true;
+ 
+        setErrorFields(errorMap);
 
-        if (missingFields.length > 0) {
-            showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
 
@@ -1227,7 +1225,6 @@ export default function EditSaleOrder() {
             showToast("จำนวนเงินที่ชำระมากกว่ายอดคงเหลือ", false);
             return;
         }
-
         const payload: PayLoadCreateSaleOrderPaymentLog = {
 
             payment_date: paymentDate ? dayjs(paymentDate).format("YYYY-MM-DD") : "",
@@ -1236,8 +1233,8 @@ export default function EditSaleOrder() {
             payment_method_id: updatePaymentOption,
             payment_remark: paymentRemark,
         };
-        console.log("ส่ง payload", payload);
-        console.log("ไฟล์แนบ:", uploadedProve);
+        // console.log("ส่ง payload", payload);
+        // console.log("ไฟล์แนบ:", uploadedProve);
         try {
             const response = await createSaleOrderPaymentLog(saleOrderId, payload, uploadedProve);
 
@@ -1269,25 +1266,25 @@ export default function EditSaleOrder() {
 
     //อัพเดทประวัติชำระเงิน
     const handleEditPaymentLogConfirm = async () => {
-        const missingFields: string[] = [];
-        if (!selectedPaymentLogItem) {
-            showToast("กรุณาระบุรายการประวัติ", false);
+        const errorMap: Record<string, boolean> = {};
+
+        if (!paymentDate) errorMap.editPaymentDate = true;
+        if (!updatePaymentCondition) errorMap.editUpdatePaymentCondition = true;
+        if (!paymentValue) errorMap.editPaymentValue = true;
+        if (!updatePaymentOption) errorMap.editUpdatePaymentOption = true;
+ 
+        setErrorFields(errorMap);
+
+        if (Object.values(errorMap).some((v) => v)) {
+            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
             return;
         }
-        if (!paymentDate) missingFields.push("วันที่ชำระ");
-        if (!updatePaymentCondition) missingFields.push("เงื่อนไขการชำระเงิน");
-        if (!paymentValue) missingFields.push("จำนวนเงินที่ชำระ");
-        if (!updatePaymentOption) missingFields.push("วิธีการชำระเงิน");
 
-
-        if (missingFields.length > 0) {
-            showToast(`กรุณากรอกข้อมูลให้ครบ: ${missingFields.join(" , ")}`, false);
-            return;
-        }
         if (paymentValue > remainingTotal) {
             showToast("จำนวนเงินที่ชำระมากกว่ายอดคงเหลือ", false);
             return;
         }
+       
 
         const payload: PayLoadUpdateSaleOrderPaymentLog = {
             payment_log_id: paymentLogId,
@@ -2742,7 +2739,8 @@ export default function EditSaleOrder() {
                         classNameInput="w-full"
                         onAction={handleCreatePaymentLogConfirm}
                         nextFields={{ up: "remark", down: "payment-condition" }}
-
+                        required
+                        isError={errorFields.paymentDate}
                     />
 
                     <MasterSelectComponent
@@ -2766,6 +2764,8 @@ export default function EditSaleOrder() {
                         classNameLabel="w-40 min-w-20 flex"
                         classNameSelect="w-full "
                         nextFields={{ up: "payment-date", down: "payment-value" }}
+                        require="require"
+                        isError={errorFields.updatePaymentCondition}
                     />
 
                     <InputAction
@@ -2773,12 +2773,14 @@ export default function EditSaleOrder() {
                         placeholder=""
                         onChange={(e) => setPaymentValue(Number(e.target.value))}
                         value={paymentValue.toString()}
-                        label="จำนวนเงินที่ชำระ"
+                        label="เงินที่จะชำระ"
                         labelOrientation="horizontal"
                         onAction={handleCreatePaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex "
                         classNameInput="w-full text-end pe-3"
-                        nextFields={{ up: "payment-condition", down: "payment-condition" }}
+                        nextFields={{ up: "payment-condition", down: "payment-option" }}
+                        require="require"
+                        isError={errorFields.paymentValue}
                     />
                     <MasterSelectComponent
                         id="payment-option"
@@ -2795,6 +2797,8 @@ export default function EditSaleOrder() {
                         classNameLabel="w-40 min-w-20 flex"
                         classNameSelect="w-full "
                         nextFields={{ up: "payment-value", down: "remark" }}
+                        require="require"
+                        isError={errorFields.updatePaymentOption}
                     />
                     <TextArea
                         id="remark"
@@ -2843,6 +2847,8 @@ export default function EditSaleOrder() {
                         classNameInput="w-full"
                         onAction={handleEditPaymentLogConfirm}
                         nextFields={{ up: "remark", down: "payment-condition" }}
+                        required
+                        isError={errorFields.editPaymentDate}
 
                     />
                     <MasterSelectComponent
@@ -2868,6 +2874,8 @@ export default function EditSaleOrder() {
                         classNameSelect="w-full "
                         defaultValue={{ label: updatePaymentCondition, value: mapPaymentTermNameToId(updatePaymentCondition) }}
                         nextFields={{ up: "payment-date", down: "payment-value" }}
+                        require="require"
+                        isError={errorFields.editUpdatePaymentCondition}
                     />
 
                     <InputAction
@@ -2875,12 +2883,14 @@ export default function EditSaleOrder() {
                         placeholder=""
                         onChange={(e) => setPaymentValue(Number(e.target.value))}
                         value={paymentValue.toString()}
-                        label="จำนวนเงินที่ชำระ"
+                        label="เงินที่จะชำระ"
                         labelOrientation="horizontal"
                         onAction={handleEditPaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex "
                         classNameInput="w-full text-end pe-3"
                         nextFields={{ up: "payment-condition", down: "payment-condition" }}
+                        require="require"
+                        isError={errorFields.editPaymentValue}
                     />
 
                     <MasterSelectComponent
@@ -2899,6 +2909,8 @@ export default function EditSaleOrder() {
                         classNameSelect="w-full "
                         defaultValue={{ label: updatePaymentOptionName, value: updatePaymentOption ?? "" }}
                         nextFields={{ up: "payment-value", down: "remark" }}
+                        require="require"
+                        isError={errorFields.editUpdatePaymentOption}
                     />
                     <TextArea
                         id="remark"

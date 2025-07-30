@@ -3,18 +3,13 @@ import MasterTableFeature from "@/components/customs/display/master.main.compone
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import {
 
-  postColor,
-  updateColor,
-  deleteColor,
-} from "@/services/color.service";
+
 import { useToast } from "@/components/customs/alert/ToastContext";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useColor } from "@/hooks/useColor";
 
 //fetch tag
 import { useTag } from "@/hooks/useCustomerTag";

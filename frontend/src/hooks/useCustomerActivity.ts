@@ -1,5 +1,4 @@
 import { getActivity, getAllActivities } from "@/services/activity.service";
-import { getTag, selectTag } from "@/services/tagColor.service";
 import { PayLoadFilterActivity } from "@/types/requests/request.activity";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 

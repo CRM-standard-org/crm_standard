@@ -8,6 +8,7 @@ import { ActivityResponse, AllActivityResponse } from "@/types/response/response
 import { CREATE_ACTIVITY, DELETE_ACTIVITY, EDIT_ACTIVITY, GET_ACTIVITY_BY_ID, GET_ALL_ACTIVITY } from "@/apis/endpoint.api";
 import { PayLoadCreateActivity, PayLoadEditActivity, PayLoadFilterActivity } from "@/types/requests/request.activity";
 
+//get all activitie
 export const getAllActivities = async (page: string, pageSize: string, searchText: string, payload?: PayLoadFilterActivity) => {
     try {
         const { data: response } = await mainApi.post<AllActivityResponse>(
@@ -22,7 +23,7 @@ export const getAllActivities = async (page: string, pageSize: string, searchTex
 };
 
 
-// get by id
+// get by id activity
 export const getActivity = async (activityId: string) => {
     try {
         const encodedActivityId = encodeURIComponent(activityId);
@@ -36,6 +37,7 @@ export const getActivity = async (activityId: string) => {
         throw error;
     }
 }
+//create activity
 export const postActivity = async (payload: PayLoadCreateActivity) => {
     try {
         const { data: response } = await mainApi.post(CREATE_ACTIVITY, payload);
@@ -46,7 +48,7 @@ export const postActivity = async (payload: PayLoadCreateActivity) => {
         throw error; // Optionally rethrow the error for further handling
     }
 };
-
+//update activity
 export const updateActivity = async (activityId: string, payload: PayLoadEditActivity) => {
 
     try {
@@ -64,6 +66,7 @@ export const updateActivity = async (activityId: string, payload: PayLoadEditAct
     }
 };
 
+//delete activity
 export const deleteActivity = async (activityId: string) => {
     try {
        
