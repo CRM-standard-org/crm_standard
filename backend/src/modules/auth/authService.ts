@@ -5,6 +5,7 @@ import { authRepository } from '@modules/auth/authRepository';
 import { TypePayloadAuth } from '@modules/auth/authModel';
 import bcrypt from 'bcrypt';
 import { jwtGenerator } from '@common/utils/jwtGenerator';
+import { UUID } from 'crypto';
 
 export const authService = {
 
@@ -82,14 +83,15 @@ export const authService = {
             );  
         }
     },
-    authStatus:(req: any) => {
+    authStatus: async (req: any, user_id: UUID) => {
         try {
             const token = req.cookies.token;
-            if (token) {
+            const emp = await authRepository.authCurrentUser(user_id);
+            if (token && emp) {
                 return new ServiceResponse(
                     ResponseStatus.Success,
                     "User authenticated successfully",
-                    null,
+                    emp,
                     StatusCodes.OK
                 );
             }else {

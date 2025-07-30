@@ -183,14 +183,14 @@ backend/
    ```
 2. ตั้งค่าฐานข้อมูลและ Prisma:
    ```bash
-   npx prisma migrate dev
-   npx prisma db seed
+   npx prisma migrate dev หรือ npm run db:migrate
+   npx prisma db seed หรือ npm run db:seed
    ```
 3. รัน development server:
    ```bash
    npm run dev
    ```
-4. เปิดใช้งาน API ที่ http://localhost:3000
+4. เปิดใช้งาน API ที่ http://localhost:8081
 ---
 
 ### 🔹 5. **Deployment Process**
@@ -224,6 +224,7 @@ VITE_FRONTEND_URL="http://localhost:5173"
 ---------------------------------------------
 
 .env backend
+```
 # Environment Configuration
 NODE_ENV="development" # Options: 'development', 'production'
 PORT="8081"            # The port your server will listen on
@@ -248,7 +249,7 @@ REFRESH_EXPIRATION_DAYS=1
 
 # Redis caching
 REDIS_URI="redis://default:redispw@localhost:32768"
-
+```
 ---
 
 ### 🔹 9. **Pending Tasks / Known Issues**
@@ -280,7 +281,7 @@ Piechart เวลาเอาเมาส์ไปชี้มันไม่�
 
 * ผู้พัฒนา / ผู้ดูแลโปรเจกต์
 วฤณ พรหมวรานนท์ 0890526911 ID LINE : warinpalm
-เวงซัว แต 
+เวงซัว แต 0987514562 ID LINE : wangsua-_-por
 
 
 ---

@@ -6,6 +6,8 @@ import {
   } from "@common/utils/httpHandlers";
 import { authService } from "@modules/auth/authService";
 import { LoginSchema} from "@modules/auth/authModel";
+import authenticateToken from "@common/middleware/authenticateToken";
+
 export const authRouter = (() => {
     const router = express.Router();
 
@@ -21,8 +23,10 @@ export const authRouter = (() => {
         handleServiceResponse(ServiceResponse, res);
     })
 
-    router.get("/auth-status", async (req: Request, res: Response) => {
-        const ServiceResponse = await authService.authStatus(req);
+    router.get("/auth-status", authenticateToken, async (req: Request, res: Response) => {
+        const employee_id = req.token.payload.uuid;
+        console.log("employee_id", employee_id);
+        const ServiceResponse = await authService.authStatus(req, employee_id);
         handleServiceResponse(ServiceResponse, res);
     })
 

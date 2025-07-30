@@ -2,6 +2,7 @@ import { employees , roles } from "@prisma/client";
 import prisma from "@src/db";
 import { TypePayloadAuth } from "@modules/auth/authModel";
 import bcrypt from "bcrypt";
+import { UUID } from "crypto";
 
 
 export const Keys = [
@@ -62,4 +63,21 @@ export const authRepository = {
             select: keys.reduce(( obj, k) => ({...obj, [k]: true}), {}),
         }) as Promise<Pick<employees, Key> | null>;
     },
+    authCurrentUser: async (user_id: UUID) => {
+      return prisma.employees.findUnique({
+        where: { employee_id: user_id }, 
+        select: { 
+          employee_id: true, 
+          first_name: true,
+          last_name: true,
+          role: {
+            select: {
+              role_id: true,
+              role_name: true,
+            }
+          },
+          profile_picture: true
+        }
+      })
+    }
 };
