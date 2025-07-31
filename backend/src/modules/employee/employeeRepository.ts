@@ -1,10 +1,11 @@
 import { Social } from '@prisma/client';
 import prisma from '@src/db';
 import { TypePayloadEmployee , Filter , UpdateEmployee } from '@modules/employee/employeeModel';
-import { object } from 'zod';
+import { boolean, object } from 'zod';
 import { skip } from '@prisma/client/runtime/library';
 import bcrypt from "bcrypt";
 import { convertDecimalToNumber } from '@common/models/createCode';
+import { bool } from 'envalid';
 const fs = require('fs');
 
 
@@ -19,10 +20,18 @@ export const Keys = [
 
 export const employeeRepository = {
 
-    findByUsername: async (username: string) => {
+    findByUsername: async (username: string , employee_code?: string ) => {
         username = username.trim();
+        employee_code = employee_code?.trim();
         return prisma.employees.findFirst({
-          where: {username: username }, 
+          where: {username: username , employee_code }, 
+        });
+    },
+    checkUsername: async (username: string , employee_code?: string , employee_id?: string) => {
+        username = username.trim();
+        employee_code = employee_code?.trim();
+        return prisma.employees.findFirst({
+          where: {username: username , employee_code ,  employee_id: employee_id }, 
         });
     },
 
@@ -120,7 +129,6 @@ export const employeeRepository = {
         searchText = searchText?.trim();
         return await  prisma.employees.count({
             where: {
-                is_active : true,
                 AND: [
                     {...(searchText && {
                         OR: [
@@ -154,7 +162,7 @@ export const employeeRepository = {
                     } )},
                     {
                         AND: [
-                            ...(payload.is_active ? [{ is_active : payload.is_active }] : []),
+                            ...(payload.is_active !== undefined ? [{ is_active : payload.is_active }] : []),
                             ...(payload.status ? [{ 
                                 employee_status: {
                                     name : payload.status 
@@ -177,7 +185,6 @@ export const employeeRepository = {
 
         return prisma.employees.findMany({
             where: {
-                is_active : true,
                 AND: [
                     {...(searchText && {
                         OR: [
@@ -211,7 +218,7 @@ export const employeeRepository = {
                     } )},
                     {
                         AND: [
-                            ...(payload.is_active ? [{ is_active : payload.is_active }] : []),
+                            ...(payload.is_active !== undefined ? [{ is_active : payload.is_active }] : []),
                             ...(payload.status ? [{ 
                                 employee_status: {
                                     name : payload.status 
@@ -465,6 +472,17 @@ export const employeeRepository = {
 
         return data
     },
+    findPass: async (employee_id: string) => {
+        employee_id = employee_id.trim();
+        const data = await prisma.employees.findFirst({
+            where: { employee_id : employee_id },
+            select:{
+                password: true ,  
+            },
+        })
+
+        return data
+    },
     findSocial: async (employee_id: string) => {
         employee_id = employee_id.trim();
         const data = await prisma.detailSocial.findFirst({
@@ -509,16 +527,21 @@ export const employeeRepository = {
 
         const check = await prisma.employees.findFirst({ where: { employee_id } });
 
-        if(files && files.length == 1){
+        if(check && files && files.length == 1){
             fs.unlink(`src${check?.profile_picture}`, (err: Error) => {
                 if (err) console.log("not found file", err);
             });
         }
 
-        const password = setForm.password;
-        const saltRounds = 10;
-        const salt = await bcrypt.genSalt(saltRounds);  
-        const hashPassword = await bcrypt.hash(password, salt);
+        let hashPassword: string | undefined = undefined;
+        if (setForm.password && setForm.password !== "") {
+            const password = setForm.password;
+            const saltRounds = 10;
+            const salt = await bcrypt.genSalt(saltRounds);  
+            hashPassword = await bcrypt.hash(password, salt);
+        };
+
+        const checkIsActive = setForm.end_date ? new Date(setForm.end_date) <= new Date() ? false : true : true;
 
         const emp = await prisma.employees.update({
             where: { employee_id },
@@ -527,40 +550,75 @@ export const employeeRepository = {
                 password: hashPassword,
                 email: setForm.email,
                 role_id: setForm.role_id,
-                is_active: setForm.is_active,
+                is_active: checkIsActive,
                 position: setForm.position,
                 first_name: setForm.first_name,
                 last_name: setForm.last_name,
                 birthdate: toDate(setForm.birthdate),
                 phone: setForm.phone,
-                profile_picture: files && files.length == 1 ? `/uploads/employee/${files[0].filename}` : null,
+                profile_picture: files && files.length == 1 ? `/uploads/employee/${files[0].filename}` : check?.profile_picture,
                 salary: setForm.salary,
-                status_id: setForm.status_id,
+                status_id:  setForm.status_id  ,
                 start_date: toDate(setForm.start_date),
                 end_date: toDate(setForm.start_date),
                 updated_by: employee_id_by
             }
-        })
-
-        await prisma.address.updateMany({
-            where:{ employee_id: employee_id , main_address: true, type: "employee" },
-            data: {
-                address: setForm.address,
-                country_id: setForm.country_id,
-                province_id: setForm.province_id,
-                district_id: setForm.district_id,
-                updated_by: employee_id_by
-            }
         });
 
-        await prisma.detailSocial.updateMany({
-            where:{ employee_id: employee_id },
-            data: {
-                social_id: setForm.social_id,
-                detail: setForm.detail,
-                updated_by: employee_id_by
-            }
-        });
+        const addressEmp = await prisma.address.findFirst({where: { employee_id: employee_id }});
+
+        if(!addressEmp && setForm.country_id && setForm.province_id && setForm.district_id){
+            await prisma.address.create({
+                data: {
+                    employee_id: emp.employee_id,
+                    address: setForm.address,
+                    country_id: setForm.country_id,
+                    province_id: setForm.province_id,
+                    district_id: setForm.district_id,
+                    main_address: true,
+                    type: "employee",
+                    created_by: employee_id_by,
+                    updated_by: employee_id_by
+                }
+            });
+        }else{
+            await prisma.address.updateMany({
+                where:{ employee_id: employee_id , main_address: true, type: "employee" },
+                data: {
+                    address: setForm.address,
+                    country_id: setForm.country_id,
+                    province_id: setForm.province_id,
+                    district_id: setForm.district_id,
+                    updated_by: employee_id_by
+                }
+            });
+        }
+
+        const socialEmp = await prisma.detailSocial.findFirst({where: { employee_id: employee_id }});
+
+        if(!socialEmp && setForm.detail && setForm.social_id){
+            await prisma.detailSocial.create({
+                data: {
+                    employee_id: emp.employee_id,
+                    detail: setForm.detail,
+                    social_id: setForm.social_id,
+                    created_by: employee_id_by,
+                    updated_by: employee_id_by
+                }
+            });
+        }else{
+            await prisma.detailSocial.update({
+                where:{ employee_id: employee_id },
+                data: {
+                    social_id: setForm.social_id,
+                    detail: setForm.detail,
+                    updated_by: employee_id_by
+                }
+            });
+        }
+
+
+        return emp;
     },
 
 };
