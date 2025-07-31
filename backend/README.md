@@ -104,7 +104,7 @@ docker-compose up --build
 
 ##  Pending Tasks / Known Issues
 
-- เอกสารสิ่งที่จะต้องทำต่ออยู่ในกลุ่มไลน์ CRM-Dev
+- เอกสารสิ่งที่จะต้องทำต่ออยู่ในกลุ่มไลน์ CRM-Dev ครับ
 
 ---
 
