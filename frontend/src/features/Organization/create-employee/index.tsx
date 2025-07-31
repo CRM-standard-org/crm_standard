@@ -73,7 +73,7 @@ export default function CreateEmployee() {
     const [salary, setSalary] = useState("");
 
     const [startDate, setStartDate] = useState<Date | null>(new Date());
-    const [endDate, setEndDate] = useState<Date | null>(new Date());
+    const [endDate, setEndDate] = useState<Date | null>();
     const [employeeStatus, setEmployeeStatus] = useState<string | null>(null);
     const [team, setTeam] = useState<string | null>(null);
 
@@ -409,10 +409,16 @@ export default function CreateEmployee() {
             if (response.statusCode === 200) {
                 setUploadKey(prev => prev + 1); // trigger เพื่อ reset
                 navigate("/employee");
-            } else {
-                showToast("ไม่สามารถสร้างพนักงานได้", false);
             }
-
+            else if (response.statusCode === 400) {
+                if (response.message === "Username or employee code already exists") {
+                    showToast("ชื่อผู้ใช้งานหรือรหัสพนักงานซ้ำ", false);
+                }
+            }
+            
+            else  {
+                showToast("ไม่สามารถแก้ไขพนักงานได้", false);
+            }
         } catch (err) {
             showToast("ไม่สามารถสร้างพนักงานได้", false);
             console.error(err);

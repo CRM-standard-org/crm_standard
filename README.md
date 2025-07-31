@@ -248,6 +248,70 @@ REFRESH_EXPIRATION_DAYS=1
 # Redis caching
 REDIS_URI="redis://default:redispw@localhost:32768"
 ```
+
+docker compose 
+```
+version: "3.8"
+
+services:
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:80"  
+  #   environment:
+  #     NODE_ENV: development
+  #     REACT_APP_BACKEND_SERVER: http://localhost:8087/api/
+
+  # backend:
+  #   build: ./backend
+  #   ports:
+  #     - "8081:8081"
+  #   volumes:
+  #     - ./backend:/app
+  #   environment:
+  #     DATABASE_URL: postgresql://myuser:mypassword@postgres:5432/demo?sslmode=disable
+  #     TZ: Asia/Bangkok 
+  #   depends_on:
+  #     - postgres
+
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: crm_standard
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      TZ: Asia/Bangkok
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  plantuml-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.jetty
+    image: plantuml/plantuml-server:jetty
+    container_name: plantuml-server
+    ports:
+      - "8080:8080"
+    environment:
+      - BASE_URL=plantuml
+
+volumes:
+  db:
+```
 ---
 
 ### 🔹 9. **Pending Tasks / Known Issues**
@@ -271,9 +335,13 @@ responsive ของ frontend บางหน้า ในหน้าจอม�
 Piechart เวลาเอาเมาส์ไปชี้มันไม่ชอบแสดงข้อมูลให้ของสีๆนั้นว่าเป็นรายละเอียดของอะไรใน File /
  `Feature/Dashboard/dashboards`
  `Feature/Dashboard/report-category-sale`
+
+--------------------------- 
+
+เปลี่ยนรหัสผ่านของพนักงานไม่ได้ (ฺBackend)
+
 ---------------------------
 
-ส่วนเรื่องบัคพวกผมจะมีการเทส เรื่อยๆ ซึ่งปัจจุบันยังไม่เจอปัญหาครับ
 ---
 
 ### 🔹 10. **Contact / Contributor Info**

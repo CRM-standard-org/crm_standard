@@ -337,14 +337,6 @@ export default function SaleOrder() {
         setIsDeleteDialogOpen(false);
         refetchSaleOrders();
       }
-      else if (response.statusCode === 400) {
-        if (response.message === "Color in quotation") {
-          showToast("ไม่สามารถยกเลิกใบเสนอราคาได้ เนื่องจากมีใบเสนอราคาอยู่", false);
-        }
-        else {
-          showToast("ไม่สามารถยกเลิกใบเสนอราคาได้", false);
-        }
-      }
       else {
         showToast("ไม่สามารถยกเลิกใบเสนอราคาได้", false);
       }

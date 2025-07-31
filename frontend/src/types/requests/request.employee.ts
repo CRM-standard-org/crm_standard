@@ -23,7 +23,6 @@ export type PayLoadCreateEmployee={
 }
 
 export type PayLoadEditEmployee={
-    employee_code: string,
     username: string,
     password: string,
     email: string,

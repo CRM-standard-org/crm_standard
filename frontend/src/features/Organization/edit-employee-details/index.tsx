@@ -78,7 +78,7 @@ export default function EditEmployeeDetails() {
     const [salary, setSalary] = useState("");
 
     const [startDate, setStartDate] = useState<Date | null>(new Date());
-    const [endDate, setEndDate] = useState<Date | null>(new Date());
+    const [endDate, setEndDate] = useState<Date | null>();
     const [employeeStatusName, setEmployeeStatusName] = useState("");
     const [employeeStatus, setEmployeeStatus] = useState<string | null>(null);
     const [team, setTeam] = useState<string | null>(null);
@@ -417,7 +417,6 @@ export default function EditEmployeeDetails() {
 
         const errorMap: Record<string, boolean> = {};
 
-        if (!employeeCode) errorMap.employeeCode = true;
         if (!username) errorMap.username = true;
         if (!fName) errorMap.fName = true;
         if (!employeeRole) errorMap.employeeRole = true;
@@ -437,7 +436,6 @@ export default function EditEmployeeDetails() {
 
 
         const payload: PayLoadEditEmployee = {
-            employee_code: employeeCode,
             username: username,
             password: password,
             email: email,
@@ -467,9 +465,17 @@ export default function EditEmployeeDetails() {
             if (response.statusCode === 200) {
                 setUploadKey(prev => prev + 1); // trigger เพื่อ reset
                 navigate("/employee");
-            } else {
+            }
+            else if (response.statusCode === 400) {
+                if (response.message === "Username or employee code already exists") {
+                    showToast("ชื่อผู้ใช้งานหรือรหัสพนักงานซ้ำ", false);
+                }
+            }
+            
+            else  {
                 showToast("ไม่สามารถแก้ไขพนักงานได้", false);
             }
+
 
         } catch (err) {
             showToast("ไม่สามารถแก้ไขพนักงานได้", false);
@@ -550,7 +556,7 @@ export default function EditEmployeeDetails() {
                                 placeholder=""
                                 onChange={handlePasswordChange}
                                 value={password}
-                                label="รหัสผ่าน"
+                                label="รหัสผ่านใหม่"
                                 labelOrientation="horizontal"
                                 onAction={handleConfirm}
                                 classNameLabel="w-1/2 flex "
@@ -558,27 +564,59 @@ export default function EditEmployeeDetails() {
                                 nextFields={{ up: "username", down: "employee-code" }}
                                 isError={passwordError}
                                 errorMessage={passwordErrorMessage}
-                                require="require"
+                              
                             />
 
                         </div>
+            
                         <div className="">
                             <InputAction
-                                id="employee-code"
+                                id="fname"
                                 placeholder=""
-                                onChange={(e) => setEmployeeCode(e.target.value)}
-                                value={employeeCode}
-                                label="รหัสพนักงาน"
+                                onChange={(e) => setFName(e.target.value)}
+                                value={fName}
+                                label="ชื่อ"
                                 labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex "
+                                classNameLabel="w-1/2 flex"
                                 classNameInput="w-full"
-                                nextFields={{ up: "password", down: "employee-role" }}
-                                isError={errorFields.employeeCode}
+                                nextFields={{ up: "password", down: "lname" }}
                                 require="require"
+                                isError={errorFields.fName}
+
                             />
                         </div>
 
+                        <div className="">
+                            <InputAction
+                                id="lname"
+                                placeholder=""
+                                onChange={(e) => setLName(e.target.value)}
+                                value={lName}
+                                label="นามสกุล"
+                                labelOrientation="horizontal"
+                                classNameLabel="w-1/2 flex"
+                                classNameInput="w-full"
+                                nextFields={{ up: "fname", down: "position" }}
+                            />
+                        </div>
+
+                        <div className="">
+                            <InputAction
+                                id="position"
+                                placeholder=""
+                                onChange={(e) => setPosition(e.target.value)}
+                                value={position}
+                                label="ตำแหน่ง"
+                                labelOrientation="horizontal"
+                                onAction={handleConfirm}
+                                classNameLabel="w-1/2 flex"
+                                classNameInput="w-full"
+                                nextFields={{ up: "lname", down: "employee-role" }}
+                                require="require"
+                                isError={errorFields.position}
+
+                            />
+                        </div>
                         <div className="">
                             <MasterSelectComponent
                                 id="employee-role"
@@ -595,59 +633,12 @@ export default function EditEmployeeDetails() {
                                 classNameSelect="w-full "
                                 defaultValue={{ label: employeeRoleName, value: employeeRole }}
 
-                                nextFields={{ up: "employee-code", down: "fname" }}
+                                nextFields={{ up: "position", down: "salary" }}
                                 isError={errorFields.employeeRole}
                                 require="require"
                             />
                         </div>
 
-
-                        <div className="">
-                            <InputAction
-                                id="fname"
-                                placeholder=""
-                                onChange={(e) => setFName(e.target.value)}
-                                value={fName}
-                                label="ชื่อ"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 flex"
-                                classNameInput="w-full"
-                                nextFields={{ up: "employee-code", down: "lname" }}
-                                require="require"
-                                isError={errorFields.fName}
-
-                            />
-                        </div>
-                        <div className="">
-                            <InputAction
-                                id="lname"
-                                placeholder=""
-                                onChange={(e) => setLName(e.target.value)}
-                                value={lName}
-                                label="นามสกุล"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 flex"
-                                classNameInput="w-full"
-                                nextFields={{ up: "fname", down: "position" }}
-                            />
-                        </div>
-                        <div className="">
-                            <InputAction
-                                id="position"
-                                placeholder=""
-                                onChange={(e) => setPosition(e.target.value)}
-                                value={position}
-                                label="ตำแหน่ง"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex"
-                                classNameInput="w-full"
-                                nextFields={{ up: "lname", down: "salary" }}
-                                require="require"
-                                isError={errorFields.position}
-
-                            />
-                        </div>
                         <div className="">
                             <InputAction
                                 id="salary"
