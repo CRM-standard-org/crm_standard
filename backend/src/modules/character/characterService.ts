@@ -15,7 +15,7 @@ export const characterService = {
             if(checkCharacter){
                 return new ServiceResponse(
                     ResponseStatus.Failed,
-                    "Character name already exists.",
+                    "Character name already exists",
                     null,
                     StatusCodes.BAD_REQUEST
                 )

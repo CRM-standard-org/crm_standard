@@ -33,7 +33,6 @@ export type UpdateEmployee = {
     password : string ; 
     email? : string ;
     role_id?: string;
-    is_active?: boolean;
     position? : string;     
     first_name? : string ;   
     last_name? : string;  

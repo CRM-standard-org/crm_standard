@@ -9,6 +9,15 @@ import { employees } from '@prisma/client';
 export const employeeService = {
     create: async (payload: TypePayloadEmployee, employee_id : string , files: Express.Multer.File[] ) => {
         try{
+            const checkNameReplace = await employeeRepository.findByUsername(payload.username);
+            if(checkNameReplace){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Username or employee code already exists",
+                    null,
+                    StatusCodes.BAD_REQUEST
+                );
+            }
             const data = await employeeRepository.create(payload , employee_id , files);
             return new ServiceResponse(
                 ResponseStatus.Success,
@@ -30,7 +39,6 @@ export const employeeService = {
     findAllNoneTeam: async (page : number , limit : number , search : string ) => {
         try{
             const employee = await employeeRepository.findAllNoneTeam(page , limit , search);
-            // console.log("tag", page , limit , search, tag);
             const totalCount = await employeeRepository.countNoneTeam(search);
             return new ServiceResponse(
                 ResponseStatus.Success,
@@ -178,7 +186,6 @@ export const employeeService = {
                 password,
                 email,
                 role_id,
-                is_active,
                 position,
                 first_name,
                 last_name,
@@ -195,7 +202,17 @@ export const employeeService = {
                 social_id,
                 detail,
             } = {...check , ...payload} as UpdateEmployee
-            const passEmp = await employeeRepository.findByUsername(check.username);
+            const checkUsernameReplace = await employeeRepository.findByUsername(check.username);
+            const checkUsernameAlright = await employeeRepository.checkUsername(check.username , employee_id);
+            if(checkUsernameReplace && checkUsernameAlright){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Username or employee code already exists",
+                    null,
+                    StatusCodes.BAD_REQUEST
+                );
+            }
+            const pass = await employeeRepository.findPass(employee_id);
             const addressEmp = await employeeRepository.findAddress(employee_id);
             const socialEmp = await employeeRepository.findSocial(employee_id);
 
@@ -203,10 +220,9 @@ export const employeeService = {
                 employee_id,
                 {
                     username,
-                    password : (password != '' ? password : passEmp?.password) as string,
+                    password : (password !== '' ? password : pass?.password ) as string,
                     email,
                     role_id: role_id ?? check.role.role_id,
-                    is_active,
                     position,
                     first_name,
                     last_name,
