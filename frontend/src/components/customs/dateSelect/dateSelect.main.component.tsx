@@ -16,6 +16,7 @@ type DatePickerComponentProps = {
   required?: boolean;
   isError?: boolean;
   useTodayAsDefault?: boolean;
+  isClearable?: boolean; 
   isDisabled?: boolean;
 };
 
@@ -33,6 +34,7 @@ export default function DatePickerComponent({
   required = false,
   isError,
   useTodayAsDefault = false,
+  isClearable = false, 
   isDisabled,
 }: DatePickerComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,7 +81,8 @@ export default function DatePickerComponent({
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
-      <div className={`w-full ${isError ? "ring-2 ring-red-500 rounded-md" : ""}`} ref={containerRef}>        <DatePicker
+      <div className={`w-full ${isError ? "ring-2 ring-red-500 rounded-md" : ""}`} ref={containerRef}>        
+      <DatePicker
         id={id}
         selected={useTodayAsDefault && !selectedDate ? new Date() : selectedDate}
         onChange={onChange}
@@ -88,6 +91,7 @@ export default function DatePickerComponent({
         className={`border border-gray-300 rounded-md px-4 py-2 text-sm text-center ${classNameInput}`}
         onKeyDown={handleKeyDown}
         wrapperClassName="w-full"
+        isClearable={isClearable}
         disabled={isDisabled}
       />
       </div>

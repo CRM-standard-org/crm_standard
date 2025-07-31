@@ -78,7 +78,7 @@ export default function EditEmployeeDetails() {
     const [salary, setSalary] = useState("");
 
     const [startDate, setStartDate] = useState<Date | null>(new Date());
-    const [endDate, setEndDate] = useState<Date | null>();
+    const [endDate, setEndDate] = useState<Date | null>(null);
     const [employeeStatusName, setEmployeeStatusName] = useState("");
     const [employeeStatus, setEmployeeStatus] = useState<string | null>(null);
     const [team, setTeam] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export default function EditEmployeeDetails() {
     const [districtOptions, setDistrictOptions] = useState<OptionType[]>([]);
     const [email, setEmail] = useState("");
     const [telNo, setTelno] = useState("");
-    const [birthDate, setBirthDate] = useState<Date | null>(new Date());
+    const [birthDate, setBirthDate] = useState<Date | null>(null);
 
     const [address, setAddress] = useState("");
     const [contactNameOption, setContactNameOption] = useState("");
@@ -633,26 +633,12 @@ export default function EditEmployeeDetails() {
                                 classNameSelect="w-full "
                                 defaultValue={{ label: employeeRoleName, value: employeeRole }}
 
-                                nextFields={{ up: "position", down: "salary" }}
+                                nextFields={{ up: "position", down: "start-date" }}
                                 isError={errorFields.employeeRole}
                                 require="require"
                             />
                         </div>
-
-                        <div className="">
-                            <InputAction
-                                id="salary"
-                                placeholder=""
-                                onChange={(e) => setSalary(e.target.value)}
-                                value={salary}
-                                label="เงินเดือน/ค่าแรง"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex"
-                                classNameInput="w-full"
-                                nextFields={{ up: "position", down: "start-date" }}
-                            />
-                        </div>
+                       
                         <div className="">
                             <DatePickerComponent
                                 id="start-date"
@@ -662,7 +648,7 @@ export default function EditEmployeeDetails() {
                                 onChange={(date) => setStartDate(date)}
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
-                                nextFields={{ up: "salary", down: "end-date" }}
+                                nextFields={{ up: "employee-role", down: "end-date" }}
 
                             />
                         </div>
@@ -676,11 +662,11 @@ export default function EditEmployeeDetails() {
                                 onChange={(date) => setEndDate(date)}
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
-                                nextFields={{ up: "start-date", down: "team" }}
-
+                                nextFields={{ up: "start-date", down: "employee-status" }}
+                                isClearable={true}
                             />
                         </div>
-
+                        
                         <div className="">
                             <MasterSelectComponent
                                 id="employee-status"
@@ -696,12 +682,25 @@ export default function EditEmployeeDetails() {
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 defaultValue={{ label: employeeStatusName, value: employeeStatus }}
-                                nextFields={{ up: "end-date", down: "team" }}
+                                nextFields={{ up: "end-date", down: "salary" }}
                                 require="require"
                                 isError={errorFields.employeeStatus}
                             />
                         </div>
-
+                        <div className="">
+                            <InputAction
+                                id="salary"
+                                placeholder=""
+                                onChange={(e) => setSalary(e.target.value)}
+                                value={salary}
+                                label="เงินเดือน/ค่าแรง"
+                                labelOrientation="horizontal"
+                                onAction={handleConfirm}
+                                classNameLabel="w-1/2 flex"
+                                classNameInput="w-full"
+                                nextFields={{ up: "employee-status", down: "team" }}
+                            />
+                        </div>
                         <div className="">
 
                             <MasterSelectComponent
@@ -718,7 +717,7 @@ export default function EditEmployeeDetails() {
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 defaultValue={{ label: teamName, value: team }}
-                                nextFields={{ up: "employee-status", down: "country" }}
+                                nextFields={{ up: "salary", down: "country" }}
                             />
                         </div>
 
@@ -842,7 +841,7 @@ export default function EditEmployeeDetails() {
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
                                 nextFields={{ up: "district", down: "address" }}
-
+                                isClearable={true}
                             />
                         </div>
 

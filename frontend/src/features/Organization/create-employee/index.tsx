@@ -73,7 +73,7 @@ export default function CreateEmployee() {
     const [salary, setSalary] = useState("");
 
     const [startDate, setStartDate] = useState<Date | null>(new Date());
-    const [endDate, setEndDate] = useState<Date | null>();
+    const [endDate, setEndDate] = useState<Date | null>(null);
     const [employeeStatus, setEmployeeStatus] = useState<string | null>(null);
     const [team, setTeam] = useState<string | null>(null);
 
@@ -88,7 +88,7 @@ export default function CreateEmployee() {
     const [districtOptions, setDistrictOptions] = useState<OptionType[]>([]);
     const [email, setEmail] = useState("");
     const [telNo, setTelno] = useState("");
-    const [birthDate, setBirthDate] = useState<Date | null>(new Date());
+    const [birthDate, setBirthDate] = useState<Date | null>(null);
 
     const [address, setAddress] = useState("");
     const [contactNameOption, setContactNameOption] = useState("");
@@ -622,7 +622,7 @@ export default function CreateEmployee() {
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
                                 nextFields={{ up: "start-date", down: "team" }}
-
+                                isClearable={true}
                             />
                         </div>
 
@@ -784,7 +784,7 @@ export default function CreateEmployee() {
                                 classNameLabel="w-1/2"
                                 classNameInput="w-full"
                                 nextFields={{ up: "district", down: "address" }}
-
+                                isClearable={true}
                             />
                         </div>
 

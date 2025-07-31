@@ -66,15 +66,15 @@ export default function EmployeeDetails() {
     //fetch employee by id
     const { data: employee, refetch: refetchEmployee } = useEmployeeById({ employeeId });
 
- 
+
     useEffect(() => {
         let rawData = [];
         let formattedData = [];
-    
+
         if (activeTab === 'quotation' && employee?.responseObject?.quotation_responsible) {
             // --- ส่วนของ ใบเสนอราคา ---
             rawData = employee.responseObject.quotation_responsible;
-            formattedData = rawData.map((item:TypeQuotationResponsible, index:number) => ({
+            formattedData = rawData.map((item: TypeQuotationResponsible, index: number) => ({
                 className: "",
                 cells: [
                     { value: index + 1, className: "text-center" },
@@ -91,7 +91,7 @@ export default function EmployeeDetails() {
                         </div>, className: "text-left"
                     },
                     { value: (<RatingShow value={item.priority} className="w-5 h-5" />), className: "text-left" },
-                    { value: item.quotation_number, className: "text-center" }, 
+                    { value: item.quotation_number, className: "text-center" },
                     { value: new Date(item.issue_date).toLocaleDateString("th-TH"), className: "text-center" },
                     {
                         value: (
@@ -107,11 +107,11 @@ export default function EmployeeDetails() {
                 ],
                 data: item,
             }));
-    
+
         } else if (activeTab === 'saleorder' && employee?.responseObject?.sale_order_responsible) {
             // --- ส่วนของ ใบสั่งขาย ---
             rawData = employee.responseObject.sale_order_responsible;
-            formattedData = rawData.map((item:TypeSaleOrderResponsible, index:number) => ({
+            formattedData = rawData.map((item: TypeSaleOrderResponsible, index: number) => ({
                 className: "",
                 cells: [
                     { value: index + 1, className: "text-center" },
@@ -145,10 +145,10 @@ export default function EmployeeDetails() {
                 data: item,
             }));
         }
-    
+
         setData(formattedData);
-    
-    }, [employee, activeTab]); 
+
+    }, [employee, activeTab]);
 
 
     const listContact = async () => {
@@ -173,12 +173,12 @@ export default function EmployeeDetails() {
         {
             id: "quotation",
             name: "ใบเสนอราคา",
-            onChange: () => setActiveTab("quotation") 
+            onChange: () => setActiveTab("quotation")
         },
         {
             id: "saleorder",
             name: "ใบสั่งขาย",
-            onChange: () => setActiveTab("saleorder") 
+            onChange: () => setActiveTab("saleorder")
         },
     ];
     // const mockData = [
@@ -238,7 +238,7 @@ export default function EmployeeDetails() {
         { label: "มูลค่า", colSpan: 1, className: "min-w-40" },
     ];
 
-    
+
     const profileUrl = employee?.responseObject?.profile_picture
         ? `${appConfig.baseApi}${employee?.responseObject?.profile_picture}`
         : null;
@@ -336,6 +336,17 @@ export default function EmployeeDetails() {
 
                             </div>
 
+                            <div className="">
+
+                                <LabelWithValue
+                                    label="วันที่เลิกทำงาน"
+                                    value={
+                                        employee?.responseObject?.end_date
+                                            ? new Date(employee?.responseObject?.end_date).toLocaleDateString("th-TH")
+                                            : "-"
+                                    } classNameLabel="sm:w-1/2" classNameValue="w-80"
+                                />
+                            </div>
                             <LabelWithValue
                                 label="เงินเดือน/ค่าแรง"
                                 value={
@@ -348,17 +359,6 @@ export default function EmployeeDetails() {
                             />
 
 
-                            <div className="">
-
-                                <LabelWithValue
-                                    label="วันที่เลิกทำงาน"
-                                    value={
-                                        employee?.responseObject?.end_date
-                                            ? new Date(employee?.responseObject?.end_date).toLocaleDateString("th-TH")
-                                            : "-"
-                                    } classNameLabel="sm:w-1/2" classNameValue="w-80"
-                                />
-                            </div>
                             <div className="">
 
                                 <LabelWithValue label="ทีม" value={`${employee?.responseObject?.team_employee?.name ?? "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
@@ -395,7 +395,7 @@ export default function EmployeeDetails() {
                             <div className="">
 
 
-                                <LabelWithValue label="ที่อยู่" value={`${employee?.responseObject?.address[0]?.address|| "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="ที่อยู่" value={`${employee?.responseObject?.address[0]?.address || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
                         </div>
