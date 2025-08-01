@@ -58,7 +58,7 @@ export default function ManageInfoCompany() {
         if (companyDetails?.responseObject) {
             setDataCompany(companyDetails.responseObject)
         }
-    })
+    },[companyDetails])
     const mockData = [
         {
             className: "",
@@ -179,9 +179,9 @@ export default function ManageInfoCompany() {
                                 />
                                 <LabelWithValue label="ชื่อสถานที่" value={`${dataCompany?.place_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
                                 <LabelWithValue label="ที่ตั้งสำนักงานใหญ่" value={`${dataCompany?.address || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="ประเทศ" value={`${dataCompany?.country.country_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="จังหวัด" value={`${dataCompany?.province.province_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
-                                <LabelWithValue label="อำเภอ" value={`${dataCompany?.district.district_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="ประเทศ" value={`${dataCompany?.country?.country_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="จังหวัด" value={`${dataCompany?.province?.province_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
+                                <LabelWithValue label="อำเภอ" value={`${dataCompany?.district?.district_name || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
 
                                 <LabelWithValue label="เลขประจำตัวผู้เสียภาษี" value={`${dataCompany?.tax_id || "-"}`} classNameLabel="sm:w-1/2" classNameValue="w-full" />
 

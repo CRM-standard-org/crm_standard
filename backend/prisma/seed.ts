@@ -1,6 +1,6 @@
 import { PrismaClient, roles } from '@prisma/client'
 const prisma = new PrismaClient()
-import bcrypt from "bcrypt";
+import bcrypt from 'bcryptjs';
 import { rolesData } from "../src/common/models/roleData";
 import { statusData , socialData , vatData } from "../src/common/models/dataSeed";
 import { countryData , provinceData ,districtData } from "../src/common/models/addressSeed";

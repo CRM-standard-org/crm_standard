@@ -1,7 +1,7 @@
 import { employees , roles } from "@prisma/client";
 import prisma from "@src/db";
 import { TypePayloadAuth } from "@modules/auth/authModel";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { UUID } from "crypto";
 
 

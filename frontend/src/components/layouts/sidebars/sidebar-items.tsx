@@ -74,21 +74,26 @@ const SideBarItems = ({
               <SidebarMenuItem className="focus:border-none focus:outline-none">
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
+                    asChild
                     className={`sidebar-item-custom transition-opacity ${
                       item.disable ? "" : "hover:opacity-100"
                     } ${getActiveClass(item.url)} h-10`}
-                    onClick={() => toggleMenu(item.title)}
                   >
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.title}</span>
+                    <button onClick={() => toggleMenu(item.title)}>
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.title}</span>
 
-                    <SidebarMenuAction
-                      className={`transition-transform ${
-                        isOpen ? "rotate-90" : "rotate-0"
-                      }`}
-                    >
-                      <ChevronRight />
-                    </SidebarMenuAction>
+                      <SidebarMenuAction
+                        asChild
+                        className={`transition-transform ${
+                          isOpen ? "rotate-90" : "rotate-0"
+                        }`}
+                      >
+                        <div>
+                          <ChevronRight />
+                        </div>
+                      </SidebarMenuAction>
+                    </button>
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>

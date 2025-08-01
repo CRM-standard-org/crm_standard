@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { ResponseStatus, ServiceResponse } from '@common/models/serviceResponse';
 import { authRepository } from '@modules/auth/authRepository';
 import { TypePayloadAuth } from '@modules/auth/authModel';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { jwtGenerator } from '@common/utils/jwtGenerator';
 import { UUID } from 'crypto';
 

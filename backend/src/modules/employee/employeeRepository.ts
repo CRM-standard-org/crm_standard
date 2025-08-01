@@ -3,7 +3,7 @@ import prisma from '@src/db';
 import { TypePayloadEmployee , Filter , UpdateEmployee } from '@modules/employee/employeeModel';
 import { boolean, object } from 'zod';
 import { skip } from '@prisma/client/runtime/library';
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { convertDecimalToNumber } from '@common/models/createCode';
 import { bool } from 'envalid';
 const fs = require('fs');
