@@ -22,18 +22,19 @@ import { useTeam } from "@/hooks/useTeam";
 import { TypeTeamResponse } from "@/types/response/response.team";
 import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
 import { TypeAllEmployeeResponse } from "@/types/response/response.employee";
+import { useAllSaleOrders } from "@/hooks/useSaleOrder";
+import { TypeAllSaleOrderResponse } from "@/types/response/response.saleorder";
 type dateTableType = {
   className: string;
   cells: {
     value: any;
     className: string;
   }[];
-  data: TypeAllCustomerResponse; //ตรงนี้
+  data: TypeAllSaleOrderResponse; //ตรงนี้
 }[];
 
 //
 export default function SellProcess() {
-
   const [searchText, setSearchText] = useState("");
 
   // const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -41,7 +42,8 @@ export default function SellProcess() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  const [selectedItem, setSelectedItem] = useState<TypeAllCustomerResponse | null>(null);
+  const [selectedItem, setSelectedItem] =
+    useState<TypeAllCustomerResponse | null>(null);
 
   const [tagId, setTagId] = useState<string | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
@@ -56,21 +58,18 @@ export default function SellProcess() {
 
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
 
-
   //searchText control
   const [searchCustomer, setSearchCustomer] = useState("");
   const [searchTeam, setSearchTeam] = useState("");
   const [searchEmployee, setSearchEmployee] = useState("");
   const [searchTag, setSearchTag] = useState("");
 
-
-
   //fetch team
   const { data: dataTeam, refetch: refetchTeam } = useTeam({
     page: "1",
     pageSize: "100",
     searchText: searchTeam,
-  })
+  });
   const fetchDataTeamDropdown = async () => {
     const teamList = dataTeam?.responseObject?.data ?? [];
     return {
@@ -79,7 +78,7 @@ export default function SellProcess() {
         name: item.name,
       })),
     };
-  }
+  };
   const handleTeamSearch = (searchText: string) => {
     setSearchTeam(searchText);
     refetchTeam();
@@ -132,137 +131,175 @@ export default function SellProcess() {
       placeholder: "ทีม",
       fetchData: fetchDataTeamDropdown,
       onChange: (value: string | null) => {
-        setTeamId(value)
+        setTeamId(value);
         setSearchParams({ page: "1", pageSize });
       },
-      handleChange: handleTeamSearch
+      handleChange: handleTeamSearch,
     },
     {
       placeholder: "ผู้รับผิดชอบ",
       fetchData: fetchDataMemberInteam,
       onChange: (value: string | null) => {
-        setResponsibleId(value)
+        setResponsibleId(value);
         setSearchParams({ page: "1", pageSize });
       },
-      handleChange: handleEmployeeSearch
+      handleChange: handleEmployeeSearch,
     },
     {
       placeholder: "แท็กของลูกค้า",
       fetchData: fetchDataTagDropdown,
       onChange: (value: string | null) => {
-        setTagId(value)
+        setTagId(value);
         setSearchParams({ page: "1", pageSize });
       },
-      handleChange: handleTagSearch
-
+      handleChange: handleTagSearch,
     },
   ];
 
-  //fetch customer
-  const { data: dataCustomer, refetch: refetchCustomer } = useAllCustomer({
-    page: page,
-    pageSize: pageSize,
-    searchText: searchCustomer,
-    payload: {
-      tag_id: tagId,
-      team_id: teamId,
-      responsible_id: responsibleId,
-    },
-  });
+  const { data: dataSaleOrders, refetch: refetchSaleOrders } = useAllSaleOrders(
+    {
+      page: page,
+      pageSize: pageSize,
+      searchText: searchCustomer,
+      payload: {
+        tag_id: tagId,
+        team_id: teamId,
+        responsible_id: responsibleId,
+        status: filterGroup,
+        start_date: null,
+        end_date: null,
+      },
+    }
+  );
   useEffect(() => {
-    console.log("Data:", dataCustomer);
-    if (dataCustomer?.responseObject?.data) {
-
-      const formattedData = dataCustomer.responseObject?.data.map(
-        (item: TypeAllCustomerResponse, index) => ({
+    if (dataSaleOrders?.responseObject?.data) {
+      const formattedData = dataSaleOrders.responseObject?.data.map(
+        (item: TypeAllSaleOrderResponse, index: number) => ({
           className: "",
           cells: [
-            { value: index + 1, className: "text-center" },
+            // { value: index + 1, className: "text-left" },
+            {
+              value: item.sale_order_number,
+              className: "text-left",
+            },
+            { value: item.customer.company_name, className: "text-left" },
             {
               value: (
-                <div className="flex flex-col">
-                  {item.company_name}
-                  <div className="flex flex-row space-x-1">
-                    {item.customer_tags && item.customer_tags.map((tag) => (
-
-                      <TagCustomer nameTag={`${tag.group_tag.tag_name}`} color={`${tag.group_tag.color}`} />
-                    ))}
-
-                  </div>
-                </div>
-              ), className: "text-left"
+                <RatingShow
+                  value={item.customer.priority}
+                  className="w-5 h-5"
+                />
+              ),
+              className: "text-left",
             },
-            { value: (<RatingShow value={item.priority} className="w-5 h-5" />), className: "text-left" },
+            // {
+            //   value:
+            //     item.responsible.first_name + " " + item.responsible.last_name,
+            //   className: "text-left",
+            // },
             {
-              value: "P010111222", className: "text-left"
+              value: new Date(item.issue_date).toLocaleDateString("th-TH"),
+              className: "text-center",
             },
             {
-              value: "15/2/2024", className: "text-center"
+              value:
+                item.responsible.first_name + " " + item.responsible.last_name,
+              className: "text-center",
             },
-            { value: item.responsible.first_name + " " + item.responsible.last_name, className: "text-left" },
-            { value: item.team.name, className: "text-center" },
-            { value: "รออนุมัติ", className: "text-left" },
-            { value: "", className: "text-left" },
+            // {
+            //   value: new Date(item.price_date).toLocaleDateString("th-TH"),
+            //   className: "text-center",
+            // },
+            {
+              value: item.customer.team.name ?? "-",
+              className: "text-right",
+            },
+            {
+              value:
+                item.sale_order_status === "ระหว่างดำเนินการ"
+                  ? "รอปิดการขาย"
+                  : item.sale_order_status === "สำเร็จ"
+                  ? "ปิดการขายสำเร็จ"
+                  : "ปิดการขายไม่สำเร็จ",
+              className: "text-center",
+            },
+            // {
+            //   value: item.payment_status,
+            //   className: `${
+            //     item.payment_status == "รอการชำระเงิน"
+            //       ? "text-red-400"
+            //       : "text-green-500"
+            //   } font-bold text-center`,
+            // },
+            {
+              value: Number(item.grand_total).toFixed(2).toLocaleString(),
+              className: "text-right",
+            },
           ],
           data: item,
         })
       );
       setData(formattedData);
     }
-  }, [dataCustomer]);
+  }, [dataSaleOrders]);
+
   //
   const headers = [
-    { label: "หมายเลขการขาย", colSpan: 1, className: "w-auto" },
+    // { label: "หมายเลขการขาย", colSpan: 1, className: "w-auto" },
+    { label: "หมายเลขใบสั่งขาย", colSpan: 1, className: "w-auto" },
     { label: "ลูกค้า", colSpan: 1, className: "w-auto" },
     { label: "ความสำคัญ", colSpan: 1, className: "w-auto " },
-    { label: "หมายเลขใบสั่งขาย", colSpan: 1, className: "w-auto" },
     { label: "วันออกเอกสาร", colSpan: 1, className: "w-auto" },
     { label: "ผู้รับผิดชอบ", colSpan: 1, className: "w-auto" },
     { label: "ทีม", colSpan: 1, className: "w-auto" },
     { label: "สถานะ", colSpan: 1, className: "w-auto" },
     { label: "มูลค่า", colSpan: 1, className: "w-auto" },
-
   ];
 
   //tabs บน headertable
 
   const groupTabs = [
     {
+      id: "all",
+      name: "ทั้งหมด",
+      onChange: () => {
+        setFilterGroup(null);
+        setSearchParams({ page: "1", pageSize });
+      },
+    },
+    {
       id: "pending",
       name: "รอปิดการขายใบเสนอราคา",
       onChange: () => {
-        setFilterGroup("ระหว่างดำเนินการ")
+        setFilterGroup("ระหว่างดำเนินการ");
         setSearchParams({ page: "1", pageSize });
-      }
+      },
     },
     {
       id: "close-sale",
       name: "ปิดการขายเรียบร้อย",
       onChange: () => {
-        setFilterGroup("สำเร็จ")
+        setFilterGroup("สำเร็จ");
         setSearchParams({ page: "1", pageSize });
-      }
+      },
     },
     {
       id: "reject-sale",
       name: "ปิดการขายไม่สำเร็จ",
       onChange: () => {
-        setFilterGroup("ไม่สำเร็จ")
+        setFilterGroup("ไม่สำเร็จ");
         setSearchParams({ page: "1", pageSize });
-      }
-
-    }
+      },
+    },
   ];
 
-
   const handleNavCreate = () => {
-    navigate('/create-customer');
-  }
+    navigate("/create-customer");
+  };
   //handle
   const handleSearch = () => {
     setSearchCustomer(searchText);
     setSearchParams({ page: "1", pageSize });
-
   };
 
   useEffect(() => {
@@ -272,12 +309,10 @@ export default function SellProcess() {
     }
   }, [searchText]);
 
-
   //เปิด
   const handleDeleteOpen = (item: TypeAllCustomerResponse) => {
     setSelectedItem(item);
     setIsDeleteDialogOpen(true);
-
   };
 
   //ปิด
@@ -293,24 +328,23 @@ export default function SellProcess() {
       return;
     }
 
-
     try {
       const response = await deleteCustomer(selectedItem.customer_id);
 
       if (response.statusCode === 200) {
         showToast("ลบรายการลูกค้าเรียบร้อยแล้ว", true);
         setIsDeleteDialogOpen(false);
-        refetchCustomer();
-      }
-      else if (response.statusCode === 400) {
+        refetchSaleOrders();
+      } else if (response.statusCode === 400) {
         if (response.message === "Color in quotation") {
-          showToast("ไม่สามารถลบรายการลูกค้าได้ เนื่องจากมีใบเสนอราคาอยู่", false);
-        }
-        else {
+          showToast(
+            "ไม่สามารถลบรายการลูกค้าได้ เนื่องจากมีใบเสนอราคาอยู่",
+            false
+          );
+        } else {
           showToast("ไม่สามารถลบรายการลูกค้าได้", false);
         }
-      }
-      else {
+      } else {
         showToast("ไม่สามารถลบรายการลูกค้าได้", false);
       }
     } catch (error) {
@@ -336,15 +370,12 @@ export default function SellProcess() {
         onSearch={handleSearch}
         headers={headers}
         rowData={data}
-        totalData={dataCustomer?.responseObject?.totalCount}
-
+        totalData={dataSaleOrders?.responseObject?.totalCount}
         onDropdown={true}
         dropdownItem={dropdown}
         headerTab={true}
         groupTabs={groupTabs}
       />
-
-
 
       {/* ลบ */}
 
@@ -356,8 +387,13 @@ export default function SellProcess() {
         confirmText="ยืนยัน"
         cancelText="ยกเลิก"
       >
-        <p className="font-bold text-lg">คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?</p>
-        <p>ชื่อลูกค้า : <span className="text-red-500">{selectedItem?.company_name}</span></p>
+        <p className="font-bold text-lg">
+          คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?
+        </p>
+        <p>
+          ชื่อลูกค้า :{" "}
+          <span className="text-red-500">{selectedItem?.company_name}</span>
+        </p>
       </DialogComponent>
     </div>
   );

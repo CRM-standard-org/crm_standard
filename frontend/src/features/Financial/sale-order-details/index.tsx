@@ -297,7 +297,7 @@ export default function SaleOrderDetails() {
                 setSaleOrderRemark("");
             }
             else if (res.statusCode === 400) {
-                if (res.message === "Awaiting Receipt or full payment") {
+                if (res.message === "Awaiting receipt or full payment") {
                     showToast("กรุณาระบุวันที่ได้รับสินค้า ", false);
                 }
                 else {

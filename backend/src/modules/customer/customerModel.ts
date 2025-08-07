@@ -78,6 +78,8 @@ export type TypePayloadFilter = {
     team_id?: string
     responsible_id?: string
     tag_id?: string
+    start_date?: string | null
+    end_date?: string | null
 }
 
 export type TypePayloadAddress = {

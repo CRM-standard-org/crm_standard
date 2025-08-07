@@ -1,14 +1,13 @@
-import { Outlet } from "react-router-dom";
 import NavbarMain from "./navbars/navbar.main";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getAuthStatus, getLogout } from "@/services/auth.service";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { SidebarInset, SidebarProvider } from "../ui/sidebar";
+
+import { SidebarProvider } from "../ui/sidebar";
 import { IoIosLogOut } from "react-icons/io";
 import { DataSideBar, SidebarComponent } from "./sidebars/sidebar";
 
-import { FaAppStore, FaCartShopping, FaCircleUser } from "react-icons/fa6";
+import { FaCircleUser } from "react-icons/fa6";
 import { IoIosCube, IoIosSettings } from "react-icons/io";
 import { GiSellCard } from "react-icons/gi";
 import { FaCalendarDay } from "react-icons/fa";
@@ -18,12 +17,11 @@ import { useLocalProfileData } from "@/zustand/useProfile";
 import { permissionMap } from "@/utils/permissionMap";
 import PermissionRedirect from "@/utils/permissionRedirect";
 import { appConfig } from "@/configs/app.config";
+import OutletApp from "./outlet";
 
 const MainLayout = () => {
   const navigate = useNavigate();
   const { setLocalProfileData, profile } = useLocalProfileData();
-
-
 
   const handleLogout = async () => {
     getLogout()
@@ -60,10 +58,9 @@ const MainLayout = () => {
   }, [navigate, setLocalProfileData]);
 
   const editprofile = () => {
-
     //navigate('/eidit/companies', { state: { customer_id: profile.company_id} });
     // navigate(`/edit-info-company/${dataCompany?.company_id}`);
-  }
+  };
 
   const rawSidebarItems = [
     {
@@ -87,7 +84,7 @@ const MainLayout = () => {
         {
           title: "รายงาน", //ลูกหนี้ที่เกินกำหนด
           url: `/reports`,
-        }
+        },
       ],
     },
     // {
@@ -182,7 +179,8 @@ const MainLayout = () => {
           url: `/product-unit`,
         },
       ],
-    }, {
+    },
+    {
       title: "การตั้งค่าองค์กร",
       url: "",
       icon: IoIosSettings,
@@ -202,11 +200,10 @@ const MainLayout = () => {
         },
       ],
     },
-
   ];
 
-  const profilePicture = profile?.profile_picture ?
-    `${appConfig.baseApi}${profile?.profile_picture}`
+  const profilePicture = profile?.profile_picture
+    ? `${appConfig.baseApi}${profile?.profile_picture}`
     : null;
 
   // ฟังก์ชันกรองเฉพาะเมนูที่ role ของ user มีสิทธิ์ (A หรือ R)
@@ -217,7 +214,7 @@ const MainLayout = () => {
         const filteredSubItems = item.items.filter((subItem) => {
           const permission =
             permissionMap[subItem.title]?.[
-            profile?.role?.role_name ?? "Admin"
+              profile?.role?.role_name ?? "Admin"
             ] || "N";
           return permission !== "N";
         });
@@ -248,7 +245,6 @@ const MainLayout = () => {
     ],
     sidebarFooter: {
       profile: {
-
         name: `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`,
         avatar: profilePicture ?? "/images/avatar2.png",
       },
@@ -288,17 +284,8 @@ const MainLayout = () => {
       >
         <NavbarMain />
         <SidebarComponent data={dataSidebar} />
-      
-        <SidebarInset className="m-0 p-0 bg-[#F6F7F9] w-full max-w-full">
-          {/* <header className="clas flex shrink-0 items-center gap-2">
-            <div className="flex items-center gap-2 p-4">
-              <SidebarTriggerCustom />
-            </div>
-          </header> */}
-          <div className=" px-4 py-4 overflow-auto max-h-[calc(100%-70px)]">
-            <Outlet />
-          </div>
-        </SidebarInset>
+
+        <OutletApp />
       </SidebarProvider>
     </div>
   );

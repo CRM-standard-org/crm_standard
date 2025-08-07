@@ -118,6 +118,7 @@ export type TypeAllCustomerResponse = {
     customer_id: string;
     company_name: string;
     priority: number;
+    created_at: string;
     customer_tags: TypeCustomerTags[]
     customer_contact: AllCustomerContacts[]
     responsible: {
@@ -127,6 +128,32 @@ export type TypeAllCustomerResponse = {
     team: {
         name: string;
     }
+    quotation?: {
+        quotation_id: string;
+        grand_total: string; // API ส่งมาเป็น string
+        quotation_status: string;
+        created_at: string;
+        quotation_products: {
+            group_product: {
+                group_product_id: string;
+                group_product_name: string;
+            }
+            quotation_item_price: string; // API ส่งมาเป็น string
+        }[]
+    }[]
+    sale_order?: {
+        sale_order_id: string;
+        grand_total: string; // API ส่งมาเป็น string
+        sale_order_status: string;
+        created_at: string;
+        sale_order_product: {
+            group_product: {
+                group_product_id: string;
+                group_product_name: string;
+            }
+            sale_order_item_price: string; // API ส่งมาเป็น string
+        }[]
+    }[]
 }
 export type TypeAllCustomer = {
     totalCount: number;

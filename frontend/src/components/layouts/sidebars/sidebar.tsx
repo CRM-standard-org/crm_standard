@@ -23,7 +23,6 @@ import { IconType } from "react-icons/lib";
 import "../styles/sidebar.css";
 import SideBarItems from "./sidebar-items";
 import SidebarItemFooter from "./sidebar-item-footer";
-import { useState } from "react";
 
 export type DataSideBar = {
   sidebarHeader?: {
@@ -71,13 +70,6 @@ export function SidebarComponent(props: SidebarComponentProps) {
   const { data } = props;
   const { isMobile } = useSidebar();
 
-  // เก็บสถานะเมนูที่เปิดอยู่
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-
-  // ฟังก์ชันสำหรับเปิด/ปิดเมนูย่อย
-  const toggleMenu = (title: string) => {
-    setOpenMenu(openMenu === title ? null : title);
-  };
   return (
     <Sidebar className="border-white pt-[70px]">
       {data.sidebarHeader &&
@@ -147,7 +139,6 @@ export function SidebarComponent(props: SidebarComponentProps) {
         {data.sidebarItems.map((item) => (
           // <SideBarItems key={item.name} navMain={item} openMenu={openMenu} toggleMenu={toggleMenu}  />
           <SideBarItems key={item.name} navMain={item} />
-
         ))}
       </SidebarContent>
       <SidebarFooter className="bg-white">

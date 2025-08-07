@@ -65,10 +65,12 @@ export type PayLoadSaleOrderStatus = {
 //filter sale order
 export type PayLoadFilterSaleOrder = {
 
-    responsible_id: string | null;
-    status: string | null;
-    issue_date?: string | null;
-    price_date?: string | null;
-    start_date: string | null;
-    end_date: string | null;
+    responsible_id: string | null| undefined;
+    status: string | null| undefined;
+    issue_date?: string | null| undefined;
+    price_date?: string | null| undefined;
+    start_date: string | null | undefined;
+    end_date: string | null| undefined;
+    tag_id: string | null| undefined;
+    team_id: string | null| undefined;
 }

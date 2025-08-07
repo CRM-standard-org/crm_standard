@@ -164,6 +164,12 @@ export const UPDATE_SALEORDER_COMPANY = "/v1/sale-order/update-company";
 export const UPDATE_SALEORDER_PAYMENT = "/v1/sale-order/payment-detail";
 export const ADD_SALEORDER_FILE = "/v1/sale-order/file";
 export const DELETE_SALEORDER_FILE = "/v1/sale-order/file";
+
+// Sales Analytics
+export const GET_SALES_ANALYTICS_YEARS = "/v1/sale-order-analytics/years";
+export const GET_SALES_ANALYTICS_BUSINESS = "/v1/sale-order-analytics/business";
+export const GET_SALES_ANALYTICS_TEAM = "/v1/sale-order-analytics/team";
+export const GET_SALES_ANALYTICS_PERSONAL = "/v1/sale-order-analytics/personal";
 export const GET_PAYMENT_FILE = "/v1/sale-order/file";
 export const CREATE_PAYMENT_LOG = "/v1/sale-order/payment";
 export const UPDATE_PAYMENT_LOG = "/v1/sale-order/payment-update";

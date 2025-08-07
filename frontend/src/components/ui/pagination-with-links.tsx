@@ -236,7 +236,7 @@ export function PaginationWithLinks({
   );
 }
 
-function SelectRowsPerPage({
+export function SelectRowsPerPage({
   options,
   setPageSize,
   pageSize,

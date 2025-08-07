@@ -1,21 +1,19 @@
-import { useEffect, useState } from "react";
-
-import { useToast } from "@/components/customs/alert/ToastContext";
-
-//
-import { useNavigate, useSearchParams } from "react-router-dom";
-
+import { useState } from "react";
 import SalesForecastTable from "@/components/customs/display/forcast.main.component";
-
-import { TypeAllCustomerResponse } from "@/types/response/response.customer";
 import MasterSelectComponent from "@/components/customs/select/select.main.component";
 import { FiLayers } from "react-icons/fi";
 import { HiOutlineUserGroup } from "react-icons/hi2";
 import { MdOutlinePerson } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
-import { Button } from "@radix-ui/themes";
 import Buttons from "@/components/customs/button/button.main.component";
-import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
+import {
+  useSalesAnalyticsYears,
+  useBusinessLevelAnalytics,
+  useTeamLevelAnalytics,
+  usePersonalLevelAnalytics,
+} from "@/hooks/useSalesAnalytics";
+import { Box, Flex, Text} from "@radix-ui/themes";
+import PaginationComponent from "@/components/customs/paginations/PaginationComponent";
 
 export type RowType = {
   label: string;
@@ -25,53 +23,84 @@ export type RowType = {
 export type HeaderConfig = {
   key: string;
   year: string;
-  title: any;
+  title: React.ReactNode;
   quartile: string[];
   months: string[];
 };
 
-type dateTableType = {
-  className: string;
-  cells: {
-    value: any;
-    className: string;
-  }[];
-  data: TypeAllCustomerResponse; //ตรงนี้
-}[];
-
 //
 export default function PredictSell() {
-  const [searchText, setSearchText] = useState("");
-  const [colorsName, setColorsName] = useState("");
-  // const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [data, setData] = useState<dateTableType>([]);
-  const [year, setYear] = useState<string | null>(null);
-  const [searchYear, setSearchYear] = useState("");
-
-  const { showToast } = useToast();
-  //
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const page = searchParams.get("page") ?? "1";
-  const pageSize = searchParams.get("pageSize") ?? "25";
-
-  //fetch year
-  const fetchDataYearDropdown = async () => {
-    return {
-      responseObject: [
-        { id: 1, name: "2566" },
-        { id: 2, name: "2567" },
-        { id: 3, name: "2568" },
-        { id: 4, name: "2569" },
-      ],
-    }
-  }
-  const handleYearSearch = (searchText: string) => {
-    setSearchYear(searchText);
-  }
-  const [active, setActive] = useState<string[]>(
-    ["personal", "team", "business"]
+  const currentBuddhistYear = new Date().getFullYear() + 543;
+  const [selectedYear, setSelectedYear] = useState<number | null>(
+    currentBuddhistYear
   );
+
+  // Pagination states
+  const [pageTeam, setPageTeam] = useState(1);
+  const [pageSizeTeam, setPageSizeTeam] = useState(10);
+  const [pagePersonal, setPagePersonal] = useState(1);
+  const [pageSizePersonal, setPageSizePersonal] = useState(10);
+
+  // Pagination handlers
+  const handlePageTeamChange = (newPage: number) => {
+    setPageTeam(newPage);
+  };
+
+  const handlePageSizeTeamChange = (newPageSize: number) => {
+    setPageTeam(1); // Reset to first page
+    setPageSizeTeam(newPageSize);
+  };
+
+  // Pagination handlers
+  const handlePagePersonalChange = (newPage: number) => {
+    setPagePersonal(newPage);
+  };
+
+  const handlePageSizePersonalChange = (newPageSize: number) => {
+    setPagePersonal(1); // Reset to first page
+    setPageSizePersonal(newPageSize);
+  };
+
+  // Get available years
+  const { data: yearsData } = useSalesAnalyticsYears();
+
+  // Get analytics data based on selected year with pagination
+  const { data: businessData } = useBusinessLevelAnalytics({
+    year: selectedYear || currentBuddhistYear,
+  });
+  const { data: teamData } = useTeamLevelAnalytics({
+    year: selectedYear || currentBuddhistYear,
+    page: pageTeam.toString(),
+    pageSize: pageSizeTeam.toString(),
+  });
+  const { data: personalData } = usePersonalLevelAnalytics({
+    year: selectedYear || currentBuddhistYear,
+    page: pagePersonal.toString(),
+    pageSize: pageSizePersonal.toString(),
+  });
+
+  //fetch year dropdown data from API
+  const fetchDataYearDropdown = async () => {
+    if (yearsData?.responseObject) {
+      return {
+        responseObject: yearsData.responseObject,
+      };
+    }
+    return {
+      responseObject: [],
+    };
+  };
+
+  const handleYearSearch = () => {
+    // Handle year search if needed
+  };
+
+  const [active, setActive] = useState<string[]>([
+    "personal",
+    "team",
+    "business",
+  ]);
+
   const levels = [
     { key: "business", label: "ระดับกิจการ" },
     { key: "team", label: "ระดับทีม" },
@@ -80,218 +109,359 @@ export default function PredictSell() {
 
   const toggleLevel = (key: string) => {
     setActive((prev) =>
-      prev.includes(key)
-        ? prev.filter((k) => k !== key)
-        : [...prev, key]
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
-  //mockdata
+
+  // Transform business data to table format
   const businessHeader: HeaderConfig = {
-    key: "sale2024",
-    year: "2024",
+    key: "salesForecast2024",
+    year: selectedYear?.toString() || "2024",
     title: (
       <div className="flex flex-row gap-2">
         <FiLayers style={{ fontSize: "22px" }} />
         ระดับกิจการ
       </div>
     ),
-    quartile: ["Q1/2024", "Q2/2024", "Q3/2024", "Q4/2024"],
+    quartile: ["Q1", "Q2", "Q3", "Q4"].map(
+      (q) => `${q}/${selectedYear || 2024}`
+    ),
     months: [
-      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
-    ]
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
+    ],
   };
 
-  const businessRows: RowType[] = [
-    {
-      label: "เป้าหมาย",
-      values: [
-        10875181, 916859, 844316, 855697, 872106, 916769,
-        904125, 856576, 980155, 836722, 955851, 950295, 985710
+  const businessRows: RowType[] = businessData?.responseObject
+    ? [
+        {
+          label: "เป้าหมายยอดขาย",
+          values: [
+            Math.round(businessData.responseObject.totalSales * 1.15), // เป้าหมาย +15%
+            ...businessData.responseObject.monthlyData.map((m) =>
+              Math.round(m.totalSales * 1.15)
+            ),
+          ],
+        },
+        {
+          label: "ยอดขายจริง",
+          values: [
+            businessData.responseObject.totalSales,
+            ...businessData.responseObject.monthlyData.map((m) => m.totalSales),
+          ],
+        },
+        {
+          label: "ยอดขายสำเร็จ",
+          values: [
+            businessData.responseObject.monthlyData.reduce(
+              (sum, m) => sum + m.completedSales,
+              0
+            ),
+            ...businessData.responseObject.monthlyData.map(
+              (m) => m.completedSales
+            ),
+          ],
+        },
+        {
+          label: "% ความสำเร็จเทียบเป้า",
+          values: [
+            businessData.responseObject.totalSales > 0
+              ? Math.round(
+                  (businessData.responseObject.totalSales /
+                    (businessData.responseObject.totalSales * 1.15)) *
+                    100
+                )
+              : 0,
+            ...businessData.responseObject.monthlyData.map((m) =>
+              m.totalSales > 0
+                ? Math.round((m.totalSales / (m.totalSales * 1.15)) * 100)
+                : 0
+            ),
+          ],
+        },
+        {
+          label: "ยอดต่างจากเป้าหมาย",
+          values: [
+            Math.round(
+              businessData.responseObject.totalSales * 1.15 -
+                businessData.responseObject.totalSales
+            ),
+            ...businessData.responseObject.monthlyData.map((m) =>
+              Math.round(m.totalSales * 1.15 - m.totalSales)
+            ),
+          ],
+        },
       ]
-    },
-    {
-      label: "ยอดขายจริง",
-      values: [
-        10403495, 859837, 827474, 805669, 782765, 879842,
-        941068, 781089, 999466, 744191, 980393, 863313, 938388
-      ]
-    },
-    {
-      label: "% เทียบเป้าหมาย",
-      values: [
-        95.66, 93.78, 98.01, 94.15, 89.76, 95.97,
-        104.09, 91.19, 101.97, 88.94, 102.57, 90.85, 95.29
-      ]
-    },
-    {
-      label: "ยอดต่างจากเป้าหมาย",
-      values: [
-        471686, 57022, 16842, 50028, 89341, 36927,
-        0, 75487, 0, 92531, 0, 86982, 47327
-      ]
-    }
-  ];
+    : [];
+
+  // Transform team data to table format
   const teamHeader: HeaderConfig = {
-    key: "sale2024",
-    year: "2024",
+    key: "salesForecast2024",
+    year: selectedYear?.toString() || "2024",
     title: (
       <div className="flex flex-row gap-2">
         <HiOutlineUserGroup style={{ fontSize: "22px" }} />
         ระดับทีม
       </div>
     ),
-    quartile: ["Q1/2024", "Q2/2024", "Q3/2024", "Q4/2024"],
+    quartile: ["Q1", "Q2", "Q3", "Q4"].map(
+      (q) => `${q}/${selectedYear || 2024}`
+    ),
     months: [
-      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
-    ]
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
+    ],
   };
 
-  const teamRows: RowType[] = [
-    {
-      label: "ทีม A",
-      values: [
-        5291399, 468169, 439749, 387895, 432342, 504223,
-        478456, 385459, 441070, 376525, 432517, 427633, 517361
-      ]
-    },
-    {
-      label: "ยอดขายจริง",
-      values: [
-        5065992, 439053, 430977, 365217, 388052, 483913,
-        498006, 351490, 449768, 334886, 443623, 388491, 492882
-      ]
-    },
-    {
-      label: "% เทียบเป้าหมาย",
-      values: [
-        95.74, 93.78, 98.01, 94.15, 89.76, 95.97,
-        104.09, 91.19, 101.97, 88.94, 102.57, 90.85, 95.29
-      ]
-    },
-    {
-      label: "ยอดต่างจากเป้าหมาย",
-      values: [
-        225407, 29116, 8772, 22678, 44299, 20310,
-        0, 33969, 0, 41639, 0, 39142, 24479
-      ]
-    }
-  ];
+  const teamRows: RowType[] = teamData?.responseObject?.data
+    ? teamData.responseObject.data.flatMap((team) => [
+        {
+          label: `${team.team_name} - ยอดขายรวม`,
+          values: [
+            team.totalSales,
+            ...team.monthlyData.map((m) => m.totalSales),
+          ],
+        },
+        {
+          label: `${team.team_name} - ยอดขายสำเร็จ`,
+          values: [
+            team.monthlyData.reduce((sum, m) => sum + m.completedSales, 0),
+            ...team.monthlyData.map((m) => m.completedSales),
+          ],
+        },
+        {
+          label: `${team.team_name} - ยอดขายรอดำเนินการ`,
+          values: [
+            team.monthlyData.reduce((sum, m) => sum + m.pendingSales, 0),
+            ...team.monthlyData.map((m) => m.pendingSales),
+          ],
+        },
+        {
+          label: `${team.team_name} - จำนวนออเดอร์`,
+          values: [
+            team.monthlyData.reduce((sum, m) => sum + m.totalOrdersCount, 0),
+            ...team.monthlyData.map((m) => m.totalOrdersCount),
+          ],
+        },
+      ])
+    : [];
 
+  // Transform personal data to table format
   const personalHeader: HeaderConfig = {
-    key: "sale2024",
-    year: "2024",
+    key: "salesForecast2024",
+    year: selectedYear?.toString() || "2024",
     title: (
       <div className="flex flex-row gap-2">
         <MdOutlinePerson style={{ fontSize: "22px" }} />
         ระดับบุคคล
       </div>
     ),
-    quartile: ["Q1/2024", "Q2/2024", "Q3/2024", "Q4/2024"],
+    quartile: ["Q1", "Q2", "Q3", "Q4"].map(
+      (q) => `${q}/${selectedYear || 2024}`
+    ),
     months: [
-      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
-    ]
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
+    ],
   };
 
-  const personalRows: RowType[] = [
-    // === ทีม A ===
-    { label: "ทีม A", values: [5291399, 468169, 439749, 387895, 432342, 504223, 478456, 385459, 441070, 376525, 385459, 441070, 376525] },
+  const personalRows: RowType[] = personalData?.responseObject?.data
+    ? personalData.responseObject.data.flatMap((person) => [
+        {
+          label: `${person.employee_name} - ยอดขายรวม`,
+          values: [
+            person.totalSales,
+            ...person.monthlyData.map((m) => m.totalSales),
+          ],
+        },
+        {
+          label: `${person.employee_name} - ยอดขายสำเร็จ`,
+          values: [
+            person.monthlyData.reduce((sum, m) => sum + m.completedSales, 0),
+            ...person.monthlyData.map((m) => m.completedSales),
+          ],
+        },
+        {
+          label: `${person.employee_name} - ยอดขายรอดำเนินการ`,
+          values: [
+            person.monthlyData.reduce((sum, m) => sum + m.pendingSales, 0),
+            ...person.monthlyData.map((m) => m.pendingSales),
+          ],
+        },
+        {
+          label: `${person.employee_name} - จำนวนออเดอร์`,
+          values: [
+            person.monthlyData.reduce((sum, m) => sum + m.totalOrdersCount, 0),
+            ...person.monthlyData.map((m) => m.totalOrdersCount),
+          ],
+        },
+      ])
+    : [];
 
-    { label: "นายจอมปราชญ์ รักโลก", values: [2642616, 274284, 271456, 219389, 405268, 6351, 247876, 344240, 341476, 29324, 344240, 341476, 29324] },
-    { label: "ยอดขายจริง", values: [2546797, 257151, 266041, 206562, 363751, 6095, 258005, 313983, 348293, 26081, 313983, 348293, 26081] },
-    { label: "% เทียบเป้าหมาย", values: [96.37, 93.78, 98.01, 94.15, 89.76, 95.97, 104.09, 91.19, 101.97, 88.94, 91.19, 101.97, 88.94] },
-    { label: "ยอดต่างจากคาดการณ์", values: [95819, 17053, 5415, 12827, 41517, 256, 0, 30337, 0, 3243, 30337, 0, 3243] },
+  const handleEditPrediction = () => {};
 
-    { label: "นางนาคี มีปัญญา", values: [2648783, 193965, 168293, 168506, 27074, 497872, 230580, 41219, 99594, 347201, 41219, 99594, 347201] },
-    { label: "ยอดขายจริง", values: [2519195, 181982, 164936, 158655, 24301, 477818, 240001, 37587, 101557, 308805, 37587, 101557, 308805] },
-    { label: "% เทียบเป้าหมาย", values: [95.11, 93.78, 98.01, 94.15, 89.76, 95.97, 104.09, 91.19, 101.97, 88.94, 91.19, 101.97, 88.94] },
-    { label: "ยอดต่างจากคาดการณ์", values: [129588, 12063, 3357, 9851, 2773, 20054, 0, 3632, 0, 38396, 0, 3632, 0] },
-
-    // === ทีม B ===
-    { label: "ทีม B", values: [5583782, 448690, 404567, 467802, 439764, 412546, 425669, 471117, 539085, 460197, 471117, 539085, 460197] },
-
-    { label: "นายเมฆ อับปาลี", values: [2072093, 372254, 89754, 69318, 8506, 864, 324706, 324968, 219757, 47761, 324968, 219757, 47761] },
-    { label: "ยอดขายจริง", values: [2000977, 349102, 87964, 65265, 7634, 829, 337974, 296323, 224087, 42479, 296323, 224087, 42479] },
-    { label: "% เทียบเป้าหมาย", values: [96.57, 93.78, 98.01, 94.15, 89.76, 95.97, 104.09, 91.19, 101.97, 88.94, 104.09, 91.19, 101.97] },
-    { label: "ยอดต่างจากคาดการณ์", values: [71116, 23152, 1790, 4053, 872, 35, 0, 28637, 0, 5282, 28637, 0, 5282] },
-
-    { label: "นายนา อับบานา", values: [3511689, 76436, 314813, 398484, 431258, 411682, 100963, 146157, 319328, 412436, 146157, 319328, 412436] },
-    { label: "ยอดขายจริง", values: [3336526, 71682, 308533, 375187, 387079, 395100, 105088, 133276, 325619, 366826, 133276, 325619, 366826] },
-    { label: "% เทียบเป้าหมาย", values: [95.01, 93.78, 98.01, 94.15, 89.76, 95.97, 104.09, 91.19, 101.97, 88.94, 91.19, 101.97, 91.19] },
-    { label: "ยอดต่างจากคาดการณ์", values: [175163, 4754, 6280, 23297, 44179, 16582, 0, 12881, 0, 45610, 0, 12881, 0] }
-  ];
-  //
-  const headers = [
-    { label: "สถานะ", colSpan: 1, className: "w-auto" },
-    { label: "ลูกค้า", colSpan: 1, className: "w-auto" },
-    { label: "รายละเอียดผู้ติดต่อ", colSpan: 1, className: "w-auto" },
-    { label: "ความสำคัญ", colSpan: 1, className: "w-auto " },
-    { label: "บทบาทของลูกค้า", colSpan: 1, className: "w-auto" },
-    { label: "ผู้รับผิดชอบ", colSpan: 1, className: "w-auto" },
-    { label: "ทีม", colSpan: 1, className: "w-auto" },
-    { label: "กิจกรรมล่าสุด", colSpan: 1, className: "w-auto" },
-    { label: "ดูรายละเอียด", colSpan: 1, className: "w-auto" },
-    { label: "ลบ", colSpan: 1, className: "w-auto" },
-  ];
-
-  //tabs บน headertable
-  const groupTabs = [
-    "ลูกค้าทั้งหมด",
-    "ลูกค้าเป้าหมาย",
-    "ลูกค้าประจำ",
-    "ลูกค้าใหม่",
-    "ลูกค้าห่างหาย",
-  ];
-
-
+  console.log("teamData", teamData);
   return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3 mb-3">
-        <p className="text-2xl font-bold whitespace-nowrap">คาดการณ์ยอดขาย</p>
+    <div className="lg:w-full m-auto">
+      {/* Header */}
+      <Flex justify={"between"}>
+        <Text size="6" weight="bold" className="text-center whitespace-nowrap">
+          คาดการณ์ยอดขาย
+        </Text>
+      </Flex>
 
-        <div className="min-w-[150px]">
+      <Box className="w-full mt-4 bg-white border-0 rounded-md relative p-6 shadow-md">
+        {/* Controls */}
+        <Flex className="w-full mb-5" justify={"start"} gap="2" wrap="wrap">
+          {/* Year Selection */}
           <MasterSelectComponent
-            id="character"
-            onChange={(option) => setYear(option ? String(option.value) : null)}
+            id="year"
+            onChange={(option) =>
+              setSelectedYear(option ? Number(option.value) : null)
+            }
             fetchDataFromGetAPI={fetchDataYearDropdown}
             onInputChange={handleYearSearch}
             valueKey="id"
             labelKey="name"
-            placeholder="กรุณาเลือกปี"
+            placeholder="เลือกปี พ.ศ."
+            defaultValue={{
+              id: currentBuddhistYear,
+              name: currentBuddhistYear.toString(),
+              value: currentBuddhistYear,
+              label: currentBuddhistYear.toString(),
+            }}
             isClearable
             label=""
             labelOrientation="horizontal"
             classNameLabel="w-1/2"
-            classNameSelect="w-full"
+            classNameSelect="w-full min-w-40"
           />
-        </div>
+        </Flex>
 
-        <div className="flex flex-wrap gap-2">
+        {/* Level toggles */}
+        <Flex className="w-full mb-5" justify={"start"} gap="2" wrap="wrap">
           {levels.map((level) => (
             <Buttons
               key={level.key}
               btnType="primary"
-              variant="outline"
-              className={`flex items-center gap-1 px-3 py-1 rounded text-sm border 
-          ${active.includes(level.key)
-                  ? "bg-main text-white border-blue-700"
-                  : "bg-gray-200 text-gray-700 border-gray-400"}`}
               onClick={() => toggleLevel(level.key)}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                active.includes(level.key)
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
             >
-              {active.includes(level.key) && <FaCheck className="text-white text-xs" />}
-              {level.label}
+              <div className="flex items-center gap-2">
+                {active.includes(level.key) && <FaCheck size={14} />}
+                {level.label}
+              </div>
             </Buttons>
           ))}
-        </div>
-      </div>
+        </Flex>
 
-      <div className="lg:p-5">
-        {active.includes("business") && <SalesForecastTable header={businessHeader} rows={businessRows} />}
-        {active.includes("team") && <SalesForecastTable header={teamHeader} rows={teamRows} />}
-        {active.includes("personal") && <SalesForecastTable header={personalHeader} rows={personalRows} />}
-      </div>
+        {/* Analytics Tables */}
+        <div className="space-y-6">
+          {active.includes("business") && (
+            <div>
+              <h2 className="text-lg font-semibold mb-4">ระดับกิจการ</h2>
+              {businessData?.responseObject ? (
+                <SalesForecastTable
+                  header={businessHeader}
+                  rows={businessRows}
+                  handleEditPrediction={handleEditPrediction}
+                />
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  กรุณาเลือกปีเพื่อดูข้อมูล
+                </div>
+              )}
+            </div>
+          )}
+
+          {active.includes("team") && (
+            <div>
+              <h2 className="text-lg font-semibold mb-4">ระดับทีม</h2>
+              {teamData?.responseObject?.data &&
+              teamData.responseObject.data.length > 0 ? (
+                <>
+                  <SalesForecastTable header={teamHeader} rows={teamRows} />
+                  {/* Pagination */}
+                  <PaginationComponent
+                    currentPage={teamData.responseObject.currentPage}
+                    totalPages={teamData.responseObject.totalPages}
+                    totalCount={teamData.responseObject.totalCount}
+                    itemsPerPage={pageSizeTeam}
+                    onPageChange={handlePageTeamChange}
+                    onPageSizeChange={handlePageSizeTeamChange}
+                  />
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  ไม่มีข้อมูลทีมสำหรับปีนี้
+                </div>
+              )}
+            </div>
+          )}
+
+          {active.includes("personal") && (
+            <div>
+              <h2 className="text-lg font-semibold mb-4">ระดับบุคคล</h2>
+              {personalData?.responseObject?.data &&
+              personalData.responseObject.data.length > 0 ? (
+                <>
+                  <SalesForecastTable
+                    header={personalHeader}
+                    rows={personalRows}
+                  />
+                  {/* Pagination */}
+                  <PaginationComponent
+                    currentPage={personalData.responseObject.currentPage}
+                    totalPages={personalData.responseObject.totalPages}
+                    totalCount={personalData.responseObject.totalCount}
+                    itemsPerPage={pageSizePersonal}
+                    onPageChange={handlePagePersonalChange}
+                    onPageSizeChange={handlePageSizePersonalChange}
+                  />
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  ไม่มีข้อมูลพนักงานสำหรับปีนี้
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </Box>
     </div>
   );
 }

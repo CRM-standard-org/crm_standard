@@ -25,6 +25,7 @@ import { currencyRouter } from "@modules/currency/currencyRouter";
 import { vatRouter } from "@modules/vat/vatRouter";
 import { quotationRouter } from "@modules/quotation/quotationRouter";
 import { saleOrderRouter } from "@modules/saleOrder/saleOrderRouter";
+import { saleOrderAnalyticsRouter } from "@modules/saleOrder/saleOrderAnalyticsRouter";
 import { activityRouter } from "@modules/activity/activityRouter";
 import { companyRouter } from "@modules/company/companyRouter";
 
@@ -60,6 +61,7 @@ app.use("/v1/currency", currencyRouter);
 app.use("/v1/vat", vatRouter);
 app.use("/v1/quotation", quotationRouter);
 app.use("/v1/sale-order", saleOrderRouter);
+app.use("/v1/sale-order-analytics", saleOrderAnalyticsRouter);
 app.use("/v1/activity", activityRouter);
 app.use("/v1/company", companyRouter);
 

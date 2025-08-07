@@ -181,7 +181,14 @@ export const saleOrderRepository = {
                 customer: {
                     select:{
                         customer_id: true,
-                        company_name: true
+                        company_name: true,
+                        team: {
+                            select: {
+                                team_id: true,
+                                name: true
+                            }
+                        },
+                        priority: true
                     }
                 },
                 sale_order_status : true ,

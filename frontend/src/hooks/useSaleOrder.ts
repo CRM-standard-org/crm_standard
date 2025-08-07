@@ -17,8 +17,8 @@ function fetchAllSaleOrders({
   return queryOptions({
     queryKey: ["getAllSaleOrder", page, pageSize, searchText, payload],
     queryFn: () => getAllSaleOrder(page, pageSize, searchText, payload),
-    staleTime: 10 * 1000,
-    refetchInterval: 10 * 1000,
+    staleTime: 1 * 1000,
+    refetchInterval: 1 * 1000,
     retry: false,
   });
 }
