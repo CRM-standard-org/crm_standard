@@ -17,69 +17,48 @@ import {
 import { useAllCustomer } from "@/hooks/useCustomer";
 import { TypeAllCustomerResponse } from "@/types/response/response.customer";
 
+// Lifecycle configuration constants (can move to config later)
+const FIRST_WINDOW_DAYS = 30; // วันสำหรับลูกค้าใหม่หลังออเดอร์สำเร็จแรก
+const INACTIVE_DAYS = 60; // วันไม่มีออเดอร์เพื่อจัดเป็นห่างหาย
+
+const diffInDays = (a: Date, b: Date) => Math.floor((a.getTime() - b.getTime()) / (1000 * 60 * 60 * 24));
+
+const classifyCustomer = (customer: TypeAllCustomerResponse) => {
+  const successfulOrders = (customer.sale_order || [])
+    .filter(o => o.sale_order_status === 'สำเร็จ')
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const count = successfulOrders.length;
+  if (count === 0) return 'target';
+  const firstSuccess = new Date(successfulOrders[0].created_at);
+  const lastSuccess = new Date(successfulOrders[successfulOrders.length - 1].created_at);
+  const daysSinceFirst = diffInDays(new Date(), firstSuccess);
+  const daysSinceLast = diffInDays(new Date(), lastSuccess);
+  if (daysSinceLast > INACTIVE_DAYS) return 'lost';
+  if (count >= 2) return 'regular';
+  if (count === 1 && daysSinceFirst <= FIRST_WINDOW_DAYS) return 'new';
+  return 'new';
+};
+
 const COLORS = ["#00C851", "#ffbb33", "#FF4444", "#66CCFF", "#3399FF"]; // เขียว, เหลือง, แดง สำหรับสถานะการขาย
 
 // Helper functions for calculating KPIs
 const calculateCustomerStatusChanges = (
   customers: TypeAllCustomerResponse[]
 ) => {
-  // คำนวณจริงจากข้อมูลลูกค้า
-  const currentDate = new Date();
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(currentDate.getMonth() - 3);
-  
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
-
+  let targetCustomers = 0;
   let newCustomers = 0;
   let regularCustomers = 0;
   let lostCustomers = 0;
-  let targetCustomers = 0;
 
   customers.forEach(customer => {
-    const customerCreatedDate = new Date(customer.created_at);
-    
-    // 1. ลูกค้าใหม่ - ลูกค้าที่สร้างใน 3 เดือนที่ผ่านมา
-    if (customerCreatedDate >= threeMonthsAgo) {
-      newCustomers++;
-    }
-    
-    // 2. ลูกค้าเป้าหมาย - ลูกค้าที่มี tags
-    if (customer.customer_tags && customer.customer_tags.length > 0) {
-      targetCustomers++;
-    }
-    
-    // 3. ลูกค้าประจำ - ลูกค้าที่มี sale_order มากกว่า 1 รายการ หรือ มี quotation มากกว่า 2 รายการ
-    const saleOrderCount = customer.sale_order?.length || 0;
-    const quotationCount = customer.quotation?.length || 0;
-    
-    if (saleOrderCount > 1 || quotationCount > 2) {
-      regularCustomers++;
-    }
-    
-    // 4. ลูกค้าห่างหาย - ลูกค้าที่ไม่มี sale_order หรือ quotation ใน 6 เดือนที่ผ่านมา
-    const hasRecentSaleOrders = customer.sale_order?.some(order => {
-      const orderDate = new Date(order.created_at);
-      return orderDate >= sixMonthsAgo;
-    });
-    
-    const hasRecentQuotations = customer.quotation?.some(quotation => {
-      const quotationDate = new Date(quotation.created_at);
-      return quotationDate >= sixMonthsAgo;
-    });
-    
-    // ถ้าลูกค้าเก่า (มากกว่า 6 เดือน) แต่ไม่มีกิจกรรมล่าสุด
-    if (!hasRecentSaleOrders && !hasRecentQuotations && customerCreatedDate < sixMonthsAgo) {
-      lostCustomers++;
-    }
+    const status = classifyCustomer(customer);
+    if (status === 'target') targetCustomers++;
+    else if (status === 'new') newCustomers++;
+    else if (status === 'regular') regularCustomers++;
+    else if (status === 'lost') lostCustomers++;
   });
 
-  return {
-    newCustomers,
-    regularCustomers,
-    lostCustomers,
-    targetCustomers,
-  };
+  return { newCustomers, regularCustomers, lostCustomers, targetCustomers };
 };
 
 const calculateQuarterlySales = (customers: TypeAllCustomerResponse[]) => {
@@ -286,71 +265,64 @@ export default function Dashboards() {
   // Generate monthly data from customer status changes
   const generateMonthlyData = () => {
     const months = [
-      "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-      "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
     ];
 
+    const currentYear = new Date().getFullYear();
+
     return months.map((month, index) => {
-      const currentDate = new Date();
-      const targetMonth = new Date(currentDate.getFullYear(), index, 1);
-      const nextMonth = new Date(currentDate.getFullYear(), index + 1, 1);
-      
-      // คำนวณลูกค้าในแต่ละเดือนจากข้อมูลจริง
+      const monthStart = new Date(currentYear, index, 1);
+      const monthEnd = new Date(currentYear, index + 1, 1);
+
       let monthlyNew = 0;
       let monthlyRegular = 0;
-      const monthlyLost = 0; // ยังไม่มีการคำนวณลูกค้าห่างหายรายเดือน
+      let monthlyLost = 0;
       let monthlyTarget = 0;
 
       customers.forEach(customer => {
-        const customerCreatedDate = new Date(customer.created_at);
-        
-        // ลูกค้าใหม่ในเดือนนั้น
-        if (customerCreatedDate >= targetMonth && customerCreatedDate < nextMonth) {
-          monthlyNew++;
+        const successfulOrders = (customer.sale_order || [])
+          .filter(o => o.sale_order_status === 'สำเร็จ')
+          .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        const count = successfulOrders.length;
+
+        const firstSuccess = count ? new Date(successfulOrders[0].created_at) : null;
+        const lastSuccess = count ? new Date(successfulOrders[count - 1].created_at) : null;
+
+        // Target: no successful orders and created in this month
+        if (count === 0) {
+          const created = new Date(customer.created_at);
+            if (created >= monthStart && created < monthEnd) monthlyTarget++;
         }
-        
-        // ลูกค้าเป้าหมายที่มีกิจกรรมในเดือนนั้น
-        if (customer.customer_tags?.length > 0) {
-          const hasActivityInMonth = 
-            customer.sale_order?.some(order => {
-              const orderDate = new Date(order.created_at);
-              return orderDate >= targetMonth && orderDate < nextMonth;
-            }) ||
-            customer.quotation?.some(quotation => {
-              const quotationDate = new Date(quotation.created_at);
-              return quotationDate >= targetMonth && quotationDate < nextMonth;
-            });
-          
-          if (hasActivityInMonth) monthlyTarget++;
+
+        // New: first success this month within FIRST_WINDOW_DAYS
+        if (firstSuccess && firstSuccess >= monthStart && firstSuccess < monthEnd) {
+          const daysSinceFirstAtEnd = diffInDays(monthEnd, firstSuccess);
+          if (count === 1 && daysSinceFirstAtEnd <= FIRST_WINDOW_DAYS) monthlyNew++;
         }
-        
-        // ลูกค้าประจำที่มีกิจกรรมในเดือนนั้น
-        const hasMultipleOrders = (customer.sale_order?.length || 0) > 1 || (customer.quotation?.length || 0) > 2;
-        if (hasMultipleOrders) {
-          const hasActivityInMonth = 
-            customer.sale_order?.some(order => {
-              const orderDate = new Date(order.created_at);
-              return orderDate >= targetMonth && orderDate < nextMonth;
-            });
-          
-          if (hasActivityInMonth) monthlyRegular++;
+
+        // Regular: has >=2 successes and last success in this month (active)
+        if (count >= 2 && lastSuccess && lastSuccess >= monthStart && lastSuccess < monthEnd) {
+          monthlyRegular++;
+        }
+
+        // Lost: had successes before but inactive by end of month
+        if (count > 0 && lastSuccess && lastSuccess < monthStart) {
+          const daysSinceLastAtEnd = diffInDays(monthEnd, lastSuccess);
+          if (daysSinceLastAtEnd > INACTIVE_DAYS) monthlyLost++;
         }
       });
 
-      // ใช้ข้อมูลจริงที่คำนวณได้ หรือ fallback เป็น 0 ถ้าไม่มีข้อมูล
       return {
-        className: "",
+        className: '',
         cells: [
-          { value: month, className: "text-center" },
-          { value: `+${monthlyNew}`, className: "text-center" },
-          { value: `+${monthlyRegular}`, className: "text-center" },
-          { value: `+${monthlyLost}`, className: "text-center" },
-          { value: `+${monthlyTarget}`, className: "text-center" },
+          { value: month, className: 'text-center' },
+          { value: `+${monthlyNew}`, className: 'text-center' },
+          { value: `+${monthlyRegular}`, className: 'text-center' },
+          { value: `+${monthlyLost}`, className: 'text-center' },
+          { value: `+${monthlyTarget}`, className: 'text-center' },
         ],
-        data: {
-          color_name: "Red",
-          color_id: 1,
-        },
+        data: {}
       };
     });
   };
@@ -387,14 +359,11 @@ export default function Dashboards() {
             labelKey="name"
             placeholder="เลือกปี พ.ศ."
             defaultValue={{
-              id: currentBuddhistYear,
-              name: currentBuddhistYear.toString(),
               value: currentBuddhistYear,
               label: currentBuddhistYear.toString(),
             }}
             isClearable
             label=""
-            labelOrientation="horizontal"
             classNameLabel="w-1/2"
             classNameSelect="w-full "
           />

@@ -4,9 +4,12 @@ import Select, { ActionMeta, SingleValue, SelectInstance } from "react-select";
 export type OptionType = {
   label: string;
   value: string | number | null;
-  [key: string]: any;
+  // extra dynamic data kept generic
+  meta?: Record<string, unknown>;
 };
 
+interface FetchResponseItem { [key: string]: unknown }
+interface FetchResponse { responseObject?: FetchResponseItem[] }
 
 type MasterSelectComponentProps = {
   onAction?: () => void;
@@ -16,14 +19,13 @@ type MasterSelectComponentProps = {
   ) => void;
   id?: string;
   nextFields?: { left?: string; right?: string; up?: string; down?: string };
-  fetchDataFromGetAPI: () => Promise<any>;
+  fetchDataFromGetAPI: () => Promise<FetchResponse>;
   onInputChange?: (inputText: string) => void;
   valueKey: string;
   labelKey: string;
   placeholder?: string;
   isClearable?: boolean;
   label?: string;
-  labelOrientation?: "horizontal" | "vertical";
   className?: string;
   classNameSelect?: string;
   classNameLabel?: string;
@@ -47,7 +49,6 @@ const MasterSelectComponent: React.FC<MasterSelectComponentProps> = ({
   placeholder = "Select an option",
   isClearable = true,
   label = "",
-  labelOrientation = "vertical",
   className = "",
   classNameSelect = "",
   classNameLabel = "",
@@ -75,13 +76,13 @@ const MasterSelectComponent: React.FC<MasterSelectComponentProps> = ({
     const fetchOptions = async () => {
       try {
         const res = await fetchDataFromGetAPI();
-        const formattedOptions = res?.responseObject?.map((item: any) => ({
-          label: item[labelKey],
-          value: item[valueKey],
-          ...item,
-        }));
+        const formattedOptions: OptionType[] = res?.responseObject?.map((item: FetchResponseItem) => ({
+          label: String(item[labelKey as keyof FetchResponseItem] ?? ''),
+          value: item[valueKey as keyof FetchResponseItem] as (string | number | null),
+          meta: item,
+        })) || [];
         setOptions(formattedOptions);
-        if (!formattedOptions) {
+        if (!formattedOptions.length) {
           setValue(null);
         }
       } catch (error) {
@@ -142,80 +143,79 @@ const MasterSelectComponent: React.FC<MasterSelectComponentProps> = ({
       ref={containerRef}
       className={`${className} flex flex-col sm:flex-row items-start sm:items-center gap-2`}
     >
-
       {label && (
-        <div
-          style={{ marginBottom: labelOrientation === "vertical" ? "0.5rem" : "0" }}
-          className={`${classNameLabel} whitespace-nowrap`}
+        <label
+          htmlFor={id}
+          className={`${classNameLabel || ''}`}
         >
-          <label>{label}{require && <span style={{ color: "red" }}>*</span>}</label>
-        </div>
+          {label}{require && <span style={{ color: 'red' }}>*</span>}
+        </label>
       )}
-      <Select
-
-        options={options}
-        onChange={(option, actionMeta) => {
-          setValue(option);
-          onChange(option, actionMeta);
-        }}
-        onInputChange={(inputValue, { action }) => {
-          if (action === "input-change" && onInputChange) {
-            onInputChange(inputValue);
-          }
-        }}
-        defaultValue={defaultValue}
-        value={value}
-        placeholder={placeholder}
-        isClearable={isClearable}
-        classNamePrefix="react-select"
-        className={`${classNameSelect} ${isError ? "ring-2 ring-red-500 animate-shake rounded-sm" : ""}`}
-        ref={selectRef}
-        inputId={id}
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        isDisabled={isDisabled}
-        styles={{
-          control: (base, state) => ({
-            ...base,
-            minHeight: "32px",
-            height: heightInput,
-            borderColor: "#d9d9e0",
-            backgroundColor: state.isDisabled ? "#f9f9fb" : "#ffffff",
-            opacity: 1,
-            boxShadow: "none",
-            width: "100%",
-            
-            "&:hover": {
-              borderColor: "#3b82f6",
-            },
-          }),
-          valueContainer: (base) => ({
-            ...base,
-            height: heightInput,
-            padding: "0 8px",
-            fontSize: "14px",
-            whiteSpace: "nowrap",
-          }),
-          singleValue: (base, state) => ({
-            ...base,
-            color: state.isDisabled ? "#0007149f" : "#000000",
-            fontSize: "14px",
-          }),
-          input: (base, state) => ({
-            ...base,
-            margin: "0",
-            color: state.isDisabled ? "#0007149f" : "#000000",
-          }),
-          indicatorsContainer: (provided) => ({
-            ...provided,
-            height: heightInput,
-          }),
-
-        }}
-      />
-      {errorMessage && (
-        <div className="text-red-600 pt-1 text-xs">{errorMessage}</div>
-      )}
+      <div className="flex flex-col w-full">
+        <Select
+          options={options}
+          onChange={(option, actionMeta) => {
+            setValue(option);
+            onChange(option, actionMeta);
+          }}
+          onInputChange={(inputValue, { action }) => {
+            if (action === "input-change" && onInputChange) {
+              onInputChange(inputValue);
+            }
+          }}
+          defaultValue={defaultValue}
+          value={value}
+          placeholder={placeholder}
+          isClearable={isClearable}
+          classNamePrefix="react-select"
+          className={`${classNameSelect} ${isError ? "ring-2 ring-red-500 animate-shake rounded-sm" : ""}`}
+          ref={selectRef}
+          inputId={id}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+          isDisabled={isDisabled}
+          styles={{
+            control: (base, state) => ({
+              ...base,
+              minHeight: "32px",
+              height: heightInput,
+              borderColor: "#d9d9e0",
+              backgroundColor: state.isDisabled ? "#f9f9fb" : "#ffffff",
+              opacity: 1,
+              boxShadow: "none",
+              width: "100%",
+              
+              "&:hover": {
+                borderColor: "#3b82f6",
+              },
+            }),
+            valueContainer: (base) => ({
+              ...base,
+              height: heightInput,
+              padding: "0 8px",
+              fontSize: "14px",
+              whiteSpace: "nowrap",
+            }),
+            singleValue: (base, state) => ({
+              ...base,
+              color: state.isDisabled ? "#0007149f" : "#000000",
+              fontSize: "14px",
+            }),
+            input: (base, state) => ({
+              ...base,
+              margin: "0",
+              color: state.isDisabled ? "#0007149f" : "#000000",
+            }),
+            indicatorsContainer: (provided) => ({
+              ...provided,
+              height: heightInput,
+            }),
+          }}
+        />
+        {errorMessage && (
+          <div className="text-red-600 pt-1 text-xs">{errorMessage}</div>
+        )}
+      </div>
     </div>
   );
 };

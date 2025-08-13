@@ -1,9 +1,4 @@
-import EditInfoCustomer from "@/features/Customer/edit-info-customer"
-import { ToastProvider } from "@/components/customs/alert/ToastContext";
+import EditInfoCustomer from "@/features/Customer/edit-info-customer";
 export default function Toolpage() {
-    return (
-        <ToastProvider>
-            <EditInfoCustomer/>
-        </ToastProvider>
-    )
+  return <EditInfoCustomer />;
 }

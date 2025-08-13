@@ -1,41 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import MasterTableFeature from "@/components/customs/display/master.main.component";
-import DialogComponent from "@/components/customs/dialog/dialog.main.component";
-
-import MasterSelectComponent, { OptionType } from "@/components/customs/select/select.main.component";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Buttons from "@/components/customs/button/button.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
-import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
-// import { getQuotationData } from "@/services/ms.quotation.service.ts";
-
+import MasterSelectComponent from "@/components/customs/select/select.main.component";
 import { useToast } from "@/components/customs/alert/ToastContext";
-import { TypeColorAllResponse } from "@/types/response/response.color";
-
-//
-import { useNavigate, useSearchParams } from "react-router-dom";
-
-import { Link } from "react-router-dom";
-import TextArea from "@/components/customs/textAreas/textarea.main.component";
-import TagSelectComponent from "@/components/customs/tagCustomer/tagselect.main.component";
-import { OptionColorType } from "@/components/customs/tagCustomer/tagselect.main.component";
-
-//Customer Role
-import { useCustomerRole } from "@/hooks/useCustomerRole";
-
-//Character 
-import { useCustomerCharacter } from "@/hooks/useCustomerCharacter";
-import { TypeCharacterResponse } from "@/types/response/response.customerCharacter";
-import Rating from "@/components/customs/rating/rating.main.component";
-import { setPriority } from "os";
-import { TypeAddressResponse } from "@/types/response/response.address";
-import { useSocial } from "@/hooks/useSocial";
-import { useTeam } from "@/hooks/useTeam";
-import { TypeSocialResponse } from "@/types/response/response.social";
-import { useAddress } from "@/hooks/useAddress";
-import { useResponseToOptions } from "@/hooks/useOptionType";
-import { LuPencil } from "react-icons/lu";
-import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
-import DependentSelectComponent from "@/components/customs/select/select.dependent";
+import { useNavigate } from "react-router-dom";
 import { FiImage } from "react-icons/fi";
 import dayjs from "dayjs";
 import { createEmployee } from "@/services/employee.service";
@@ -44,831 +15,216 @@ import { useSelectEmployeeStatus } from "@/hooks/useEmployee";
 import { TypeSelectEmployeeStatusResponse } from "@/types/response/response.employee";
 import { useSelectRole } from "@/hooks/useRole";
 import { TypeRoleResponse } from "@/types/response/response.role";
+import { useTeam } from "@/hooks/useTeam";
+import { useSocial } from "@/hooks/useSocial";
+import { TypeSocialResponse } from "@/types/response/response.social";
+import { useAddress } from "@/hooks/useAddress";
+import { TypeAddressResponse } from "@/types/response/response.address";
 
-type dateTableType = {
-    className: string;
-    cells: {
-        value: any;
-        className: string;
-    }[];
-    data: TypeColorAllResponse; //ตรงนี้
-}[];
+// Validation schema
+const passwordSchema = z.string().min(8, "อย่างน้อย 8 ตัว").regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, "ต้องมีตัวอักษรและตัวเลข");
+const employeeSchema = z.object({
+  employee_code: z.string().min(1,"กรอก").max(50),
+  username: z.string().min(1,"กรอก").max(50),
+  password: passwordSchema,
+  confirm_password: z.string().min(1,"กรอก"),
+  email: z.string().email("อีเมลไม่ถูกต้อง"),
+  first_name: z.string().min(1,"กรอก").max(50),
+  last_name: z.string().optional(),
+  role_id: z.string().min(1,"เลือก"),
+  position: z.string().min(1,"กรอก").max(50),
+  phone: z.preprocess(val=>{ const s = String(val??'').replace(/\D/g,''); return s; }, z.string().regex(/^\d{6,15}$/,"เบอร์ไม่ถูกต้อง")),
+  social_id: z.string().optional(),
+  detail: z.string().max(255).optional(),
+  address: z.string().optional(),
+  country_id: z.string().min(1,"เลือก"),
+  province_id: z.string().min(1,"เลือก"),
+  district_id: z.string().min(1,"เลือก"),
+  status_id: z.string().min(1,"เลือก"),
+  team_id: z.string().optional(),
+  salary: z.preprocess(val => {
+    if(val === '' || val === null || val === undefined) return undefined;
+    const n = Number(val);
+    return isNaN(n) ? undefined : n;
+  }, z.number().nonnegative({ message: "ต้องเป็นตัวเลขไม่ติดลบ" }).optional()),
+  start_date: z.date().optional(),
+  end_date: z.date().optional(),
+  birthdate: z.date().optional(),
+  contact_detail: z.string().optional(),
+}).refine(d=> !d.end_date || !d.start_date || d.end_date >= d.start_date, { message: "วันสิ้นสุดต้องหลังวันเริ่ม", path:["end_date"]})
+  .refine(d=> d.password === d.confirm_password, { message: "รหัสผ่านไม่ตรงกัน", path:["confirm_password"]});
 
-//
-export default function CreateEmployee() {
-    const [searchText, setSearchText] = useState("");
+type EmployeeFormData = z.infer<typeof employeeSchema>;
 
-    // variable form edit employee 
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [passwordError, setPasswordError] = useState<boolean>(false);
-    const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+export default function CreateEmployee(){
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement|null>(null);
+  const [uploadedFile,setUploadedFile] = useState<File|undefined>();
 
-    const [employeeCode, setEmployeeCode] = useState("");
-    const [employeeRole, setEmployeeRole] = useState<string | null>(null);
+  // Search text states
+  const [searchStatus,setSearchStatus] = useState("");
+  const [searchRole,setSearchRole] = useState("");
+  const [searchTeam,setSearchTeam] = useState("");
+  const [searchSocial,setSearchSocial] = useState("");
+  const [searchAddress,setSearchAddress] = useState("");
 
-    const [fName, setFName] = useState("");
-    const [lName, setLName] = useState("");
-    const [position, setPosition] = useState("");
-    const [salary, setSalary] = useState("");
+  // Remote data hooks
+  const { data: dataEmployeeStatus, refetch: refetchEmployeeStatus } = useSelectEmployeeStatus({ searchText: searchStatus });
+  const { data: dataRole, refetch: refetchRole } = useSelectRole({ searchText: searchRole });
+  const { data: dataTeam, refetch: refetchTeam } = useTeam({ page:"1", pageSize:"100", searchText: searchTeam });
+  const { data: dataSocial, refetch: refetchSocial } = useSocial({ searchText: searchSocial });
+  const { data: addressData, refetch: refetchAddress } = useAddress({ searchText: searchAddress });
+  const [addressTree,setAddressTree] = useState<TypeAddressResponse[]>([]);
+  useEffect(()=>{ if(addressData?.responseObject) setAddressTree(addressData.responseObject); },[addressData]);
 
-    const [startDate, setStartDate] = useState<Date | null>(new Date());
-    const [endDate, setEndDate] = useState<Date | null>(null);
-    const [employeeStatus, setEmployeeStatus] = useState<string | null>(null);
-    const [team, setTeam] = useState<string | null>(null);
+  // Option builders
+  const employeeStatusOptions = useMemo(()=> (dataEmployeeStatus?.responseObject.data||[]).map((i:TypeSelectEmployeeStatusResponse)=>({label:i.name,value:i.status_id})),[dataEmployeeStatus]);
+  const roleOptions = useMemo(()=> (dataRole?.responseObject.data||[]).map((r:TypeRoleResponse)=>({label:r.role_name,value:r.role_id})),[dataRole]);
+  const teamOptions = useMemo(()=> (dataTeam?.responseObject.data||[]).map((t:{team_id:string; name:string})=>({label:t.name,value:t.team_id})),[dataTeam]);
+  const socialOptions = useMemo(()=> (dataSocial?.responseObject.data||[]).map((s:TypeSocialResponse)=>({label:s.name,value:s.social_id})),[dataSocial]);
+  const countryOptions = useMemo(()=> addressTree.map(c=>({label:c.country_name,value:c.country_id})),[addressTree]);
+  const getProvinceOptions = (countryId:string)=>{ const c = addressTree.find(cc=>cc.country_id===countryId); return (c?.province||[]).map(p=>({label:p.province_name,value:p.province_id})); };
+  const getDistrictOptions = (countryId:string, provinceId:string)=>{ const c = addressTree.find(cc=>cc.country_id===countryId); const p = c?.province?.find(pp=>pp.province_id===provinceId); return (p?.district||[]).map(d=>({label:d.district_name,value:d.district_id})); };
 
-
-    const [country, setCountry] = useState<string | null>(null);
-    const [countryOptions, setCountryOptions] = useState<OptionType[]>([]);
-
-    const [province, setProvince] = useState<string | null>(null);
-    const [provinceOptions, setProvinceOptions] = useState<OptionType[]>([]);
-
-    const [district, setDistrict] = useState<string | null>(null);
-    const [districtOptions, setDistrictOptions] = useState<OptionType[]>([]);
-    const [email, setEmail] = useState("");
-    const [telNo, setTelno] = useState("");
-    const [birthDate, setBirthDate] = useState<Date | null>(null);
-
-    const [address, setAddress] = useState("");
-    const [contactNameOption, setContactNameOption] = useState("");
-    const [contactOption, setContactOption] = useState<string | null>(null);
-    const [contactDetail, setContactDetail] = useState("");
-
-    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-    const inputRef = useRef<HTMLInputElement | null>(null);
-    const [uploadKey, setUploadKey] = useState(0);
-
-    // const [selectedOption, setSelectedOption] = useState<string | null>(null);
-    const [data, setData] = useState<dateTableType>([]);
-
-
-    const { showToast } = useToast();
-    //
-    const navigate = useNavigate();
-    const [dataAddress, setDataAddress] = useState<TypeAddressResponse[]>();
-    const [errorFields, setErrorFields] = useState<Record<string, boolean>>({});
-
-    const [filterGroup, setFilterGroup] = useState<string | null>(null);
-    //searchText control
-
-    const [searchSocial, setSearchSocial] = useState("");
-    const [searchTeam, setSearchTeam] = useState("");
-    const [searchAddress, setSearchAddress] = useState("");
-    const [searchStatus, setSearchStatus] = useState("");
-
-
-
-
-    const roleCustomer = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "A" },
-                { id: 2, name: "B" },
-                { id: 3, name: "C" },
-                { id: 4, name: "D" },
-            ],
-        };
-    };
-
-    const dataProvince = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "กรุงเทพ" },
-                { id: 2, name: "นนทบุรี" },
-                { id: 3, name: "ปทุมธานี" },
-                { id: 4, name: "ชุมพร" },
-            ],
-        };
-    };
-
-    const dataDistrict = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "ปากเกร็ด" },
-                { id: 2, name: "บางใหญ่" },
-                { id: 3, name: "พระนคร" },
-                { id: 4, name: "เมือง" },
-            ],
-        };
-    };
-
-    const contactLabels: Record<string, string> = {
-        Line: "LINE",
-        Instragram: "Instragram",
-        Facebook: "Facebook",
-        Tiktok: "Tiktok",
-    };
-
-    const listContact = async () => {
-        return {
-            responseObject: [
-                { id: 1, name: "Line" },
-                { id: 2, name: "Instragram" },
-                { id: 3, name: "Facebook" },
-                { id: 4, name: "Tiktok" },
-            ],
-        };
-    };
-    //fetch employee status
-    const { data: dataEmployeeStatus, refetch: refetchEmployeeStatus } = useSelectEmployeeStatus({
-        searchText: searchStatus
-    })
-    const fetchEmployeeStatusDropdown = async () => {
-        const employeeStatusList = dataEmployeeStatus?.responseObject.data ?? [];
-        return {
-            responseObject: employeeStatusList.map((item: TypeSelectEmployeeStatusResponse) => ({
-                id: item.status_id,
-                name: item.name
-            }))
-        }
+  // Form
+  const { handleSubmit, setValue, watch, formState:{errors,isSubmitting} } = useForm<EmployeeFormData>({
+    resolver: zodResolver(employeeSchema),
+    defaultValues:{
+      employee_code:"",username:"",password:"",confirm_password:"",email:"",first_name:"",last_name:"",role_id:"",position:"",phone:"",social_id:undefined,detail:undefined,address:undefined,country_id:"",province_id:"",district_id:"",status_id:"",team_id:undefined,salary:undefined,start_date:new Date(),end_date:undefined,birthdate:undefined,contact_detail:undefined,
     }
-
-    const handleStatusSearch = (searchText: string) => {
-        setSearchStatus(searchText);
-        refetchEmployeeStatus();
-    };
-
-    //fetch employee status
-    const { data: dataRole, refetch: refetchRole } = useSelectRole({
-        searchText: searchStatus
-    })
-    const fetchRoleDropdown = async () => {
-        const roleList = dataRole?.responseObject.data ?? [];
-        return {
-            responseObject: roleList.map((item: TypeRoleResponse) => ({
-                id: item.role_id,
-                name: item.role_name
-            }))
-        }
-    }
-
-    const handleRoleSearch = (searchText: string) => {
-        setSearchStatus(searchText);
-        refetchRole();
-    };
-    //fetch team 
-
-    const { data: dataTeam, refetch: refetchTeam } = useTeam({
-        page: "1",
-        pageSize: "100",
-        searchText: searchTeam,
-    });
-
-
-
-    const fetchDataTeamDropdown = async () => {
-        const teamList = dataTeam?.responseObject.data ?? [];
-        return {
-            responseObject: teamList.map(item => ({
-                id: item.team_id,
-                name: item.name,
-            })),
-        };
-    }
-
-    const handleTeamSearch = (searchText: string) => {
-        setSearchTeam(searchText);
-        refetchTeam();
-    };
-
-    //fetch social
-    const { data: dataSocial, refetch: refetchSocial } = useSocial({
-        searchText: searchSocial,
-    });
-
-
-    const fetchDataSocialDropdown = async () => {
-        const socialList = dataSocial?.responseObject?.data ?? [];
-
-        return {
-            responseObject: socialList.map((Item: TypeSocialResponse) => ({
-                id: Item.social_id,
-                name: Item.name,
-            }))
-        }
-    }
-    const handleSocialSearch = (searchText: string) => {
-        setSearchSocial(searchText);
-        refetchSocial();
-    };
-    //fetch Address 
-    const { data: Address, refetch: refetchAddress } = useAddress({
-        searchText: searchAddress,
-    });
-    useEffect(() => {
-        if (Address?.responseObject) {
-            setDataAddress(Address.responseObject);
-        }
-    }, [Address]);
-    //  สำหรับ Contact Address
-
-    useEffect(() => {
-        if (!Array.isArray(dataAddress)) return setCountryOptions([]);
-
-        const { options } = useResponseToOptions(dataAddress, "country_id", "country_name");
-        setCountryOptions(options);
-    }, [dataAddress]);
-
-    const fetchDataCountry = useCallback(async () => {
-        const countryList = dataAddress ?? [];
-        return {
-            responseObject: countryList.map(item => ({
-                id: item.country_id,
-                name: item.country_name,
-            })),
-        };
-    }, [dataAddress]);
-
-    useEffect(() => {
-        if (!Array.isArray(dataAddress)) return setProvinceOptions([]);
-
-        const selectedCountry = dataAddress.find(item => item.country_id === country);
-        const provinceList = selectedCountry?.province ?? [];
-        const { options } = useResponseToOptions(provinceList, "province_id", "province_name");
-        setProvinceOptions(options);
-    }, [dataAddress, country]);
-
-    const fetchDataProvince = useCallback(async () => {
-        const selectedCountry = dataAddress?.find(item => item.country_id === country);
-        const provinceList = selectedCountry?.province ?? [];
-        return {
-            responseObject: provinceList.map(item => ({
-                id: item.province_id,
-                name: item.province_name,
-            })),
-        };
-    }, [dataAddress, country]);
-
-    useEffect(() => {
-        if (!Array.isArray(dataAddress)) return setDistrictOptions([]);
-
-        const selectedCountry = dataAddress.find(item => item.country_id === country);
-        const selectedProvince = selectedCountry?.province?.find(item => item.province_id === province);
-        const districtList = selectedProvince?.district ?? [];
-        const { options } = useResponseToOptions(districtList, "district_id", "district_name");
-        setDistrictOptions(options);
-    }, [dataAddress, country, province]);
-
-    const fetchDataDistrict = useCallback(async () => {
-        const selectedCountry = dataAddress?.find(item => item.country_id === country);
-        const selectedProvince = selectedCountry?.province?.find(item => item.province_id === province);
-        const districtList = selectedProvince?.district ?? [];
-        return {
-            responseObject: districtList.map(item => ({
-                id: item.district_id,
-                name: item.district_name,
-            })),
-        };
-    }, [dataAddress, country, province]);
-
-
-    const handleAddressSearch = (searchText: string) => {
-        setSearchAddress(searchText);
-        refetchAddress();
-    };
-
-    //ยืนยันไดอะล็อค
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setUploadedFile(file);
-            e.target.value = ""; // เคลียร์ input เพื่อให้เลือกไฟล์เดิมได้
-        }
-    };
-    //สำหรับป้องกันรหัสต่ำกว่า 6 ตัว
-    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newPassword = e.target.value;
-        setPassword(newPassword);
-
-
-        if (newPassword && newPassword.length < 6) {
-            setPasswordError(true);
-            setPasswordErrorMessage("รหัสผ่านต้องมี 6 ตัวอักษรขึ้นไป");
-        } else {
-            // ถ้าเงื่อนไขถูกต้อง ให้ล้าง error
-            setPasswordError(false);
-            setPasswordErrorMessage("");
-        }
-    };
-    const handleConfirm = async () => {
-
-
-
-        const errorMap: Record<string, boolean> = {};
-
-        if (!employeeCode) errorMap.employeeCode = true;
-        if (!username) errorMap.username = true;
-        if (!password) errorMap.password = true;
-        if (!fName) errorMap.fName = true;
-        if (!employeeRole) errorMap.employeeRole = true;
-        if (!position) errorMap.position = true;
-        if (!telNo) errorMap.telNo = true;
-        if (!country) errorMap.country = true;
-        if (!province || provinceOptions.length === 0) { errorMap.province = true; }
-        if (!district || districtOptions.length === 0) { errorMap.district = true; }
-        if (!employeeStatus) errorMap.employeeStatus = true;
-        if (!email) errorMap.email = true;
-
-        setErrorFields(errorMap);
-        if (Object.values(errorMap).some((v) => v)) {
-            showToast(`กรุณากรอกข้อมูลให้ครบ`, false);
-            return;
-        }
-
-
-        const payload: PayLoadCreateEmployee = {
-            employee_code: employeeCode,
-            username: username,
-            password: password,
-            email: email,
-            first_name: fName,
-            last_name: lName ?? "",
-            role_id: employeeRole,
-            position: position,
-            phone: telNo,
-            social_id: contactOption ?? "",
-            detail: contactDetail ?? "",
-            address: address ?? "",
-            country_id: country,
-            province_id: province,
-            district_id: district,
-            status_id: employeeStatus,
-            team_id: team ?? "",
-            salary: salary ?? "",
-            start_date: startDate ? dayjs(startDate).format("YYYY-MM-DD") : "",
-            end_date: endDate ? dayjs(endDate).format("YYYY-MM-DD") : "",
-            birthdate: birthDate ? dayjs(birthDate).format("YYYY-MM-DD") : "",
-        };
-
-        console.log("ส่ง payload", payload);
-        console.log("ไฟล์แนบ:", uploadedFile);
-        try {
-            const response = await createEmployee(payload, uploadedFile);
-            if (response.statusCode === 200) {
-                setUploadKey(prev => prev + 1); // trigger เพื่อ reset
-                navigate("/employee");
-            }
-            else if (response.statusCode === 400) {
-                if (response.message === "Username or employee code already exists") {
-                    showToast("ชื่อผู้ใช้งานหรือรหัสพนักงานซ้ำ", false);
-                }
-            }
-            
-            else  {
-                showToast("ไม่สามารถแก้ไขพนักงานได้", false);
-            }
-        } catch (err) {
-            showToast("ไม่สามารถสร้างพนักงานได้", false);
-            console.error(err);
-        }
-    };
-
-
-    return (
-        <>
-            <h1 className="text-2xl font-bold mb-3">เพิ่มพนักงาน</h1>
-
-
-            <div className="p-7 pb-5 bg-white shadow-lg rounded-lg">
-                <div className="w-full max-w-full overflow-x-auto lg:overflow-x-visible">
-                    {/* ข้อมูลพนักงาน */}
-
-                    <h1 className="text-xl font-semibold">ข้อมูลพนักงาน</h1>
-
-                    <div className="border-b-2 border-main mb-6"></div>
-                    <div className="flex justify-center xl:justify-start items-center space-x-4 mb-3">
-                        <div
-                            onClick={() => inputRef.current?.click()}
-                            className="bg-gray-300 text-white text-center rounded-full w-40 h-40 flex items-center justify-center cursor-pointer hover:bg-gray-400 transition"
-                            title="คลิกเพื่อเปลี่ยนรูป"
-                        >
-                            {uploadedFile ? (
-                                <img
-                                    src={URL.createObjectURL(uploadedFile)}
-                                    alt="preview"
-                                    className="w-full h-full object-cover rounded-full"
-                                />
-                            ) : (
-                                <FiImage size={40} />
-                            )}
-
-                        </div>
-
-                        <input
-                            ref={inputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleFileChange}
-                        />
-                    </div>
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-
-                        <div className="">
-                            <InputAction
-                                id="username"
-                                placeholder=""
-                                onChange={(e) => setUsername(e.target.value)}
-                                value={username}
-                                label="ชื่อผู้ใช้งาน"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex "
-                                classNameInput="w-full"
-                                nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}`, down: "password" }}
-                                isError={errorFields.username}
-                                require="require"
-                            />
-                        </div>
-                        <div className="">
-                            <InputAction
-                                type="password"
-                                id="password"
-                                placeholder=""
-                                onChange={handlePasswordChange}
-                                value={password}
-                                label="รหัสผ่าน"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex "
-                                classNameInput="w-full"
-                                nextFields={{ up: "username", down: "employee-code" }}
-                                isError={passwordError}
-                                errorMessage={passwordErrorMessage}
-                                require="require"
-                            />
-
-                        </div>
-                        <div className="">
-                            <InputAction
-                                id="employee-code"
-                                placeholder=""
-                                onChange={(e) => setEmployeeCode(e.target.value)}
-                                value={employeeCode}
-                                label="รหัสพนักงาน"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex "
-                                classNameInput="w-full"
-                                nextFields={{ up: "password", down: "employee-role" }}
-                                isError={errorFields.employeeCode}
-                                require="require"
-                            />
-                        </div>
-
-                        <div className="">
-                            <MasterSelectComponent
-                                id="employee-role"
-                                onChange={(option) => setEmployeeRole(option ? String(option.value) : null)}
-                                fetchDataFromGetAPI={fetchRoleDropdown}
-                                onInputChange={handleRoleSearch}
-                                valueKey="id"
-                                labelKey="name"
-                                placeholder="กรุณาเลือก..."
-                                isClearable
-                                label="บทบาท"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 flex"
-                                classNameSelect="w-full "
-                                nextFields={{ up: "employee-code", down: "fname" }}
-                                isError={errorFields.employeeRole}
-                                require="require"
-                            />
-                        </div>
-
-
-                        <div className="">
-                            <InputAction
-                                id="fname"
-                                placeholder=""
-                                onChange={(e) => setFName(e.target.value)}
-                                value={fName}
-                                label="ชื่อ"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 flex"
-                                classNameInput="w-full"
-                                nextFields={{ up: "employee-code", down: "lname" }}
-                                require="require"
-                                isError={errorFields.fName}
-
-                            />
-                        </div>
-                        <div className="">
-                            <InputAction
-                                id="lname"
-                                placeholder=""
-                                onChange={(e) => setLName(e.target.value)}
-                                value={lName}
-                                label="นามสกุล"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 flex"
-                                classNameInput="w-full"
-                                nextFields={{ up: "fname", down: "position" }}
-                            />
-                        </div>
-                        <div className="">
-                            <InputAction
-                                id="position"
-                                placeholder=""
-                                onChange={(e) => setPosition(e.target.value)}
-                                value={position}
-                                label="ตำแหน่ง"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex"
-                                classNameInput="w-full"
-                                nextFields={{ up: "lname", down: "salary" }}
-                                require="require"
-                                isError={errorFields.position}
-
-                            />
-                        </div>
-                        <div className="">
-                            <InputAction
-                                id="salary"
-                                placeholder=""
-                                onChange={(e) => setSalary(e.target.value)}
-                                value={salary}
-                                label="เงินเดือน/ค่าแรง"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex"
-                                classNameInput="w-full"
-                                nextFields={{ up: "position", down: "start-date" }}
-                            />
-                        </div>
-                        <div className="">
-                            <DatePickerComponent
-                                id="start-date"
-                                label="วันเริ่มทำงาน"
-                                placeholder="dd/mm/yy"
-                                selectedDate={startDate}
-                                onChange={(date) => setStartDate(date)}
-                                classNameLabel="w-1/2"
-                                classNameInput="w-full"
-                                nextFields={{ up: "salary", down: "end-date" }}
-
-                            />
-                        </div>
-                        <div className="">
-                            <DatePickerComponent
-                                id="end-date"
-                                label="วันที่เลิกทำงาน"
-                                placeholder="dd/mm/yy"
-                                selectedDate={endDate}
-                                onChange={(date) => setEndDate(date)}
-                                classNameLabel="w-1/2"
-                                classNameInput="w-full"
-                                nextFields={{ up: "start-date", down: "team" }}
-                                isClearable={true}
-                            />
-                        </div>
-
-                        <div className="">
-                            <MasterSelectComponent
-                                id="employee-status"
-                                onChange={(option) => setEmployeeStatus(option ? String(option.value) : null)}
-                                fetchDataFromGetAPI={fetchEmployeeStatusDropdown}
-                                onInputChange={handleStatusSearch}
-                                valueKey="id"
-                                labelKey="name"
-                                placeholder="กรุณาเลือก..."
-                                isClearable
-                                label="สถานะ"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 flex"
-                                classNameSelect="w-full "
-                                nextFields={{ up: "end-date", down: "team" }}
-                                require="require"
-                                isError={errorFields.employeeStatus}
-                            />
-                        </div>
-
-                        <div className="">
-                            <MasterSelectComponent
-                                id="team"
-                                onChange={(option) => setTeam(option ? String(option.value) : null)}
-                                fetchDataFromGetAPI={fetchDataTeamDropdown}
-                                onInputChange={handleTeamSearch}
-                                valueKey="id"
-                                labelKey="name"
-                                placeholder="กรุณาเลือก..."
-                                isClearable
-                                label="ทีม"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 flex"
-                                classNameSelect="w-full "
-                                nextFields={{ up: "employee-status", down: "country" }}
-                            />
-                        </div>
-
-
-                    </div>
-
-
-
-                    {/* รายละเอียดพนักงาน */}
-                    <h1 className="text-xl font-semibold mt-4 mb-1">รายละเอียดพนักงาน</h1>
-                    <div className="border-b-2 border-main mb-6"></div>
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-
-                        <div className="">
-                            <DependentSelectComponent
-                                id="country"
-                                value={countryOptions.find((opt) => opt.value === country) || null}
-                                onChange={(option) => setCountry(option ? String(option.value) : null)}
-                                onInputChange={handleAddressSearch}
-                                fetchDataFromGetAPI={fetchDataCountry}
-                                valueKey="id"
-                                labelKey="name"
-                                placeholder="กรุณาเลือก..."
-                                isClearable
-                                label="ประเทศ"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 "
-                                classNameSelect="w-full "
-                                nextFields={{ up: "team", down: "email" }}
-                                require="require"
-                                isError={errorFields.country}
-
-                            />
-                        </div>
-                        <div className="">
-
-                            <InputAction
-                                id="email"
-                                placeholder=""
-                                onChange={(e) => setEmail(e.target.value)}
-                                value={email}
-                                label="อีเมล"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex "
-                                classNameInput="w-full"
-                                nextFields={{ up: "country", down: "province" }}
-                                require="require"
-                                isError={errorFields.email}
-                            />
-                        </div>
-
-                        <div className="">
-                            <DependentSelectComponent
-                                id="province"
-                                value={provinceOptions.find((opt) => opt.value === province) || null}
-                                onChange={(option) => setProvince(option ? String(option.value) : null)}
-                                fetchDataFromGetAPI={fetchDataProvince}
-                                valueKey="id"
-                                labelKey="name"
-                                placeholder="กรุณาเลือก..."
-                                isClearable
-                                label="จังหวัด"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 "
-                                classNameSelect="w-full "
-                                nextFields={{ up: "email", down: "telno" }}
-                                require="require"
-                                isError={errorFields.province}
-                            />
-                        </div>
-                        <div className="">
-
-                            <InputAction
-                                id="telno"
-                                placeholder=""
-                                onChange={(e) => setTelno(e.target.value)}
-                                value={telNo}
-                                label="เบอร์โทรศัพท์"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex "
-                                classNameInput="w-full"
-                                nextFields={{ up: "province", down: "district" }}
-                                require="require"
-                                isError={errorFields.telNo}
-
-                            />
-                        </div>
-
-
-                        <div className="">
-                            <DependentSelectComponent
-                                id="district"
-                                value={districtOptions.find((opt) => opt.value === district) || null}
-                                onChange={(option) => setDistrict(option ? String(option.value) : null)}
-                                onInputChange={handleAddressSearch}
-                                fetchDataFromGetAPI={fetchDataDistrict}
-                                valueKey="id"
-                                labelKey="name"
-                                placeholder="กรุณาเลือก..."
-                                isClearable
-                                label="อำเภอ"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2 "
-                                classNameSelect="w-full "
-                                nextFields={{ up: "telno", down: "birth-date" }}
-                                require="require"
-                                isError={errorFields.district}
-
-                            />
-
-                        </div>
-                        <div className="">
-                            <DatePickerComponent
-                                id="birth-date"
-                                label="วันเกิด"
-                                placeholder="dd/mm/yy"
-                                selectedDate={birthDate}
-                                onChange={(date) => setBirthDate(date)}
-                                classNameLabel="w-1/2"
-                                classNameInput="w-full"
-                                nextFields={{ up: "district", down: "address" }}
-                                isClearable={true}
-                            />
-                        </div>
-
-                        <div className="">
-
-                            <TextArea
-                                id="address"
-                                placeholder=""
-                                onChange={(e) => setAddress(e.target.value)}
-                                value={address}
-                                label="ที่อยู่"
-                                labelOrientation="horizontal"
-                                onAction={handleConfirm}
-                                classNameLabel="w-1/2 flex "
-                                classNameInput="w-full"
-                                nextFields={{ up: "birth-date", down: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}` }}
-                            />
-                        </div>
-                        <div className="">
-                            <MasterSelectComponent
-                                id="contact-option"
-                                onChange={(option) => {
-                                    setContactOption(option ? String(option.value) : null);
-                                    setContactNameOption(option?.label ?? "");
-                                }}
-                                fetchDataFromGetAPI={fetchDataSocialDropdown}
-                                onInputChange={handleSocialSearch}
-                                valueKey="id"
-                                labelKey="name"
-                                placeholder="กรุณาเลือก..."
-                                isClearable
-                                label="ช่องทางการติดต่อ"
-                                labelOrientation="horizontal"
-                                classNameLabel="w-1/2"
-                                classNameSelect="w-full"
-                                nextFields={{ up: "district", down: `${contactOption ? contactOption?.toLowerCase() : "username"}` }}
-                            />
-                            {contactOption && (
-                                <>
-
-                                    <div className="mt-6">
-                                        <InputAction
-                                            id={contactOption.toLowerCase()}
-                                            placeholder=""
-                                            onChange={(e) => setContactDetail(e.target.value)}
-                                            value={contactDetail}
-                                            label={contactNameOption}
-                                            labelOrientation="horizontal"
-                                            onAction={handleConfirm}
-                                            classNameLabel="w-1/2"
-                                            classNameInput="w-full"
-                                            nextFields={{ up: "contact-option", down: "username" }}
-                                        />
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
-
-                    </div>
-
-                </div>
+  });
+  const values = watch();
+
+  // Password strength meter
+  const passwordStrength = useMemo(()=>{ const p = values.password||""; if(!p) return 0; let s=0; if(p.length>=8) s++; if(/[A-Z]/.test(p)) s++; if(/[a-z]/.test(p)) s++; if(/\d/.test(p)) s++; if(/[^A-Za-z0-9]/.test(p)) s++; return s;},[values.password]);
+
+  // Handlers
+  const handleFileChange = (e:React.ChangeEvent<HTMLInputElement>)=>{ const f = e.target.files?.[0]; if(f){ setUploadedFile(f);} };
+  const onSearchStatus = (t:string)=>{ setSearchStatus(t); refetchEmployeeStatus(); };
+  const onSearchRole = (t:string)=>{ setSearchRole(t); refetchRole(); };
+  const onSearchTeam = (t:string)=>{ setSearchTeam(t); refetchTeam(); };
+  const onSearchSocial = (t:string)=>{ setSearchSocial(t); refetchSocial(); };
+  const onSearchAddress = (t:string)=>{ setSearchAddress(t); refetchAddress(); };
+
+  // Reset dependent selections when parent changes
+  useEffect(()=>{ setValue('province_id',''); setValue('district_id',''); },[values.country_id,setValue]);
+  useEffect(()=>{ setValue('district_id',''); },[values.province_id,setValue]);
+
+  const onSubmit = async (data:EmployeeFormData)=>{
+    try{
+      const payload: PayLoadCreateEmployee = {
+        employee_code: data.employee_code,
+        username: data.username,
+        password: data.password,
+        email: data.email,
+        first_name: data.first_name,
+        last_name: data.last_name || "",
+        role_id: data.role_id,
+        position: data.position,
+        phone: data.phone,
+        social_id: data.social_id || undefined,
+        detail: data.detail || undefined,
+        address: data.address || undefined,
+        country_id: data.country_id,
+        province_id: data.province_id,
+        district_id: data.district_id,
+        status_id: data.status_id,
+        team_id: data.team_id || undefined,
+        salary: data.salary, // already number or undefined
+        start_date: data.start_date ? dayjs(data.start_date).format("YYYY-MM-DD") : undefined,
+        end_date: data.end_date ? dayjs(data.end_date).format("YYYY-MM-DD") : undefined,
+        birthdate: data.birthdate ? dayjs(data.birthdate).format("YYYY-MM-DD") : undefined,
+      };
+      const res = await createEmployee(payload, uploadedFile);
+      if(res.statusCode===200){ showToast("สร้างพนักงานสำเร็จ",true); navigate('/employee'); }
+      else if(res.statusCode===400 && res.message==="Username or employee code already exists") showToast("ชื่อผู้ใช้งานหรือรหัสพนักงานซ้ำ",false);
+      else showToast("สร้างพนักงานไม่สำเร็จ",false);
+    }catch{ showToast("สร้างพนักงานไม่สำเร็จ",false); }
+  };
+
+  return (
+    <>
+      <h1 className="text-2xl font-bold mb-3">เพิ่มพนักงาน</h1>
+      <form className="p-7 pb-5 bg-white shadow-lg rounded-lg" onSubmit={handleSubmit(onSubmit)}>
+        <h2 className="text-xl font-semibold mb-1">ข้อมูลพนักงาน</h2>
+        <div className="border-b-2 border-main mb-6"/>
+        <div className="flex items-center space-x-4 mb-6">
+          <div onClick={()=>inputRef.current?.click()} className="bg-gray-300 text-white text-center rounded-full w-32 h-32 flex items-center justify-center cursor-pointer hover:bg-gray-400">
+            {uploadedFile? <img src={URL.createObjectURL(uploadedFile)} alt="preview" className="w-full h-full object-cover rounded-full"/> : <FiImage size={32}/>}          
+          </div>
+          <div className="space-y-2">
+            <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange}/>
+            {uploadedFile && <button type="button" className="text-sm text-red-600 underline" onClick={()=>{setUploadedFile(undefined);}}>ลบรูป</button>}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <InputAction id="employee_code" label="รหัสพนักงาน" value={values.employee_code} onChange={e=>setValue('employee_code',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" require="require" isError={!!errors.employee_code} errorMessage={errors.employee_code?.message as string} />
+          <InputAction id="username" label="ชื่อผู้ใช้งาน" value={values.username} onChange={e=>setValue('username',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" require="require" isError={!!errors.username} errorMessage={errors.username?.message as string} />
+          <InputAction id="password" type="password" label="รหัสผ่าน" value={values.password} onChange={e=>setValue('password',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" require="require" isError={!!errors.password} errorMessage={errors.password?.message as string} />
+          <div className='flex items-center space-x-2 -mt-4'>{passwordStrength>0 && <div className='flex space-x-1'>{[1,2,3,4,5].map(i=> <span key={i} className={`h-1 w-6 rounded ${passwordStrength>=i? 'bg-green-500':'bg-gray-300'}`}/> )}</div>}<span className='text-xs text-gray-500'>{passwordStrength>=4?'ดี':passwordStrength>=3?'ปานกลาง':passwordStrength>=2?'พอใช้':''}</span></div>
+          <InputAction id="confirm_password" type="password" label="ยืนยันรหัสผ่าน" value={values.confirm_password} onChange={e=>setValue('confirm_password',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" require="require" isError={!!errors.confirm_password} errorMessage={errors.confirm_password?.message as string} />
+          <InputAction id="email" label="อีเมล" value={values.email} onChange={e=>setValue('email',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" require="require" isError={!!errors.email} errorMessage={errors.email?.message as string} />
+          <InputAction id="first_name" label="ชื่อ" value={values.first_name} onChange={e=>setValue('first_name',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" require="require" isError={!!errors.first_name} errorMessage={errors.first_name?.message as string} />
+          <InputAction id="last_name" label="นามสกุล" value={values.last_name||''} onChange={e=>setValue('last_name',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" />
+          <InputAction id="position" label="ตำแหน่ง" value={values.position} onChange={e=>setValue('position',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" require="require" isError={!!errors.position} errorMessage={errors.position?.message as string} />
+          <InputAction id="salary" type="number" label="เงินเดือน/ค่าแรง" value={values.salary !== undefined ? String(values.salary) : ''} onChange={e=>{ const v = e.target.value; setValue('salary', v === '' ? undefined : Number(v), {shouldValidate:true}); }} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" isError={!!errors.salary} errorMessage={errors.salary?.message as string} />
+          <InputAction id="phone" type="tel" label="เบอร์โทรศัพท์" value={values.phone} onChange={e=>{ const digits = e.target.value.replace(/[^0-9]/g,''); setValue('phone',digits,{shouldValidate:true}); }} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" require="require" isError={!!errors.phone} errorMessage={errors.phone?.message as string} />
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-6">
+          <div>
+            <MasterSelectComponent classNameLabel="w-1/2" label="สิทธิ์" require="require" isError={!!errors.role_id} errorMessage={errors.role_id?.message as string} fetchDataFromGetAPI={async()=>({responseObject:roleOptions})} valueKey="value" labelKey="label" onChange={(opt)=> setValue('role_id', String(opt?.value ?? ''),{shouldValidate:true})} onInputChange={onSearchRole} />
+          </div>
+          <div>
+            <MasterSelectComponent classNameLabel="w-1/2" label="สถานะ" require="require" isError={!!errors.status_id} errorMessage={errors.status_id?.message as string} fetchDataFromGetAPI={async()=>({responseObject:employeeStatusOptions})} valueKey="value" labelKey="label" onChange={(opt)=> setValue('status_id', String(opt?.value ?? ''),{shouldValidate:true})} onInputChange={onSearchStatus} />
+          </div>
+          <div>
+            <MasterSelectComponent classNameLabel="w-1/2" label="ทีม" fetchDataFromGetAPI={async()=>({responseObject:teamOptions})} valueKey="value" labelKey="label" onChange={(opt)=> setValue('team_id', opt?.value ? String(opt.value) : undefined,{shouldValidate:true})} onInputChange={onSearchTeam} />
+          </div>
+          <div>
+            <MasterSelectComponent classNameLabel="w-1/2" label="ประเทศ" require="require" isError={!!errors.country_id} errorMessage={errors.country_id?.message as string} fetchDataFromGetAPI={async()=>({responseObject:countryOptions})} valueKey="value" labelKey="label" onChange={(opt)=> { setValue('country_id', String(opt?.value ?? ''),{shouldValidate:true}); }} onInputChange={onSearchAddress} />
+          </div>
+          <div>
+            <MasterSelectComponent classNameLabel="w-1/2" label="จังหวัด" require="require" isError={!!errors.province_id} errorMessage={errors.province_id?.message as string} fetchDataFromGetAPI={async()=>({responseObject:getProvinceOptions(values.country_id)})} valueKey="value" labelKey="label" onChange={(opt)=> { setValue('province_id', String(opt?.value ?? ''),{shouldValidate:true}); }} />
+          </div>
+            <div>
+            <MasterSelectComponent classNameLabel="w-1/2" label="อำเภอ/เขต" require="require" isError={!!errors.district_id} errorMessage={errors.district_id?.message as string} fetchDataFromGetAPI={async()=>({responseObject:getDistrictOptions(values.country_id, values.province_id)})} valueKey="value" labelKey="label" onChange={(opt)=> setValue('district_id', String(opt?.value ?? ''),{shouldValidate:true})} />
+          </div>
+          <div>
+            <MasterSelectComponent classNameLabel="w-1/2" label="ช่องทางติดต่อ" fetchDataFromGetAPI={async()=>({responseObject:socialOptions})} valueKey="value" labelKey="label" onChange={(opt)=> setValue('social_id', opt?.value ? String(opt.value) : undefined,{shouldValidate:true})} onInputChange={onSearchSocial} />
+          </div>
+          <InputAction id="contact_detail" label="รายละเอียดช่องทาง" value={values.contact_detail||''} onChange={e=>setValue('contact_detail',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" />
+          <InputAction id="address" label="ที่อยู่" value={values.address||''} onChange={e=>setValue('address',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" />
+          <InputAction id="detail" label="รายละเอียด" value={values.detail||''} onChange={e=>setValue('detail',e.target.value,{shouldValidate:true})} labelOrientation="horizontal" classNameLabel="w-1/2" classNameInput="w-full" />
+          {/* Birthdate */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <label htmlFor="birthdate" className="w-1/2">วันเกิด</label>
+            <div className="flex flex-col w-full">
+              <input id="birthdate" type="date" value={values.birthdate? dayjs(values.birthdate).format('YYYY-MM-DD'):''} onChange={e=> setValue('birthdate', e.target.value? new Date(e.target.value): undefined)} className="border rounded px-2 py-1 w-full" />
             </div>
-            <div className="flex justify-center md:justify-end space-x-5 mt-5">
-                <Buttons
-                    btnType="primary"
-                    variant="outline"
-                    className="w-30"
-                    onClick={handleConfirm}
-                >
-                    เพิ่มพนักงานใหม่
-                </Buttons>
-                <Link to="/employee">
-                    <Buttons
-                        btnType="cancel"
-                        variant="soft"
-                        className="w-30 "
-                    >
-                        ยกเลิก
-                    </Buttons>
-                </Link>
-
+          </div>
+          {/* Start date */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <label htmlFor="start_date" className="w-1/2">วันเริ่มงาน</label>
+            <div className="flex flex-col w-full">
+              <input id="start_date" type="date" value={values.start_date? dayjs(values.start_date).format('YYYY-MM-DD'):''} onChange={e=> setValue('start_date', e.target.value? new Date(e.target.value): undefined)} className="border rounded px-2 py-1 w-full" />
             </div>
-        </>
+          </div>
+          {/* End date */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <label htmlFor="end_date" className="w-1/2">วันสิ้นสุดงาน</label>
+            <div className="flex flex-col w-full">
+              <input id="end_date" type="date" value={values.end_date? dayjs(values.end_date).format('YYYY-MM-DD'):''} onChange={e=> setValue('end_date', e.target.value? new Date(e.target.value): undefined,{shouldValidate:true})} className={`border rounded px-2 py-1 w-full ${errors.end_date ? 'ring-2 ring-red-500 animate-shake' : ''}`} />
+              {errors.end_date && <div className='text-red-600 pt-1 text-sm'>{errors.end_date.message}</div>}
+            </div>
+          </div>
+        </div>
+        <div className='mt-8 flex justify-end space-x-4'>
+          <Buttons btnType='primary' variant='outline' type='submit' disabled={isSubmitting}>{isSubmitting? 'กำลังบันทึก...':'เพิ่มพนักงานใหม่'}</Buttons>
+          <Buttons btnType='cancel' variant='soft' type='button' onClick={()=>navigate('/employee')}>ยกเลิก</Buttons>
+        </div>
+      </form>
+    </>
 
-    );
+  );
 }

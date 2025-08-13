@@ -164,6 +164,10 @@ model employees {
   activity_create Activity[] @relation("ActivityCreatedBy")
   activity_update Activity[] @relation("ActivityUpdatedBy")
 
+  // customer status relations
+  customer_status_create CustomerStatus[] @relation("CustomerStatusCreatedBy")
+  customer_status_update CustomerStatus[] @relation("CustomerStatusUpdatedBy")
+
   @@index([employee_code])
   @@index([username])
   @@index([email])
@@ -920,4 +924,24 @@ model Activity {
   @@index([customer_id])
   @@index([team_id])
   @@index([responsible_id])
+}
+
+model CustomerStatus {
+  customer_status_id String   @id @default(uuid()) @db.Uuid
+  name               String   @db.VarChar(50)
+  start_condition    String   @db.Text
+  end_condition      String   @db.Text
+  description        String?  @db.Text
+  order_no           Int      @default(1) @db.Integer
+  is_active          Boolean  @default(true)
+  category           String?  @db.VarChar(30)
+  created_at         DateTime @default(now())
+  created_by         String   @db.Uuid
+  updated_at         DateTime @updatedAt
+  updated_by         String   @db.Uuid
+
+  created_by_employee employees @relation("CustomerStatusCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("CustomerStatusUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([name])
 }

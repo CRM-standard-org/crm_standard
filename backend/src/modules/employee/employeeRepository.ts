@@ -90,7 +90,7 @@ export const employeeRepository = {
                 salary: setForm.salary,
                 status_id: setForm.status_id,
                 start_date: toDate(setForm.start_date),
-                end_date: toDate(setForm.start_date),
+                end_date: toDate(setForm.end_date),
                 created_by: employee_id_by,
                 updated_by: employee_id_by
             }
@@ -543,6 +543,8 @@ export const employeeRepository = {
 
         const checkIsActive = setForm.end_date ? new Date(setForm.end_date) <= new Date() ? false : true : true;
 
+        const removePicture = setForm.remove_profile_picture === true;
+
         const emp = await prisma.employees.update({
             where: { employee_id },
             data: {
@@ -556,11 +558,12 @@ export const employeeRepository = {
                 last_name: setForm.last_name,
                 birthdate: toDate(setForm.birthdate),
                 phone: setForm.phone,
-                profile_picture: files && files.length == 1 ? `/uploads/employee/${files[0].filename}` : check?.profile_picture,
+                profile_picture: removePicture ? null : (files && files.length == 1 ? `/uploads/employee/${files[0].filename}` : check?.profile_picture),
                 salary: setForm.salary,
                 status_id:  setForm.status_id  ,
                 start_date: toDate(setForm.start_date),
-                end_date: toDate(setForm.start_date),
+                end_date: toDate(setForm.end_date),
+                team_id: setForm.team_id ?? check?.team_id,
                 updated_by: employee_id_by
             }
         });

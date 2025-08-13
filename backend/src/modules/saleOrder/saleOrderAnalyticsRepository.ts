@@ -442,5 +442,130 @@ export const saleOrderAnalyticsRepository = {
       currentPage: page,
       totalPages
     };
+  },
+
+  // Summary sale analytics
+  getSummarySale: async (filter: { start_date: string; end_date: string; tag_id?: string; team_id?: string; responsible_id?: string; }) => {
+    const startDate = new Date(filter.start_date);
+    const endDate = new Date(filter.end_date);
+    endDate.setHours(23,59,59,999);
+
+    const tagFilter = filter.tag_id ? { customer: { customer_tags: { some: { tag_id: filter.tag_id } } } } : {};
+    const baseWhere: any = {
+      issue_date: { gte: startDate, lte: endDate },
+      ...(filter.team_id && { team_id: filter.team_id }),
+      ...(filter.responsible_id && { responsible_employee: filter.responsible_id }),
+      ...tagFilter
+    };
+
+    // Activities
+    const activitiesCount = await prisma.activity.count({
+      where: {
+        issue_date: { gte: startDate, lte: endDate },
+        ...(filter.team_id && { team_id: filter.team_id }),
+        ...(filter.responsible_id && { responsible_id: filter.responsible_id }),
+        ...(filter.tag_id && { customer: { customer_tags: { some: { tag_id: filter.tag_id } } } })
+      }
+    });
+
+    // Sale orders in range
+    const successfulStatus = "สำเร็จ";
+    const salesWhere = baseWhere;
+
+    const [successfulOrders, unsuccessfulOrders] = await Promise.all([
+      prisma.saleOrder.findMany({ where: { ...salesWhere, sale_order_status: successfulStatus }, select: { grand_total: true, customer_id: true, responsible_employee: true } }),
+      prisma.saleOrder.findMany({ where: { ...salesWhere, sale_order_status: { not: successfulStatus } }, select: { grand_total: true, customer_id: true, responsible_employee: true } })
+    ]);
+
+    const sale_value_successful = successfulOrders.reduce((s, o) => s + parseFloat(o.grand_total.toString()), 0);
+    const sale_value_unsuccessful = unsuccessfulOrders.reduce((s, o) => s + parseFloat(o.grand_total.toString()), 0);
+    const successful_sales_count = successfulOrders.length;
+
+    // Customers new vs existing
+    const newCustomersCount = await prisma.customer.count({
+      where: {
+        created_at: { gte: startDate, lte: endDate },
+        ...(filter.tag_id && { customer_tags: { some: { tag_id: filter.tag_id } } }),
+        ...(filter.team_id && { team_id: filter.team_id })
+      }
+    });
+
+    const saleOrderCustomerIds = Array.from(new Set([...successfulOrders, ...unsuccessfulOrders].map(o => o.customer_id)));
+    const existingCustomersCount = Math.max(saleOrderCustomerIds.length - newCustomersCount, 0);
+
+    // Top customers (successful only)
+    const customerSalesMap = new Map<string, number>();
+    successfulOrders.forEach(o => {
+      customerSalesMap.set(o.customer_id, (customerSalesMap.get(o.customer_id) || 0) + parseFloat(o.grand_total.toString()));
+    });
+    const totalSuccessfulRevenue = sale_value_successful || 1; // prevent divide by zero
+    const topCustomersTemp = Array.from(customerSalesMap.entries())
+      .sort((a,b) => b[1]-a[1])
+      .slice(0,10);
+    const customerIds = topCustomersTemp.map(c => c[0]);
+    const customerRecords = await prisma.customer.findMany({ where: { customer_id: { in: customerIds } }, select: { customer_id: true, company_name: true } });
+    const customerNameMap = new Map(customerRecords.map(c => [c.customer_id, c.company_name] as const));
+    const top_customers = topCustomersTemp.map(([id, value], idx) => ({
+      rank: idx+1,
+      customer_id: id,
+      company_name: customerNameMap.get(id) || "-",
+      total_sales: value,
+      percent: +(value / totalSuccessfulRevenue * 100).toFixed(2)
+    }));
+
+    // Top categories (successful only) via sale order items
+    const itemsSuccessful = await prisma.saleOrderItem.findMany({
+      where: {
+        sale_order: { ...salesWhere, sale_order_status: successfulStatus }
+      },
+      select: { group_product_id: true, sale_order_item_price: true, group_product: { select: { group_product_id: true, group_product_name: true } } }
+    });
+    const categorySalesMap = new Map<string, { name: string; total: number }>();
+    itemsSuccessful.forEach(it => {
+      const id = it.group_product_id;
+      if(!id) return;
+      const gp: any = (it as any).group_product;
+      const name = gp?.group_product_name || "-";
+      const val = parseFloat(it.sale_order_item_price.toString());
+      categorySalesMap.set(id, { name, total: (categorySalesMap.get(id)?.total || 0) + val });
+    });
+    const top_categories = Array.from(categorySalesMap.entries())
+      .sort((a,b) => b[1].total - a[1].total)
+      .slice(0,10)
+      .map(([id, obj], idx) => ({ rank: idx+1, group_product_id: id, name: obj.name, total_sales: obj.total }));
+
+    // Top employees (successful only)
+    const employeeSalesMap = new Map<string, number>();
+    successfulOrders.forEach(o => {
+      employeeSalesMap.set(o.responsible_employee, (employeeSalesMap.get(o.responsible_employee) || 0) + parseFloat(o.grand_total.toString()));
+    });
+    const topEmployeesTemp = Array.from(employeeSalesMap.entries())
+      .sort((a,b)=> b[1]-a[1])
+      .slice(0,10);
+    const employeeIds = topEmployeesTemp.map(e=>e[0]);
+    const employeeRecords = await prisma.employees.findMany({ where: { employee_id: { in: employeeIds } }, select: { employee_id: true, first_name: true, last_name: true } });
+    const employeeNameMap = new Map(employeeRecords.map(e => [e.employee_id, `${e.first_name || ''} ${e.last_name || ''}`.trim()] as const));
+    const top_employees = topEmployeesTemp.map(([id,val], idx) => ({
+      rank: idx+1,
+      employee_id: id,
+      employee_name: employeeNameMap.get(id) || '- ',
+      total_sales: val,
+      percent: +(val / totalSuccessfulRevenue * 100).toFixed(2)
+    }));
+
+    return {
+      range: { start_date: filter.start_date, end_date: filter.end_date },
+      metrics: {
+        activities: activitiesCount,
+        successful_sales: successful_sales_count,
+        new_customers: newCustomersCount,
+        existing_customers: existingCustomersCount,
+        sale_value_successful,
+        sale_value_unsuccessful
+      },
+      top_customers,
+      top_categories,
+      top_employees
+    };
   }
 };

@@ -44,13 +44,26 @@ export const KeysFineEmployee = [
 ];
 
 export const authRepository = {
-
     findByUsername: async <Key extends keyof employees>(
       username: string,
       keys = KeysFineEmployee as Key[]
     ) => {
       return prisma.employees.findUnique({
         where: { username: username },
+        select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
+      }) as Promise<Pick<employees, Key> | null>;
+    },
+    findByUsernameOrEmail: async <Key extends keyof employees>(
+      identifier: string,
+      keys = KeysFineEmployee as Key[]
+    ) => {
+      return prisma.employees.findFirst({
+        where: {
+          OR: [
+            { username: identifier },
+            { email: identifier }
+          ]
+        },
         select: keys.reduce((obj, k) => ({ ...obj, [k]: true }), {}),
       }) as Promise<Pick<employees, Key> | null>;
     },

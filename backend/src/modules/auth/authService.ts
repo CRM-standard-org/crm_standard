@@ -11,11 +11,13 @@ export const authService = {
 
     login: async (payload: TypePayloadAuth , res: Response) => {
         try{
-            const checkEmployee = await authRepository.findByUsername(payload.username);
+            // Allow user to login with username or email
+            const identifier = payload.username; // frontend will send username field but can be username or email
+            const checkEmployee = await authRepository.findByUsernameOrEmail(identifier);
             if(!checkEmployee){
                 return new ServiceResponse(
                     ResponseStatus.Failed,
-                    "The username or password is incorrect.",
+                    "Invalid username/email or password.",
                     null,
                     StatusCodes.BAD_REQUEST
                 )
@@ -27,7 +29,7 @@ export const authService = {
             if(!inValidPassword){
                 return new ServiceResponse(
                     ResponseStatus.Failed,
-                    "The username or password is incorrect.",
+                    "Invalid username/email or password.",
                     null,
                     StatusCodes.BAD_REQUEST
                 )
@@ -45,12 +47,12 @@ export const authService = {
             });
             return new ServiceResponse(
                 ResponseStatus.Success,
-                "User authenticated successfully.",
+                "Login successful.",
                 null,
                 StatusCodes.OK
             )
         }catch (ex) {
-            const errorMessage = "Error create user : " + (ex as Error).message;
+            const errorMessage = "Login failed: " + (ex as Error).message;
             return new ServiceResponse(
                 ResponseStatus.Failed,
                 errorMessage,
@@ -69,12 +71,12 @@ export const authService = {
     
             return new ServiceResponse(
                 ResponseStatus.Success,
-                "User logged out successfully.",
+                "Logout successful.",
                 null,
                 StatusCodes.OK
             );
         } catch (ex) {
-            const errorMessage = "Error during logout: " + (ex as Error).message;
+            const errorMessage = "Logout failed: " + (ex as Error).message;
             return new ServiceResponse(
                 ResponseStatus.Failed,
                 errorMessage,
@@ -90,20 +92,20 @@ export const authService = {
             if (token && emp) {
                 return new ServiceResponse(
                     ResponseStatus.Success,
-                    "User authenticated successfully",
+                    "Authenticated.",
                     emp,
                     StatusCodes.OK
                 );
             }else {
                 return new ServiceResponse(
                     ResponseStatus.Failed,
-                    "Authentication required",
+                    "Not authenticated.",
                     null,
                     StatusCodes.UNAUTHORIZED
                 )
             }  
         } catch (ex) {
-            const errorMessage = "Error auth status: " + (ex as Error).message;
+            const errorMessage = "Auth status check failed: " + (ex as Error).message;
             return new ServiceResponse(
                 ResponseStatus.Failed,
                 errorMessage,

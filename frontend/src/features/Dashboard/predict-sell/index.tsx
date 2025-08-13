@@ -12,7 +12,7 @@ import {
   useTeamLevelAnalytics,
   usePersonalLevelAnalytics,
 } from "@/hooks/useSalesAnalytics";
-import { Box, Flex, Text} from "@radix-ui/themes";
+import { Box, Flex, Text } from "@radix-ui/themes";
 import PaginationComponent from "@/components/customs/paginations/PaginationComponent";
 
 export type RowType = {
@@ -82,8 +82,12 @@ export default function PredictSell() {
   //fetch year dropdown data from API
   const fetchDataYearDropdown = async () => {
     if (yearsData?.responseObject) {
+      // Map YearOption to FetchResponseItem
       return {
-        responseObject: yearsData.responseObject,
+        responseObject: yearsData.responseObject.map((item) => ({
+          ...item,
+          // Add index signature if needed, or ensure all required keys exist
+        })),
       };
     }
     return {
@@ -351,18 +355,15 @@ export default function PredictSell() {
             }
             fetchDataFromGetAPI={fetchDataYearDropdown}
             onInputChange={handleYearSearch}
-            valueKey="id"
+            valueKey="value"
             labelKey="name"
             placeholder="เลือกปี พ.ศ."
             defaultValue={{
-              id: currentBuddhistYear,
-              name: currentBuddhistYear.toString(),
               value: currentBuddhistYear,
               label: currentBuddhistYear.toString(),
             }}
             isClearable
             label=""
-            labelOrientation="horizontal"
             classNameLabel="w-1/2"
             classNameSelect="w-full min-w-40"
           />

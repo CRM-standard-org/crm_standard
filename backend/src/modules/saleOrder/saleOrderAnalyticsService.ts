@@ -127,5 +127,26 @@ export const saleOrderAnalyticsService = {
         StatusCodes.INTERNAL_SERVER_ERROR
       );
     }
+  },
+
+  // Get summary sale
+  getSummarySale: async (filter: { start_date: string; end_date: string; tag_id?: string; team_id?: string; responsible_id?: string; }) => {
+    try {
+      const data = await saleOrderAnalyticsRepository.getSummarySale(filter);
+      return new ServiceResponse(
+        ResponseStatus.Success,
+        "Get summary sale success",
+        data,
+        StatusCodes.OK
+      );
+    } catch (ex) {
+      const errorMessage = "Error getting summary sale: " + (ex as Error).message;
+      return new ServiceResponse(
+        ResponseStatus.Failed,
+        errorMessage,
+        null,
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 };

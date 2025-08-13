@@ -1,5 +1,3 @@
-
-
 // Auth
 export const LOGIN = "/v1/auth/login";
 export const AUTH_STATUS = "/v1/auth/auth-status";
@@ -188,3 +186,11 @@ export const REJECT_SALE = "/v1/sale-order/reject-sale";
 //company
 export const GET_COMPANY = "/v1/company/get";
 export const UPDATE_COMPANY = "/v1/company/update";
+
+//customer status
+export const CREATE_CUSTOMER_STATUS = "/v1/customer-status/create";
+export const GET_ALL_CUSTOMER_STATUS = "/v1/customer-status/get";
+export const SELECT_CUSTOMER_STATUS = "/v1/customer-status/select";
+export const GET_CUSTOMER_STATUS_BY_ID = "/v1/customer-status/get";
+export const UPDATE_CUSTOMER_STATUS = "/v1/customer-status/update";
+export const DELETE_CUSTOMER_STATUS = "/v1/customer-status/delete";

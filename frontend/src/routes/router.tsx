@@ -15,6 +15,8 @@ import EditInfoCustomer from "@/pages/Customer/edit-info-customer";
 import EditCustomerActivity from "@/pages/Customer/edit-customer-activity";
 import CreateActivity from "@/pages/Customer/create-activity";
 import EditCustomerDetails from "@/pages/Customer/edit-customer-details";
+import CreateInfoCustomer from "@/pages/Customer/create-info-customer";
+import EditCustomerStatusPage from '@/pages/Customer/edit-info-customer-status';
 
 //financial route
 import Quotation from "@/pages/Financial/quotation";
@@ -159,6 +161,14 @@ const router = createBrowserRouter([
       {
         path: "/create-activity",
         element: <CreateActivity />,
+      },
+      {
+        path: "/create-info-customer",
+        element: <CreateInfoCustomer />,
+      },
+      {
+        path: '/edit-customer-status/:customerStatusId',
+        element: <EditCustomerStatusPage />,
       },
       //การขายและธุรกรรม
       {

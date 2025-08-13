@@ -12,7 +12,6 @@ import {
 
 import mainApi from "@/apis/main.api";
 import {  AllEmployeeResponse, EmployeeResponse, EmployeeStatusResponse, PayLoadFilterEmployee, SearchEmployeeResponse } from "@/types/response/response.employee";
-import { APIResponseType } from "@/types/response";
 import { PayLoadCreateEmployee, PayLoadEditEmployee } from "@/types/requests/request.employee";
 
 
@@ -111,31 +110,20 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
   //create Employee 
   export const createEmployee = async (
     payload: PayLoadCreateEmployee,
-    empFile: File 
+    empFile?: File 
   ) => {
     try {
       const formData = new FormData();
-     
-  
       formData.append("payload", JSON.stringify(payload));
-  
       if (empFile) {
         formData.append("emp", empFile); 
       }
-  
       const { data: response } = await mainApi.post(
         `${CREATE_EMPLOYEE}`,
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
-  
-      console.log("service", response);
       return response;
-  
     } catch (error) {
       console.error("Error create Employee", error);
       throw error;
@@ -146,35 +134,24 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
   export const updateEmployee = async (
     employeeId:string,
     payload: PayLoadEditEmployee,
-    empFile: File 
+    empFile?: File 
   ) => {
     try {
       const formData = new FormData();
-     
-  
       formData.append("payload", JSON.stringify(payload));
-  
       if (empFile) {
         formData.append("emp", empFile); 
       }
       const encodedEmployeeId = encodeURIComponent(employeeId);
-
       const { data: response } = await mainApi.put(
         `${UPDATE_EMPLOYEE}/${encodedEmployeeId}`,
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
-  
-      console.log("service", response);
       return response;
-  
     } catch (error) {
       console.error("Error edit Employee", error);
       throw error;
     }
   };
-  
+

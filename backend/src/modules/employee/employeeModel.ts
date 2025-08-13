@@ -1,6 +1,4 @@
-import { query } from "express";
 import { z } from "zod";
-import { employeeRouter } from "./employeeRouter";
 
 
 export type TypePayloadEmployee = {
@@ -30,7 +28,7 @@ export type TypePayloadEmployee = {
 
 export type UpdateEmployee = {
     username? : string;
-    password : string ; 
+    password? : string ; 
     email? : string ;
     role_id?: string;
     position? : string;     
@@ -48,6 +46,8 @@ export type UpdateEmployee = {
     district_id? : string;   
     social_id? : string;  
     detail? : string;  
+    team_id?: string;
+    remove_profile_picture?: boolean;
 }
 
 export type Filter = {
@@ -55,55 +55,61 @@ export type Filter = {
     status? : string;
 }
 
+const passwordRule = z.string().min(8, "Password at least 8 characters").regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, "Password must contain letters and numbers");
+const emailRule = z.string().email("Invalid email format");
+const phoneRule = z.string().regex(/^[0-9]{6,15}$/,"Phone 6-15 digits");
+
 export const CreateSchema = z.object({
     body : z.object({
         employee_code: z.string().min(1).max(50),   
         username: z.string().min(1).max(50),
-        password : z.string().min(6).max(50),
-        email: z.string().min(1).max(50),
+        password : passwordRule,
+        email: emailRule,
         first_name   : z.string().min(1).max(50),
         last_name: z.string().max(50).optional(),  
         role_id: z.string().min(1).max(50),
         position: z.string().min(1).max(50),     
-        phone: z.string().min(1).max(50),   
+        phone: phoneRule,
         social_id  : z.string().max(50).optional(),
-        detail : z.string().max(50).optional(),
+        detail : z.string().max(255).optional(),
         address: z.string().optional(),  
         country_id   : z.string().min(1).max(50),
         province_id  : z.string().min(1).max(50),
         district_id   : z.string().min(1).max(50),
         status_id: z.string().min(1).max(50), 
         team_id: z.string().max(50).optional(), 
-        salary: z.number().optional(), 
+        salary: z.number().nonnegative().optional(), 
         start_date: z.coerce.date().optional(), 
         end_date: z.coerce.date().optional(),
         birthdate: z.coerce.date().optional(), 
-    })
+    }).refine(d=> !d.end_date || !d.start_date || d.end_date >= d.start_date, { message: "end_date must be after start_date", path:["end_date"]})
 });
 
 export const UpdateSchema = z.object({
     params: z.object({ employee_id: z.string().min(1).max(50) }),
     body : z.object({
         username: z.string().min(1).max(50).optional(),
-        password : z.string().max(50).optional(),
-        email: z.string().min(1).max(50).optional(),
+        password : passwordRule.optional(),
+        email: emailRule.optional(),
         first_name : z.string().max(50).optional(),
         last_name: z.string().max(50).optional(),  
         role_id: z.string().min(1).max(50).optional(),
         position: z.string().max(50).optional(),     
-        phone: z.string().max(20).optional(),   
+        phone: phoneRule.optional(),   
         social_id  : z.string().min(1).max(50).optional(),
-        detail  : z.string().max(50).optional(),
+        detail  : z.string().max(255).optional(),
         address: z.string().optional(),  
         country_id : z.string().min(1).max(50).optional(),
         province_id : z.string().min(1).max(50).optional(),
         district_id : z.string().min(1).max(50).optional(),
         status_id: z.string().min(1).max(50).optional(), 
-        salaly: z.number().optional(), 
+        salary: z.number().nonnegative().optional(), 
         start_date: z.coerce.date().optional(), 
         end_date: z.coerce.date().optional(),
         birthdate: z.coerce.date().optional(), 
-    })
+        team_id: z.string().max(50).optional(),
+        remove_profile_picture: z.boolean().optional(),
+    }).refine(d=> !d.end_date || !d.start_date || d.end_date >= d.start_date, { message: "end_date must be after start_date", path:["end_date"]})
 });
 
 

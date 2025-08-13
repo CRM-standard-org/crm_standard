@@ -201,7 +201,9 @@ export const employeeService = {
                 district_id,
                 social_id,
                 detail,
-            } = {...check , ...payload} as UpdateEmployee
+                team_id,
+                remove_profile_picture,
+            } = {...check , ...payload} as UpdateEmployee & { remove_profile_picture?: boolean };
             const checkUsernameReplace = await employeeRepository.findByUsername(check.username);
             const checkUsernameAlright = await employeeRepository.checkUsername(check.username , employee_id);
             if(checkUsernameReplace && checkUsernameAlright){
@@ -238,6 +240,8 @@ export const employeeService = {
                     country_id: country_id ?? addressEmp?.country.country_id,
                     province_id: province_id ?? addressEmp?.province.province_id,
                     district_id: district_id ?? addressEmp?.district.district_id,
+                    team_id: team_id ?? (check as any).team_id,
+                    remove_profile_picture,
                 },
                 employee_id_by,
                 files
