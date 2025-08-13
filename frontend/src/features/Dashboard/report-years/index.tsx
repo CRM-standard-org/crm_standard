@@ -43,11 +43,19 @@ export default function ReportYears() {
   const chartRef = useRef<HTMLDivElement>(null);
 
   const handleOpenPdf = async () => {
-    if (chartRef.current) {
+    if (chartRef.current && reportData && year) {
       const canvas = await html2canvas(chartRef.current);
       const imageData = canvas.toDataURL("image/png");
-
-      const blob = await pdf(<ReportYearPDF chartImage={imageData} />).toBlob();
+      const currentYear = year.getFullYear();
+      const previousYear = currentYear - 1;
+      const blob = await pdf(
+        <ReportYearPDF
+          chartImage={imageData}
+          comparison={reportData.comparison}
+          table={reportData.table}
+          years={{ previousYear, currentYear }}
+        />
+      ).toBlob();
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     }

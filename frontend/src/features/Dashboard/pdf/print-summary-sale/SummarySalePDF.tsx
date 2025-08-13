@@ -1,17 +1,9 @@
 import React from 'react';
-import { Font, Image } from '@react-pdf/renderer';
+import { Font, Image, Document, Page, Text, View } from '@react-pdf/renderer';
 import THSarabunRegular from '../../../../../font/THSarabunNew.ttf';
 import THSarabunBold from '../../../../../font/THSarabunNew Bold.ttf';
 import { companyLogoBase64 } from '@/assets/images/logoBase64';
-import {
-    Document,
-    Page,
-    Text,
-    View,
-} from '@react-pdf/renderer';
-
 import { styles } from './style';
-import { TypeQuotationResponse } from '@/types/response/response.quotation';
 
 Font.register({
     family: 'THSarabunNew',
@@ -20,56 +12,23 @@ Font.register({
         { src: THSarabunBold, fontWeight: 'bold' }
     ]
 });
+
 type SummarySalePDFProps = {
     chartImage1: string | null;
     chartImage2: string | null;
+    range: { start_date: string; end_date: string };
+    metrics: {
+        activities: number; successful_sales: number; new_customers: number; existing_customers: number; sale_value_successful: number; sale_value_unsuccessful: number;
+    };
+    topCustomers: Array<{ rank: number; company_name: string; percent: number; }>,
+    topCategories: Array<{ rank: number; name: string; total_sales: number; }>,
+    topEmployees: Array<{ rank: number; employee_name: string; percent: number; }>,
 };
-//mockup table
-const customerColumns = [
-    { header: 'อันดับที่', key: 'rank' },
-    { header: 'ลูกค้า', key: 'name' },
-    { header: 'สัดส่วนรายได้(%)', key: 'percent', align: 'right' },
-];
-const customers = [
-    { rank: 1, name: 'บริษัท A', percent: '15.00%' },
-    { rank: 2, name: 'บริษัท B', percent: '12.00%' },
-    { rank: 3, name: 'บริษัท C', percent: '11.00%' },
-    { rank: 4, name: 'บริษัท D', percent: '9.00%' },
-    { rank: 5, name: 'บริษัท E', percent: '6.00%' },
-    { rank: 6, name: 'บริษัท F', percent: '4.00%' },
-    { rank: 7, name: 'บริษัท G', percent: '3.15%' },
-    { rank: 8, name: 'บริษัท H', percent: '3.02%' },
-    { rank: 9, name: 'บริษัท I', percent: '3.00%' },
-    { rank: 10, name: 'บริษัท J', percent: '2.47%' },
-];
 
-const categoryColumns = [
-    { header: 'อันดับที่', key: 'rank' },
-    { header: 'หมวดหมู่', key: 'name' },
-    { header: 'รายได้', key: 'amount', align: 'right' },
-];
-const categories = [
-    { rank: 1, name: 'เฟอร์นิเจอร์สำนักงาน', amount: 'THB 343,935' },
-    { rank: 2, name: 'เครื่องใช้ไฟฟ้า', amount: 'THB 229,576' },
-    { rank: 3, name: 'คอมพิวเตอร์', amount: 'THB 114,358' },
-    { rank: 4, name: 'ของตกแต่งสำนักงาน', amount: 'THB 114,358' },
-    { rank: 5, name: 'อุปกรณ์สำนักงาน', amount: 'THB 57,609' },
-];
+const formatNumber = (n: number) => n.toLocaleString();
+const formatPercent = (n: number) => n.toFixed(2) + '%';
 
-const employeeColumns = [
-    { header: 'อันดับที่', key: 'rank' },
-    { header: 'พนักงาน', key: 'name' },
-    { header: 'สัดส่วนรายได้(%)', key: 'percent', align: 'right' },
-];
-const employees = [
-    { rank: 1, name: 'นายแมน ฮับสาร', percent: '37.11%' },
-    { rank: 2, name: 'นายจอมปราชญ์ รักโลก', percent: '29.91%' },
-    { rank: 3, name: 'นางสาวดี มีปัญญา', percent: '21.16%' },
-    { rank: 4, name: 'นายภา อับซาเมฆ', percent: '8.34%' },
-];
-const SummarySalePDF: React.FC<SummarySalePDFProps> = ({ chartImage1, chartImage2 }) => {
-
-
+const SummarySalePDF: React.FC<SummarySalePDFProps> = ({ chartImage1, chartImage2, range, metrics, topCustomers, topCategories, topEmployees }) => {
     return (
         <Document>
             <Page size="A4" style={styles.page}>
@@ -79,95 +38,93 @@ const SummarySalePDF: React.FC<SummarySalePDFProps> = ({ chartImage1, chartImage
                         <Image src={companyLogoBase64} style={styles.logo} />
                         <Text style={styles.companyName}>รายงานสรุปยอดขาย</Text>
                         <Text style={styles.companySub}>บริษัท CRM Manager (DEMO)</Text>
-                        <Text style={styles.companySubSmall}>1 มกราคม 2024 - 31 มกราคม 2024</Text>
+                        <Text style={styles.companySubSmall}>{range.start_date} - {range.end_date}</Text>
+                    </View>
+                </View>
+
+                {/* Metrics summary under header (optional compact) */}
+                <View style={styles.section}>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 4 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '48%', padding: 4, borderBottom: '0.5px solid #eee' }}><Text style={{ fontSize: 10, color: '#555' }}>กิจกรรม</Text><Text style={{ fontSize: 10, fontWeight: 'bold' }}>{formatNumber(metrics.activities)}</Text></View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '48%', padding: 4, borderBottom: '0.5px solid #eee' }}><Text style={{ fontSize: 10, color: '#555' }}>ปิดการขาย</Text><Text style={{ fontSize: 10, fontWeight: 'bold' }}>{formatNumber(metrics.successful_sales)}</Text></View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '48%', padding: 4, borderBottom: '0.5px solid #eee' }}><Text style={{ fontSize: 10, color: '#555' }}>ลูกค้าใหม่</Text><Text style={{ fontSize: 10, fontWeight: 'bold' }}>{formatNumber(metrics.new_customers)}</Text></View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '48%', padding: 4, borderBottom: '0.5px solid #eee' }}><Text style={{ fontSize: 10, color: '#555' }}>ลูกค้าเดิม</Text><Text style={{ fontSize: 10, fontWeight: 'bold' }}>{formatNumber(metrics.existing_customers)}</Text></View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '48%', padding: 4, borderBottom: '0.5px solid #eee' }}><Text style={{ fontSize: 10, color: '#555' }}>ยอดขายสำเร็จ (THB)</Text><Text style={{ fontSize: 10, fontWeight: 'bold' }}>{formatNumber(metrics.sale_value_successful)}</Text></View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '48%', padding: 4, borderBottom: '0.5px solid #eee' }}><Text style={{ fontSize: 10, color: '#555' }}>ยอดขายไม่สำเร็จ (THB)</Text><Text style={{ fontSize: 10, fontWeight: 'bold' }}>{formatNumber(metrics.sale_value_unsuccessful)}</Text></View>
                     </View>
                 </View>
 
                 {/* Chart */}
                 {chartImage1 && chartImage2 && (
                     <View style={styles.section}>
-
                         <View style={styles.chartRow}>
-                            {/* กราฟซ้าย */}
                             <View style={styles.chartBox}>
                                 <Text style={styles.chartLabel}>กิจกรรมและลูกค้า</Text>
                                 {chartImage1 && <Image src={chartImage1} style={styles.chartImage} />}
                             </View>
-
-                            {/* กราฟขวา */}
                             <View style={styles.chartBox}>
                                 <Text style={styles.chartLabel}>มูลค่าการขาย</Text>
                                 {chartImage2 && <Image src={chartImage2} style={styles.chartImage} />}
                             </View>
                         </View>
                     </View>
-
                 )}
 
-                {/* table */}
+                {/* Tables */}
                 <View style={styles.section}>
-
-                    {/* 3 table */}
                     <View style={styles.row3col}>
-                        {/* ลูกค้า */}
+                        {/* Top Customers */}
                         <View style={styles.cellBox}>
                             <Text style={styles.subTitle}>10 อันดับลูกค้า</Text>
                             <View style={styles.tableHeader}>
-                                {customerColumns.map((col) => (
-                                    <Text key={col.key} style={styles.headerCell}>{col.header}</Text>
-                                ))}
+                                <Text style={styles.headerCell}>อันดับที่</Text>
+                                <Text style={styles.headerCell}>ลูกค้า</Text>
+                                <Text style={styles.headerCell}>สัดส่วนรายได้(%)</Text>
                             </View>
-
-                            {customers.map((row, i) => (
-                                <View key={i} style={styles.tableRow}>
-                                    <Text style={styles.dataCell}>{row.rank}</Text>
-                                    <Text style={styles.dataCell}>{row.name}</Text>
-                                    <Text style={styles.dataCell}>{row.percent}</Text>
+                            {topCustomers.length ? topCustomers.map(c => (
+                                <View key={c.rank} style={styles.tableRow}>
+                                    <Text style={styles.dataCell}>{c.rank}</Text>
+                                    <Text style={styles.dataCell}>{c.company_name}</Text>
+                                    <Text style={styles.dataCell}>{formatPercent(c.percent)}</Text>
                                 </View>
-                            ))}
+                            )) : <Text style={styles.dataCell}>- ไม่มีข้อมูล -</Text>}
                         </View>
 
-                        {/* หมวดหมู่สินค้า */}
+                        {/* Top Categories */}
                         <View style={styles.cellBox}>
                             <Text style={styles.subTitle}>10 หมวดหมู่สินค้า</Text>
                             <View style={styles.tableHeader}>
-                                {categoryColumns.map((col) => (
-                                    <Text key={col.key} style={styles.headerCell}>{col.header}</Text>
-                                ))}
+                                <Text style={styles.headerCell}>อันดับที่</Text>
+                                <Text style={styles.headerCell}>หมวดหมู่</Text>
+                                <Text style={styles.headerCell}>รายได้</Text>
                             </View>
-
-                            {categories.map((row, i) => (
-                                <View key={i} style={styles.tableRow}>
-                                    <Text style={styles.dataCell}>{row.rank}</Text>
-                                    <Text style={styles.dataCell}>{row.name}</Text>
-                                    <Text style={styles.dataCell}>{row.amount}</Text>
+                            {topCategories.length ? topCategories.map(cat => (
+                                <View key={cat.rank} style={styles.tableRow}>
+                                    <Text style={styles.dataCell}>{cat.rank}</Text>
+                                    <Text style={styles.dataCell}>{cat.name}</Text>
+                                    <Text style={styles.dataCell}>THB {formatNumber(cat.total_sales)}</Text>
                                 </View>
-                            ))}
+                            )) : <Text style={styles.dataCell}>- ไม่มีข้อมูล -</Text>}
                         </View>
 
-                        {/* พนักงานขาย */}
+                        {/* Top Employees */}
                         <View style={styles.cellBox}>
                             <Text style={styles.subTitle}>10 พนักงานขาย</Text>
                             <View style={styles.tableHeader}>
-                                {employeeColumns.map((col) => (
-                                    <Text key={col.key} style={styles.headerCell}>{col.header}</Text>
-                                ))}
+                                <Text style={styles.headerCell}>อันดับที่</Text>
+                                <Text style={styles.headerCell}>พนักงาน</Text>
+                                <Text style={styles.headerCell}>สัดส่วนรายได้(%)</Text>
                             </View>
-                            {employees.map((row, i) => (
-                                <View key={i} style={styles.tableRow}>
-                                    <Text style={styles.dataCell}>{row.rank}</Text>
-                                    <Text style={styles.dataCell}>{row.name}</Text>
-                                    <Text style={styles.dataCell}>{row.percent}</Text>
+                            {topEmployees.length ? topEmployees.map(emp => (
+                                <View key={emp.rank} style={styles.tableRow}>
+                                    <Text style={styles.dataCell}>{emp.rank}</Text>
+                                    <Text style={styles.dataCell}>{emp.employee_name}</Text>
+                                    <Text style={styles.dataCell}>{formatPercent(emp.percent)}</Text>
                                 </View>
-                            ))}
+                            )) : <Text style={styles.dataCell}>- ไม่มีข้อมูล -</Text>}
                         </View>
                     </View>
                 </View>
-
-
-
-
-
             </Page>
         </Document>
     );

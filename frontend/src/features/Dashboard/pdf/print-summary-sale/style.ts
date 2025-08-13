@@ -106,6 +106,21 @@ export const styles = StyleSheet.create({
         objectFit: 'contain',
     },
 
-
+    // info metrics
+    infoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '48%',
+        padding: 4,
+        borderBottom: '0.5px solid #eee'
+    },
+    infoLabel: {
+        fontSize: 10,
+        color: '#555'
+    },
+    infoValue: {
+        fontSize: 10,
+        fontWeight: 'bold'
+    },
 
 });

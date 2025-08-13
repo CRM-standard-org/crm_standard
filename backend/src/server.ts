@@ -29,6 +29,7 @@ import { saleOrderAnalyticsRouter } from "@modules/saleOrder/saleOrderAnalyticsR
 import { activityRouter } from "@modules/activity/activityRouter";
 import { companyRouter } from "@modules/company/companyRouter";
 import { customerStatusRouter } from "@modules/customerStatus/customerStatusRouter";
+import { customerAnalyticsRouter } from "@modules/customerAnalytics/customerAnalyticsRouter";
 
 import { roleRouter } from "@modules/role/roleRouter";
 
@@ -66,6 +67,7 @@ app.use("/v1/sale-order-analytics", saleOrderAnalyticsRouter);
 app.use("/v1/activity", activityRouter);
 app.use("/v1/company", companyRouter);
 app.use("/v1/customer-status", customerStatusRouter);
+app.use("/v1/customer-analytics", customerAnalyticsRouter);
 
 app.use("/v1/role", roleRouter);
 

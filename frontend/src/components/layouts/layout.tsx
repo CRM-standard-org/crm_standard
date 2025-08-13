@@ -18,6 +18,7 @@ import { permissionMap } from "@/utils/permissionMap";
 import PermissionRedirect from "@/utils/permissionRedirect";
 import { appConfig } from "@/configs/app.config";
 import OutletApp from "./outlet";
+import { BoxLoadingData } from "../customs/boxLoading/BoxLoadingData";
 
 const MainLayout = () => {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ const MainLayout = () => {
       .then((response) => {
         if (response.statusCode === 200 && response.responseObject) {
           setLocalProfileData(response.responseObject);
-        } else if (response.message === "Authentication required") {
+        } else if (response.statusCode === 401) {
           navigate("/login");
         }
       })
@@ -268,6 +269,14 @@ const MainLayout = () => {
       ],
     },
   };
+
+  if (!profile.employee_id) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <BoxLoadingData />
+      </div>
+    );
+  }
 
   return (
     <div className=" relative w-screen h-screen">

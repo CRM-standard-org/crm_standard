@@ -25,12 +25,22 @@ export default function SummarySale() {
   const chartRef2 = useRef<HTMLDivElement>(null);
 
   const handleOpenPdf = async () => {
-    if (chartRef1.current && chartRef2.current) {
+    if (chartRef1.current && chartRef2.current && summary) {
       const canvas1 = await html2canvas(chartRef1.current);
       const canvas2 = await html2canvas(chartRef2.current);
       const image1 = canvas1.toDataURL("image/png");
       const image2 = canvas2.toDataURL("image/png");
-      const blob = await pdf(<SummarySalePDF chartImage1={image1} chartImage2={image2} />).toBlob();
+      const blob = await pdf(
+        <SummarySalePDF
+          chartImage1={image1}
+          chartImage2={image2}
+          range={summary.range}
+          metrics={summary.metrics}
+          topCustomers={summary.top_customers.map(c => ({ rank: c.rank, company_name: c.company_name, percent: c.percent }))}
+          topCategories={summary.top_categories.map(c => ({ rank: c.rank, name: c.name, total_sales: c.total_sales }))}
+          topEmployees={summary.top_employees.map(e => ({ rank: e.rank, employee_name: e.employee_name, percent: e.percent }))}
+        />
+      ).toBlob();
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     }

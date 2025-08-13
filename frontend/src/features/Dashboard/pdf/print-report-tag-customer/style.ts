@@ -34,6 +34,11 @@ export const styles = StyleSheet.create({
     section: {
         marginBottom: 10,
     },
+    sectionTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginBottom: 4
+    },
     //table 
     tableHeader: {
         flexDirection: 'row',
