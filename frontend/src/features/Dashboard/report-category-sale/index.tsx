@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import InputAction from "@/components/customs/input/input.main.component";
@@ -18,21 +18,19 @@ import {
   PieChart
 } from 'recharts';
 import { Table, Box, Text } from "@radix-ui/themes";
-import { useToast } from "@/components/customs/alert/ToastContext";
+// import { useToast } from "@/components/customs/alert/ToastContext"; // not used currently
 
 //
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import SalesForecastTable from "@/components/customs/display/forcast.main.component";
 
-import { TypeAllCustomerResponse } from "@/types/response/response.customer";
 import MasterSelectComponent, { OptionType } from "@/components/customs/select/select.main.component";
 
 import { useSelectTag } from "@/hooks/useCustomerTag";
 import { TypeTagColorResponse } from "@/types/response/response.tagColor";
 import Buttons from "@/components/customs/button/button.main.component";
 import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
-import { useResponseToOptions } from "@/hooks/useOptionType";
 import { useTeam, useTeamMember } from "@/hooks/useTeam";
 import DependentSelectComponent from "@/components/customs/select/select.dependent";
 import { SummaryTable } from "@/components/customs/display/sumTable.component";
@@ -40,23 +38,14 @@ import { pdf } from "@react-pdf/renderer";
 import ReportCategoryPDF from "../pdf/print-report-category-sale/ReportCategoryPDF";
 import { FiPrinter } from "react-icons/fi";
 import html2canvas from "html2canvas-pro";
+import { useSalesForecastSummary } from "@/hooks/useDashboard";
 
 
-type dateTableType = {
-  className: string;
-  cells: {
-    value: any;
-    className: string;
-  }[];
-  data: TypeAllCustomerResponse; //ตรงนี้
-}[];
+// (Removed unused dateTableType definition)
 
 //
 export default function ReportCategorySale() {
-  const [searchText, setSearchText] = useState("");
-  const [colorsName, setColorsName] = useState("");
-  // const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [data, setData] = useState<dateTableType>([]);
+  // Removed unused local states (searchText, colorsName, data)
 
 
   const [tagId, setTagId] = useState<string | null>(null);
@@ -68,17 +57,15 @@ export default function ReportCategorySale() {
   const [teamOptions, setTeamOptions] = useState<OptionType[]>([]);
   const [responsible, setResponsible] = useState<string | null>(null);
   const [responsibleOptions, setResponsibleOptions] = useState<OptionType[]>([]);
-  const { showToast } = useToast();
-  //
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  // const { showToast } = useToast(); // reserved for future error toasts
+  const [searchParams] = useSearchParams();
   const page = searchParams.get("page") ?? "1";
   const pageSize = searchParams.get("pageSize") ?? "25";
 
   //searchText control
   const [searchTag, setSearchTag] = useState("");
   const [searchTeam, setSearchTeam] = useState("");
-  const [searchYear, setSearchYear] = useState("");
+  // const [searchYear, setSearchYear] = useState(""); // (reserved) not yet used explicitly
 
 
 
@@ -121,12 +108,20 @@ export default function ReportCategorySale() {
     setSearchTag(searchText);
     refetchTag();
   };
-  //fetch team 
+  // Fetch member data hook MUST come before effect that uses refetchTeamMember
+  const { data: dataTeamMember, refetch: refetchTeamMember } = useTeamMember({
+    team_id: team ?? "",
+    page: page,
+    pageSize: pageSize,
+    searchText: "",
+  });
+
+  //fetch team
   useEffect(() => {
     setResponsible(null);
     setResponsibleOptions([]);
     refetchTeamMember();
-  }, [team]);
+  }, [team, refetchTeamMember]);
 
   const { data: dataTeam, refetch: refetchTeam } = useTeam({
     page: "1",
@@ -134,9 +129,9 @@ export default function ReportCategorySale() {
     searchText: searchTeam,
   });
   const fetchDataTeamDropdown = async () => {
-    const teamList = dataTeam?.responseObject.data ?? [];
-    const { options, responseObject } = useResponseToOptions(teamList, "team_id", "name");
-    setTeamOptions(options);
+  const teamList: { team_id: string; name: string }[] = dataTeam?.responseObject.data ?? [];
+    const responseObject = teamList.map(t => ({ id: t.team_id, name: t.name }));
+    setTeamOptions(responseObject.map(r=> ({ value: r.id, label: r.name })));
     return { responseObject };
   };
 
@@ -145,93 +140,115 @@ export default function ReportCategorySale() {
     setSearchTeam(searchText);
     refetchTeam();
   };
-  //fetch Member in team 
-  const { data: dataTeamMember, refetch: refetchTeamMember } = useTeamMember({
-    team_id: team ?? "",
-    page: page,
-    pageSize: pageSize,
-    searchText: "",
-  });
-
+  //fetch Member in team
   const fetchDataMemberInteam = async () => {
-    const member = dataTeamMember?.responseObject.data.member ?? [];
-    const { options, responseObject } = useResponseToOptions(
-      member,
-      "employee_id",
-      (item) => `${item.first_name} ${item.last_name}`
-    );
-    setResponsibleOptions(options);
+  const member: { employee_id: string; first_name: string; last_name?: string }[] = dataTeamMember?.responseObject.data.member ?? [];
+    const responseObject = member.map(m => ({ id: m.employee_id, name: `${m.first_name} ${m.last_name || ''}`.trim() }));
+    setResponsibleOptions(responseObject.map(r=> ({ value: r.id, label: r.name })));
     return { responseObject };
   };
 
 
-  //mockup chart
-  const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.'];
-  const salesDataTable = [
-    {
-      label: 'มูลค่าใบเสนอราคาจริง',
-      values: [859837, 827474, 805669, 782765],
-    },
-    {
-      label: 'มูลค่าใบเสนอราคาคาดการณ์',
-      values: [859837, 827474, 805669, 782765],
-    },
+  // ===== Sales Forecast Summary Integration =====
+  // Build payload only when user searches to avoid spamming queries while typing/filtering.
+  interface SummaryPayload {
+    year?: number;
+    start_date?: string;
+    end_date?: string;
+    team_id?: string;
+    responsible_id?: string;
+    tag_id?: string;
+  }
+  const [payload, setPayload] = useState<SummaryPayload | null>(null);
+  const monthNames = useMemo(()=> ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'], []);
 
-  ];
+  const buildPayload = useCallback((): SummaryPayload => {
+    const crossYear = !!(initMonth && endMonth && initMonth.getFullYear() !== endMonth.getFullYear());
+    const year = initMonth?.getFullYear();
+    return {
+      ...(crossYear ? {} : { year }),
+      start_date: initMonth ? initMonth.toISOString().slice(0,10) : undefined,
+      end_date: endMonth ? endMonth.toISOString().slice(0,10) : undefined,
+      team_id: team || undefined,
+      responsible_id: responsible || undefined,
+      tag_id: tagId || undefined,
+    };
+  }, [initMonth, endMonth, team, responsible, tagId]);
 
-  const quotationData = [
-    { month: "ม.ค.", realValue: 860000, predictValue: 915000 },
-    { month: "ก.พ.", realValue: 825000, predictValue: 840000 },
-    { month: "มี.ค.", realValue: 810000, predictValue: 855000 },
-    { month: "เม.ย.", realValue: 775000, predictValue: 870000 },
+  // initial load
+  useEffect(()=> { setPayload(buildPayload()); }, [buildPayload]);
 
-  ];
-  //mockup 2 pies
+  const { data: summaryResp, isLoading: loadingSummary, refetch: refetchSummary } = useSalesForecastSummary(payload || {}, !!payload);
+  const summary = summaryResp?.responseObject;
+
+  // Derived month range for display (limit to selected start/end if provided)
+  const monthRange = useMemo(()=> {
+    if (!summary) return [] as number[];
+    const startM = initMonth ? initMonth.getMonth() + 1 : 1;
+    const endM = endMonth ? endMonth.getMonth() + 1 : 12;
+    return Array.from({length: 12}, (_,i)=> i+1).filter(m=> m >= startM && m <= endM);
+  }, [summary, initMonth, endMonth]);
+
+  const months = monthRange.map(m=> monthNames[m-1]);
+
+  // Table data (monthly actual vs forecast)
+  interface MonthlyActual { month: number; sales: number; }
+  interface MonthlyForecast { month: number; forecast: number; }
+  const salesDataTable = useMemo(()=> {
+    if (!summary) return [] as { label: string; values: number[] }[];
+    const actualMap: Record<number, number> = {};
+    (summary.actual.monthly as MonthlyActual[]).forEach(r=> { actualMap[r.month] = r.sales || 0; });
+    const forecastMap: Record<number, number> = {};
+    (summary.forecast.monthly as MonthlyForecast[]).forEach(r=> { forecastMap[r.month] = r.forecast || 0; });
+    return [
+      { label: 'มูลค่าใบเสนอราคาจริง', values: monthRange.map(m=> Math.round(actualMap[m]||0)) },
+      { label: 'มูลค่าใบเสนอราคาคาดการณ์', values: monthRange.map(m=> Math.round(forecastMap[m]||0)) },
+    ];
+  }, [summary, monthRange]);
+
+  // Bar chart dataset
+  const quotationData = useMemo(()=> {
+    if (!summary) return [] as { month: string; realValue: number; predictValue: number }[];
+    const actualMap: Record<number, number> = {};
+    (summary.actual.monthly as MonthlyActual[]).forEach(r=> { actualMap[r.month] = r.sales || 0; });
+    const forecastMap: Record<number, number> = {};
+    (summary.forecast.monthly as MonthlyForecast[]).forEach(r=> { forecastMap[r.month] = r.forecast || 0; });
+    return monthRange.map(m=> ({ month: monthNames[m-1], realValue: Math.round(actualMap[m]||0), predictValue: Math.round(forecastMap[m]||0) }));
+  }, [summary, monthRange, monthNames]);
+
+  // Priority breakdown -> reuse for both actual/forecast pies (back-end presently supplies single set)
   const PIE_COLORS = ["#a855f7", "#0ea5e9", "#15803d", "#f97316", "#0f4c75"];
-  const pieDataActual = [
-    { priority: "★5", value: 30 },
-    { priority: "★4", value: 15 },
-    { priority: "★3", value: 20 },
-    { priority: "★2", value: 15 },
-    { priority: "★1", value: 5 },
-    { priority: "★0", value: 0 },
-  ];
+  interface PriorityBreak { priority: number; count: number; amount: number; weight_percent: number; }
+  const priorityBreakdown: PriorityBreak[] = summary?.priority_breakdown || [];
+  const totalPriorityAmount = priorityBreakdown.reduce((s, p)=> s + (p.amount||0), 0) || 1;
+  const pieDataActual = priorityBreakdown.map(p=> ({ priority: `★${p.priority}`, value: p.amount }));
+  const pieDataForecast = priorityBreakdown.map(p=> ({ priority: `★${p.priority}`, value: p.amount }));
 
-  const pieDataForecast = [
-    { priority: "★5", value: 30 },
-    { priority: "★4", value: 15 },
-    { priority: "★3", value: 20 },
-    { priority: "★2", value: 15 },
-    { priority: "★1", value: 5 },
-    { priority: "★0", value: 0 },
-  ];
-
-  //mockup 2 table
   const HeaderColumns = [
     { header: 'ระดับความสำคัญ', key: 'priority' },
     { header: 'จำนวน', key: 'amount' },
-    { header: '%', key: 'percent', },
+    { header: '%', key: 'percent' },
     { header: 'มูลค่ารวม', key: 'value', align: 'right' },
   ];
+  const realValues = priorityBreakdown.map(p=> ({
+    priority: `★${p.priority}`,
+    amount: p.count,
+    percent: ((p.amount||0)/ totalPriorityAmount * 100) || 0,
+    value: Math.round(p.amount||0),
+  }));
+  const predictValues = priorityBreakdown.map(p=> ({
+    priority: `★${p.priority}`,
+    amount: p.count,
+    percent: p.weight_percent, // using weight percent to reflect forecast weighting
+    value: Math.round(p.amount||0),
+  }));
 
-  const realValues = [
-    { priority: "★5", amount: 30, percent: 33.33, value: 1091806 },
-    { priority: "★4", amount: 15, percent: 26.67, value: 873641 },
-    { priority: "★3", amount: 20, percent: 20.00, value: 655149 },
-    { priority: "★2", amount: 15, percent: 13.33, value: 436657 },
-    { priority: "★1", amount: 20, percent: 6.67, value: 218492 },
-    { priority: "★0", amount: 0, percent: 0, value: 0 },
-  ];
-
-
-  const predictValues = [
-    { priority: "★5", amount: 30, percent: 33.44, value: 1166715 },
-    { priority: "★4", amount: 15, percent: 26.68, value: 930859 },
-    { priority: "★3", amount: 20, percent: 20.00, value: 697796 },
-    { priority: "★2", amount: 15, percent: 13.26, value: 462638 },
-    { priority: "★1", amount: 20, percent: 6.62, value: 230970 },
-    { priority: "★0", amount: 0, percent: 0, value: 0 },
-  ];
+  const handleSearch = () => {
+    const next = buildPayload();
+    setPayload(next);
+    // slight defer to ensure state update before refetch (react-query will auto based on key)
+    setTimeout(()=> refetchSummary(), 0);
+  };
 
   return (
     <div>
@@ -336,8 +353,10 @@ export default function ReportCategorySale() {
               btnType="primary"
               variant="outline"
               className="w-full sm:w-auto sm:min-w-[100px]"
+              onClick={handleSearch}
+              disabled={loadingSummary}
             >
-              ค้นหา
+              {loadingSummary ? 'กำลังค้นหา...' : 'ค้นหา'}
             </Buttons>
           </div>
         </div>
@@ -366,7 +385,6 @@ export default function ReportCategorySale() {
               <Table.Row >
                 <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
                 {months.map((month) => (
-
                   <Table.ColumnHeaderCell key={month} className="text-end">{month}</Table.ColumnHeaderCell>
                 ))}
               </Table.Row>
@@ -404,12 +422,7 @@ export default function ReportCategorySale() {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis
-                    allowDecimals={false}
-                    domain={[700000, 950000]}
-                    ticks={[700000, 750000, 800000, 850000, 900000, 950000]}
-                    tickFormatter={(value) => value.toLocaleString()}
-                  />
+                  <YAxis allowDecimals={false} tickFormatter={(value) => value.toLocaleString()} />
                   <Tooltip formatter={(value) => value.toLocaleString()} />
                   <Legend />
                   <Bar dataKey="realValue" name="มูลค่าใบเสนอราคาจริง" fill="#3b82f6" />
@@ -434,8 +447,8 @@ export default function ReportCategorySale() {
                     label
 
                   >
-                    {pieDataActual.map((entry, index) => (
-                      <Cell key={`cell-a-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    {pieDataActual.map((entry) => (
+                      <Cell key={`cell-a-${entry.priority}`} fill={PIE_COLORS[Number(entry.priority.replace('★','')) % PIE_COLORS.length]} />
                     ))}
                   </Pie>
                 </PieChart>
@@ -464,8 +477,8 @@ export default function ReportCategorySale() {
                     outerRadius={120}
                     label
                   >
-                    {pieDataForecast.map((entry, index) => (
-                      <Cell key={`cell-f-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    {pieDataForecast.map((entry) => (
+                      <Cell key={`cell-f-${entry.priority}`} fill={PIE_COLORS[Number(entry.priority.replace('★','')) % PIE_COLORS.length]} />
                     ))}
                   </Pie>
                 </PieChart>

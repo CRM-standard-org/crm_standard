@@ -168,6 +168,19 @@ model employees {
   customer_status_create CustomerStatus[] @relation("CustomerStatusCreatedBy")
   customer_status_update CustomerStatus[] @relation("CustomerStatusUpdatedBy")
 
+  // sales forecast new relations
+  sales_goal_create             SalesGoal[]            @relation("SalesGoalCreatedBy")
+  sales_goal_update             SalesGoal[]            @relation("SalesGoalUpdatedBy")
+  forecast_weight_config_create ForecastWeightConfig[] @relation("ForecastWeightConfigCreatedBy")
+  forecast_weight_config_update ForecastWeightConfig[] @relation("ForecastWeightConfigUpdatedBy")
+  
+  // sales forecast scenarios relations
+  forecast_scenario_create SalesForecastScenario[] @relation("ForecastScenarioCreatedBy")
+  forecast_scenario_update SalesForecastScenario[] @relation("ForecastScenarioUpdatedBy")
+
+  // sales goals ownership (optional direct assignment)
+  sales_goal_owner SalesGoal[] @relation("SalesGoalOwner")
+
   @@index([employee_code])
   @@index([username])
   @@index([email])
@@ -244,6 +257,8 @@ model Team {
 
   // responesible  Responsible[] @relation("Responsible")
 
+  sales_goal SalesGoal[] @relation("TeamSalesGoal")
+  
   @@index([name])
 }
 
@@ -944,4 +959,87 @@ model CustomerStatus {
   updated_by_employee employees @relation("CustomerStatusUpdatedBy", fields: [updated_by], references: [employee_id])
 
   @@index([name])
+}
+
+model SalesGoal {
+  sales_goal_id String   @id @default(uuid()) @db.Uuid
+  year          Int
+  month         Int?     @db.Integer
+  team_id       String?  @db.Uuid
+  employee_id   String?  @db.Uuid
+  goal_amount   Decimal  @db.Decimal(14, 2)
+  created_at    DateTime @default(now())
+  created_by    String   @db.Uuid
+  updated_at    DateTime @updatedAt
+  updated_by    String   @db.Uuid
+
+  team     Team?      @relation("TeamSalesGoal", fields: [team_id], references: [team_id])
+  employee employees? @relation("SalesGoalOwner", fields: [employee_id], references: [employee_id])
+  created_by_employee employees @relation("SalesGoalCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("SalesGoalUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([year, month])
+  @@index([team_id])
+  @@index([employee_id])
+  @@unique([year, month, team_id, employee_id])
+}
+
+enum ForecastWeightType {
+  PRIORITY
+  STATUS
+}
+
+model ForecastWeightConfig {
+  forecast_weight_config_id String   @id @default(uuid()) @db.Uuid
+  type                      ForecastWeightType @default(PRIORITY)
+  priority                  Int?     @db.Integer // 1-5 when type=PRIORITY
+  status                    String?  @db.VarChar(50) // when type=STATUS
+  weight_percent            Decimal  @db.Decimal(5, 2) // 0-100
+  created_at                DateTime @default(now())
+  created_by                String   @db.Uuid
+  updated_at                DateTime @updatedAt
+  updated_by                String   @db.Uuid
+
+  created_by_employee employees @relation("ForecastWeightConfigCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("ForecastWeightConfigUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@unique([type, priority])
+  @@unique([type, status])
+  @@index([priority])
+  @@index([status])
+}
+
+model SalesForecastScenario {
+  sales_forecast_scenario_id String   @id @default(uuid()) @db.Uuid
+  name                       String   @db.VarChar(100)
+  adjustments                Json
+  filter                     Json
+  result_summary             Json
+  created_at                 DateTime @default(now())
+  created_by                 String   @db.Uuid
+  updated_at                 DateTime @updatedAt
+  updated_by                 String   @db.Uuid
+
+  created_by_employee employees @relation("ForecastScenarioCreatedBy", fields: [created_by], references: [employee_id])
+  updated_by_employee employees @relation("ForecastScenarioUpdatedBy", fields: [updated_by], references: [employee_id])
+
+  @@index([name])
+}
+
+// NEW: Daily snapshot for momentum / trend analysis
+model SalesForecastSnapshot {
+  sales_forecast_snapshot_id String   @id @default(uuid()) @db.Uuid
+  snapshot_date              DateTime @db.Date
+  team_id                    String?  @db.Uuid
+  employee_id                String?  @db.Uuid
+  pipeline_weighted          Decimal  @db.Decimal(14, 2)
+  actual_total               Decimal  @db.Decimal(14, 2)
+  forecast_total             Decimal  @db.Decimal(14, 2)
+  created_at                 DateTime @default(now())
+  created_by                 String?  @db.Uuid
+
+  @@unique([snapshot_date, team_id, employee_id])
+  @@index([snapshot_date])
+  @@index([team_id])
+  @@index([employee_id])
 }

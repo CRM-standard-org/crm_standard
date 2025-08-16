@@ -223,6 +223,20 @@ export const permissionMap: Record<string, Record<string, "A" | "R" | "N">> = {
     Sale: "N",
     Accounting: "N",
   },
-
-  
+  กำหนดเป้าหมายการขาย: {
+    Admin: "A",
+    Owner: "A",
+    Manager: "A",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "A",
+  },
+  กำหนดน้ำหนักโอกาสขาย: {
+    Admin: "A",
+    Owner: "A",
+    Manager: "A",
+    Technician: "N",
+    Sale: "N",
+    Accounting: "A",
+  },
 };

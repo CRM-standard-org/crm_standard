@@ -153,11 +153,32 @@ async function main() {
   for (const vat of vatData) {
     await prisma.vat.upsert({
         where: { vat_percentage: vat },
-        update: {}, // No update needed for now
-        create: {
-            vat_percentage: vat,
-        },
+        update: {},
+        create: { vat_percentage: vat },
     });
+  }
+
+  // Seed forecast weight config (priorities 1-5) if not exists or update to new mapping
+  const defaultWeights = [
+    { priority: 5, weight_percent: 80 },
+    { priority: 4, weight_percent: 60 },
+    { priority: 3, weight_percent: 40 },
+    { priority: 2, weight_percent: 20 },
+    { priority: 1, weight_percent: 10 },
+  ];
+  for (const w of defaultWeights) {
+    await prisma.forecastWeightConfig.upsert({
+      where: { priority: w.priority },
+      update: { weight_percent: w.weight_percent },
+      create: { priority: w.priority, weight_percent: w.weight_percent, created_by: employeeAdmin.employee_id, updated_by: employeeAdmin.employee_id },
+    });
+  }
+
+  // Seed annual company goal for current year if absent
+  const currentYear = new Date().getFullYear();
+  const existingAnnualGoal = await prisma.salesGoal.findFirst({ where: { year: currentYear, month: null } });
+  if (!existingAnnualGoal) {
+    await prisma.salesGoal.create({ data: { year: currentYear, month: null, goal_amount: 12000000, created_by: employeeAdmin.employee_id, updated_by: employeeAdmin.employee_id } });
   }
 
 

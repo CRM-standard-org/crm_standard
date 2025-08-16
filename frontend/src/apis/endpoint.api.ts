@@ -194,3 +194,17 @@ export const SELECT_CUSTOMER_STATUS = "/v1/customer-status/select";
 export const GET_CUSTOMER_STATUS_BY_ID = "/v1/customer-status/get";
 export const UPDATE_CUSTOMER_STATUS = "/v1/customer-status/update";
 export const DELETE_CUSTOMER_STATUS = "/v1/customer-status/delete";
+
+// sales forecast
+export const SALES_FORECAST = {
+  SUMMARY: '/v1/sales-forecast/summary',
+  GOALS: '/v1/sales-forecast/goals',
+  WEIGHTS: '/v1/sales-forecast/weights',
+  PIPELINE: '/v1/sales-forecast/pipeline',
+  FUNNEL: '/v1/sales-forecast/funnel',
+  SNAPSHOT_CREATE: '/v1/sales-forecast/snapshots/create',
+  SNAPSHOTS: '/v1/sales-forecast/snapshots',
+  SCENARIOS: '/v1/sales-forecast/scenarios',
+  APPLY_SCENARIO: (id: string) => `/v1/sales-forecast/scenarios/${id}/apply`,
+  RISK_AGGREGATE: '/v1/sales-forecast/risk-aggregate',
+};

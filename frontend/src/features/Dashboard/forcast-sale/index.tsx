@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-// import { getQuotationData } from "@/services/ms.quotation.service.ts";
 import {
   BarChart,
   Bar,
@@ -8,526 +7,1347 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  LabelList,
   Cell,
   Legend,
-} from 'recharts';
-import { useToast } from "@/components/customs/alert/ToastContext";
-
-//
-import { useNavigate, useSearchParams } from "react-router-dom";
-
-import SalesForecastTable from "@/components/customs/display/forcast.main.component";
-
-import { TypeAllCustomerResponse } from "@/types/response/response.customer";
-import { OptionType } from "@/components/customs/select/select.main.component";
-
-import { Table } from "@radix-ui/themes";
-import { useSelectTag } from "@/hooks/useCustomerTag";
-import { TypeTagColorResponse } from "@/types/response/response.tagColor";
-import Buttons from "@/components/customs/button/button.main.component";
+  Line,
+  ComposedChart,
+} from "recharts";
+import { FiPrinter } from "react-icons/fi";
+import { useSalesForecastSummary } from "@/hooks/useDashboard";
 import DatePickerComponent from "@/components/customs/dateSelect/dateSelect.main.component";
+import Buttons from "@/components/customs/button/button.main.component";
+import { OptionType } from "@/components/customs/select/select.main.component";
+import { Table } from "@radix-ui/themes";
 import { useTeam, useTeamMember } from "@/hooks/useTeam";
-import { useResponseToOptions } from "@/hooks/useOptionType";
 import DependentSelectComponent from "@/components/customs/select/select.dependent";
 import { SummaryTable } from "@/components/customs/display/sumTable.component";
-import { FiPrinter } from "react-icons/fi";
-import { pdf } from "@react-pdf/renderer";
-import ForcastSalePDF from "../pdf/print-forcast-sale/ForcastSalePDF";
-import html2canvas from "html2canvas-pro";
+import { useQueryClient } from "@tanstack/react-query";
+import api from "@/apis/main.api";
+import { SALES_FORECAST } from "@/apis/endpoint.api";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useListScenarios } from "@/hooks/useSalesForecastScenario";
+import { useSalesForecastRiskAggregate } from "@/hooks/useSalesForecastRiskAggregate";
+import type { TooltipProps } from "recharts";
+import { useForecastFilters } from "../ForecastFilterContext";
+import { useSelectTag } from "@/hooks/useCustomerTag";
 
-type dateTableType = {
-  className: string;
-  cells: {
-    value: any;
-    className: string;
-  }[];
-  data: TypeAllCustomerResponse; //ตรงนี้
-}[];
+interface WeightRow {
+  forecast_weight_config_id?: string;
+  priority: number;
+  weight_percent: number;
+}
+interface GoalRow {
+  sales_goal_id?: string;
+  year: number;
+  month: number | null;
+  goal_amount: number;
+  team_id?: string | null;
+  employee_id?: string | null;
+}
+interface MonthlyValue {
+  month: number;
+  sales?: number;
+  forecast?: number;
+}
+interface GoalValue {
+  month: number;
+  goal: number;
+}
+interface PriorityBreak {
+  priority: number;
+  count: number;
+  amount: number;
+  weight_percent: number;
+}
+interface TopCustomer {
+  customer_id: string;
+  company_name: string;
+  probability: number;
+}
+interface ForecastMonthly {
+  month: number;
+  forecast: number;
+}
+interface StatusBreak {
+  status: string;
+  count: number;
+  amount: number;
+  weighted_amount: number;
+}
 
-//
 export default function ForcastSale() {
-  const [searchText, setSearchText] = useState("");
-  const [colorsName, setColorsName] = useState("");
-  // const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [data, setData] = useState<dateTableType>([]);
+  // Filters via context
+  const { filters, update } = useForecastFilters();
+  const initMonth = filters.startDate;
+  const endMonth = filters.endDate;
+  const team = filters.teamId;
+  const responsible = filters.responsibleId;
+  const year = filters.year;
+  const tagId = filters.tagId;
+  const yearOptions = Array.from(
+    { length: 5 },
+    (_, i) => new Date().getFullYear() - 2 + i
+  );
+  const { data: tagSelectData } = useSelectTag({ searchText: "" });
+  const tagOptions: { value: string; label: string }[] = (
+    tagSelectData?.responseObject?.data || []
+  ).map((t: { tag_id: string; tag_name: string }) => ({
+    value: t.tag_id,
+    label: t.tag_name,
+  }));
 
-
-  const [tagId, setTagId] = useState<string | null>(null);
-
-  const [initMonth, setInitMonth] = useState<Date | null>(new Date());
-  const [endMonth, setEndMonth] = useState<Date | null>(new Date());
-
-  const [team, setTeam] = useState<string | null>(null);
+  // Local select options state (still needed for async dropdowns)
   const [teamOptions, setTeamOptions] = useState<OptionType[]>([]);
-  const [responsible, setResponsible] = useState<string | null>(null);
-  const [responsibleOptions, setResponsibleOptions] = useState<OptionType[]>([]);
-  const { showToast } = useToast();
-  //
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const page = searchParams.get("page") ?? "1";
-  const pageSize = searchParams.get("pageSize") ?? "25";
+  const [responsibleOptions, setResponsibleOptions] = useState<OptionType[]>(
+    []
+  );
+  // Scenario state must be declared before hooks that reference it
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(
+    null
+  );
 
-  //searchText control
-  const [searchTag, setSearchTag] = useState("");
-  const [searchTeam, setSearchTeam] = useState("");
-  const [searchYear, setSearchYear] = useState("");
+  // Modals / forms
+  const [showWeightModal, setShowWeightModal] = useState(false);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [weights, setWeights] = useState<WeightRow[]>([]);
+  const [loadingWeights, setLoadingWeights] = useState(false);
+  const [annualGoalInput, setAnnualGoalInput] = useState<number | "">("");
+  const [monthlyGoalInputs, setMonthlyGoalInputs] = useState<
+    Record<number, number | "">
+  >({});
+  const [loadingGoals, setLoadingGoals] = useState(false);
 
+  // Query client & actor
+  const qc = useQueryClient();
+  const actor_id =
+    (typeof window !== "undefined"
+      ? localStorage.getItem("employee_id")
+      : null) || undefined;
 
-
+  // Refs for PDF capture
   const chartRef1 = useRef<HTMLDivElement>(null);
   const chartRef2 = useRef<HTMLDivElement>(null);
   const chartRef3 = useRef<HTMLDivElement>(null);
 
-  const handleOpenPdf = async () => {
-    if (chartRef1.current && chartRef2.current && chartRef3.current) {
-      const canvas1 = await html2canvas(chartRef1.current);
-      const canvas2 = await html2canvas(chartRef2.current);
-      const canvas3 = await html2canvas(chartRef3.current);
-
-      const image1 = canvas1.toDataURL("image/png");
-      const image2 = canvas2.toDataURL("image/png");
-      const image3 = canvas3.toDataURL("image/png");
-
-      const blob = await pdf(<ForcastSalePDF chartImage1={image1} chartImage2={image2} chartImage3={image3} />).toBlob();
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-    }
-  };
-  //fetch ข้อมูล tag ลูกค้า
-
-  const { data: dataTag, refetch: refetchTag } = useSelectTag({
-    searchText: searchTag,
-  });
-
-  const fetchDataTagDropdown = async () => {
-    const tagList = dataTag?.responseObject?.data ?? [];
-    return {
-      responseObject: tagList.map((item: TypeTagColorResponse) => ({
-        id: item.tag_id,
-        name: item.tag_name,
-      })),
-    };
-  };
-  const handleTagSearch = (searchText: string) => {
-    setSearchTag(searchText);
-    refetchTag();
-  };
-  //fetch team 
-  useEffect(() => {
-    setResponsible(null);
-    setResponsibleOptions([]);
-    refetchTeamMember();
-  }, [team]);
-
+  // Data hooks
   const { data: dataTeam, refetch: refetchTeam } = useTeam({
     page: "1",
     pageSize: "100",
-    searchText: searchTeam,
-  });
-  const fetchDataTeamDropdown = async () => {
-    const teamList = dataTeam?.responseObject.data ?? [];
-    const { options, responseObject } = useResponseToOptions(teamList, "team_id", "name");
-    setTeamOptions(options);
-    return { responseObject };
-  };
-
-  const handleTeamSearch = (searchText: string) => {
-    setSearchTeam(searchText);
-    refetchTeam();
-  };
-  //fetch Member in team 
-  const { data: dataTeamMember, refetch: refetchTeamMember } = useTeamMember({
-    team_id: team ?? "",
-    page: page,
-    pageSize: pageSize,
     searchText: "",
   });
+  const { data: dataTeamMember, refetch: refetchTeamMember } = useTeamMember({
+    team_id: team ?? "",
+    page: "1",
+    pageSize: "100",
+    searchText: "",
+  });
+  useEffect(() => {
+    refetchTeamMember();
+  }, [team, refetchTeamMember]);
 
+  const fetchDataTeamDropdown = async () => {
+    const teamList: { team_id: string; name: string }[] =
+      dataTeam?.responseObject?.data ?? [];
+    const responseObject = teamList.map((t) => ({
+      id: t.team_id,
+      name: t.name,
+    }));
+    setTeamOptions(responseObject.map((r) => ({ value: r.id, label: r.name })));
+    return { responseObject };
+  };
+  const handleTeamSearch = () => {
+    refetchTeam();
+  };
   const fetchDataMemberInteam = async () => {
-    const member = dataTeamMember?.responseObject.data.member ?? [];
-    const { options, responseObject } = useResponseToOptions(
-      member,
-      "employee_id",
-      (item) => `${item.first_name} ${item.last_name}`
+    const member: {
+      employee_id: string;
+      first_name: string;
+      last_name?: string;
+    }[] = dataTeamMember?.responseObject?.data?.member ?? [];
+    const responseObject = member.map((m) => ({
+      id: m.employee_id,
+      name: `${m.first_name} ${m.last_name || ""}`.trim(),
+    }));
+    setResponsibleOptions(
+      responseObject.map((r) => ({ value: r.id, label: r.name }))
     );
-    setResponsibleOptions(options);
     return { responseObject };
   };
 
+  // Cross-year logic: omit year if range spans multiple calendar years
+  const crossYear = !!(
+    initMonth &&
+    endMonth &&
+    initMonth.getFullYear() !== endMonth.getFullYear()
+  );
+  const [urlProductIds, setUrlProductIds] = useState<string[] | undefined>(undefined);
+  const forecastPayload = {
+    ...(crossYear ? {} : { year }),
+    start_date: initMonth ? initMonth.toISOString().slice(0, 10) : undefined,
+    end_date: endMonth ? endMonth.toISOString().slice(0, 10) : undefined,
+    team_id: team || undefined,
+    responsible_id: responsible || undefined,
+    tag_id: tagId || undefined,
+    product_ids: urlProductIds,
+  };
+  const {
+    data: forecastData,
+    isLoading: loadingForecast,
+    refetch: refetchForecast,
+  } = useSalesForecastSummary(forecastPayload, true);
+  const { data: scenarioSummaryData, isLoading: loadingScenarioSummary } =
+    useSalesForecastSummary(
+      selectedScenarioId ? { scenario_id: selectedScenarioId } : {},
+      !!selectedScenarioId
+    );
+  const scenarioSummary = scenarioSummaryData?.responseObject?.summary;
+  const { data: scenariosData } = useListScenarios();
+  const scenarios: { sales_forecast_scenario_id: string; name: string }[] =
+    scenariosData?.responseObject || [];
 
-  //mockup data
-  const saleData = [
-    { month: 'ม.ค.', pointSale: 859837, predictSale: 880082 },
-    { month: 'ก.พ.', pointSale: 1687311, predictSale: 1557257 },
-    { month: 'มี.ค.', pointSale: 2492980, predictSale: 2232590 },
-    { month: 'เม.ย.', pointSale: 3275745, predictSale: 3051389 },
-    { month: 'พ.ค.', pointSale: 4155587, predictSale: 3841894 },
-    { month: 'มิ.ย.', pointSale: 5096655, predictSale: 4674694 },
-    { month: 'ก.ค.', pointSale: 5877744, predictSale: 5581884 },
-    { month: 'ส.ค.', pointSale: 6877210, predictSale: 6545694 },
-    { month: 'ก.ย.', pointSale: 7621401, predictSale: 7272449 },
-    { month: 'ต.ค.', pointSale: 8601794, predictSale: 8142359 },
-    { month: 'พ.ย.', pointSale: 9465107, predictSale: 8869669 },
-    { month: 'ธ.ค.', pointSale: 10403495, predictSale: 9875439 },
+  const riskAggregateQuery = useSalesForecastRiskAggregate(
+    forecastPayload,
+    true
+  );
+  const riskAgg = riskAggregateQuery.data?.responseObject;
+  const riskTotal = riskAgg?.total || 0;
+
+  const summary = forecastData?.responseObject;
+  const derivedMonths = [
+    "ม.ค.",
+    "ก.พ.",
+    "มี.ค.",
+    "เม.ย.",
+    "พ.ค.",
+    "มิ.ย.",
+    "ก.ค.",
+    "ส.ค.",
+    "ก.ย.",
+    "ต.ค.",
+    "พ.ย.",
+    "ธ.ค.",
   ];
 
-  //mockup table
-  const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  // KPI helper values (baseline)
+  interface KPIItem {
+    key: string;
+    label: string;
+    value: number;
+    format: boolean;
+    suffix?: string;
+    scenarioValue?: number;
+    diff?: number;
+    beneficialPositive?: number;
+  }
+  const baselineKpis: KPIItem[] = summary
+    ? [
+        {
+          key: "annual_goal",
+          label: "เป้าหมายทั้งปี",
+          value: summary.goals.annual_goal || 0,
+          format: true,
+        },
+        {
+          key: "actual_to_date",
+          label: "ยอดขายสะสมถึงปัจจุบัน",
+          value: summary.actual_to_date || 0,
+          format: true,
+        },
+        {
+          key: "forecast_year_end",
+          label: "คาดการณ์เมื่อสิ้นปี",
+          value: summary.forecast_year_end || 0,
+          format: true,
+        },
+        {
+          key: "forecast_achievement_percent",
+          label: "อัตราบรรลุเป้าหมายคาดการณ์ (%)",
+          value: summary.forecast_achievement_percent
+            ? Number(summary.forecast_achievement_percent.toFixed(1))
+            : 0,
+          format: false,
+          suffix: "%",
+        },
+        {
+          key: "gap_to_goal",
+          label: "ช่องว่างถึงเป้าหมาย",
+          value: summary.gap_to_goal ?? 0,
+          format: true,
+        },
+      ]
+    : [];
 
+  // Merge scenario values & compute deltas
+  const kpis: KPIItem[] = baselineKpis.map((k) => {
+    if (!scenarioSummary) return k;
+    let scenarioValue: number | undefined;
+    switch (k.key) {
+      case "annual_goal":
+        scenarioValue = scenarioSummary.goals?.annual_goal || 0;
+        break;
+      case "actual_to_date":
+        scenarioValue = scenarioSummary.actual_to_date || 0;
+        break;
+      case "forecast_year_end":
+        scenarioValue = scenarioSummary.forecast_year_end || 0;
+        break;
+      case "forecast_achievement_percent":
+        scenarioValue = scenarioSummary.forecast_achievement_percent
+          ? Number(scenarioSummary.forecast_achievement_percent.toFixed(1))
+          : 0;
+        break;
+      case "gap_to_goal":
+        scenarioValue = scenarioSummary.gap_to_goal ?? 0;
+        break;
+    }
+    if (scenarioValue === undefined) return k;
+    const diff = scenarioValue - k.value;
+    const beneficialPositive = k.key === "gap_to_goal" ? -diff : diff;
+    return { ...k, scenarioValue, diff, beneficialPositive };
+  });
 
-  const salesDataTable = [
-    {
-      label: 'เป้าหมายยอดขายสะสม',
-      values: [
-        916859, 1761175, 2616872, 3488978,
-        4405747, 5309872, 6166448, 7146603,
-        7983325, 8939176, 9889471, 10875181
-      ],
-    },
-    {
-      label: 'ยอดขายสะสมคาดการณ์',
-      values: [
-        900000, 1500000, 2500000, 3500000,
-        4500000, 5000000, 6000000, 7000000,
-        8000000, 9000000, 10000000, 11000000
-      ],
-    },
-    {
-      label: 'เป้าหมายยอดขายรายเดือน',
-      values: [
-        916859, 844316, 855697, 872106,
-        916769, 904125, 856576, 980155,
-        836722, 955851, 950295, 985710
-      ],
-    },
-    {
-      label: 'ยอดขายรายเดือนคาดการณ์',
-      values: [
-        900000, 1000000, 1000000, 515000,
-        1000000, 500000, 1000000, 1000000,
-        1000000, 1000000, 1000000, 1000000
-      ],
-    },
-    {
-      label: 'ยอดขายจริงรายเดือน',
-      values: [
-        859837, 827474, 805669, 782765,
-        879842, 941068, 781089, 999466,
-        744191, 980393, 863313, 938388
-      ],
-    },
-  ];
+  // chart navigation handler
+  const handleChartClick = (state: { activeLabel?: string }) => {
+    const label = state?.activeLabel;
+    if (label) {
+      const m = derivedMonths.indexOf(label) + 1;
+      if (m > 0) navigate(`/dashboard/predict-sell?month=${m}&year=${year}`);
+    }
+  };
 
+  // Replace chartData mapping with typed interfaces
+  interface CumPoint {
+    month: number;
+    forecast: number;
+  }
+  interface CumActual {
+    month: number;
+    sales: number;
+  }
+  interface MonthlyGoal {
+    month: number;
+    goal: number;
+  }
+  type ChartRow = {
+    month: string;
+    forecast: number;
+    actual: number;
+    target: number;
+  };
+  const chartData: ChartRow[] = summary
+    ? summary.forecast.cumulative.map((c: CumPoint) => {
+        const actualRow = summary.actual.cumulative.find(
+          (a: CumActual) => a.month === c.month
+        );
+        return {
+          month: derivedMonths[c.month - 1],
+          forecast: c.forecast,
+          actual: actualRow?.sales || 0,
+          target: 0,
+        };
+      })
+    : [];
+  if (summary && chartData.length) {
+    let cumTarget = 0;
+    for (let i = 0; i < 12; i++) {
+      const monthIdx = i + 1;
+      const mg =
+        summary.goals.monthly_goals.find(
+          (g: MonthlyGoal) => g.month === monthIdx
+        )?.goal ?? (summary.goals.annual_goal || 0) / 12;
+      cumTarget += mg;
+      if (chartData[i]) chartData[i].target = cumTarget;
+    }
+  }
 
-  //mockup 2 chart
-  const colorData = ['#3b82f6', '#f97316', '#dc2626'];
+  // Sales table data
+  const monthlyGoalDefaults = (summary?.goals.annual_goal || 0) / 12;
+  const monthlyGoalMap: Record<number, number> = {};
+  summary?.goals.monthly_goals.forEach((g: GoalValue) => {
+    monthlyGoalMap[g.month] = g.goal;
+  });
+  const cumulativeGoalValues: number[] = [];
+  let goalCum = 0;
+  for (let m = 1; m <= 12; m++) {
+    const g = monthlyGoalMap[m] ?? monthlyGoalDefaults;
+    goalCum += g;
+    cumulativeGoalValues.push(Math.round(goalCum));
+  }
+  const salesDataTable = summary
+    ? [
+        { label: "เป้าหมายสะสม", values: cumulativeGoalValues },
+        {
+          label: "ยอดคาดการณ์สะสม",
+          values: summary.forecast.cumulative.map((r: MonthlyValue) =>
+            Math.round(r.forecast || 0)
+          ),
+        },
+        {
+          label: "เป้าหมายรายเดือน",
+          values: Array.from({ length: 12 }, (_, i) =>
+            Math.round(monthlyGoalMap[i + 1] ?? monthlyGoalDefaults)
+          ),
+        },
+        {
+          label: "คาดการณ์รายเดือน",
+          values: summary.forecast.monthly.map((r: MonthlyValue) =>
+            Math.round(r.forecast || 0)
+          ),
+        },
+        {
+          label: "ช่องว่างรายเดือน",
+          values: summary.forecast.monthly.map(
+            (r: ForecastMonthly, idx: number) => {
+              const target = monthlyGoalMap[idx + 1] ?? monthlyGoalDefaults;
+              const prevCum =
+                idx > 0 ? summary.forecast.cumulative[idx - 1].forecast : 0;
+              const monthForecast = r.forecast - prevCum;
+              return Math.round(target - monthForecast);
+            }
+          ),
+        },
+        {
+          label: "ยอดจริงรายเดือน",
+          values: summary.actual.monthly.map((r: MonthlyValue) =>
+            Math.round(r.sales || 0)
+          ),
+        },
+      ]
+    : [];
+  const summaryTotal = summary
+    ? [
+        {
+          id: "goal-total",
+          name: "เป้าหมายยอดขายสะสม\nรวม",
+          value: summary.goals.annual_goal || 0,
+        },
+        {
+          id: "forecast-total",
+          name: "ยอดขายสะสมคาดการณ์\nรวม",
+          value: summary.forecast.total,
+        },
+      ]
+    : [];
+  const summaryMonthlyAverage = summary
+    ? [
+        {
+          id: "goal-avg",
+          name: "เป้าหมายยอดขายรายเดือน\nโดยเฉลี่ย",
+          value: summary.goals.annual_goal
+            ? Math.round(summary.goals.annual_goal / 12)
+            : 0,
+        },
+        {
+          id: "forecast-avg",
+          name: "ยอดขายรายเดือนคาดการณ์\nโดยเฉลี่ย",
+          value:
+            summary.forecast.monthly.reduce(
+              (s: number, r: MonthlyValue) => s + (r.forecast || 0),
+              0
+            ) / 12,
+        },
+        {
+          id: "actual-avg",
+          name: "ยอดขายจริงรายเดือน\nโดยเฉลี่ย",
+          value:
+            summary.actual.monthly.reduce(
+              (s: number, r: MonthlyValue) => s + (r.sales || 0),
+              0
+            ) / 12,
+        },
+      ]
+    : [];
 
-  const summaryTotal = [
-    { name: 'เป้าหมายยอดขายสะสม\nรวม', value: 10875181 },
-    { name: 'ยอดขายสะสมคาดการณ์\nรวม', value: 11000000 },
-  ];
+  // Derived helpers for total vs forecast chart (chartRef2)
+  const totalGoal = summary?.goals.annual_goal || 0;
+  const totalForecast = summary?.forecast.total || 0;
+  const hasTotalData = totalGoal > 0 || totalForecast > 0;
+  const achievementPct = totalGoal > 0 ? (totalForecast / totalGoal) * 100 : 0;
+  const gapToGoal = totalGoal - totalForecast;
 
-  const summaryMonthlyAverage = [
-    { name: 'เป้าหมายยอดขายรายเดือน\nโดยเฉลี่ย', value: 911897 },
-    { name: 'ยอดขายรายเดือนคาดการณ์\nโดยเฉลี่ย', value: 168583 },
-    { name: 'ยอดขายจริงรายเดือน\nโดยเฉลี่ย', value: 866958 },
-  ];
+  // Derived helpers for average chart (chartRef3)
+  const avgGoal = summaryMonthlyAverage.find(r => r.id === 'goal-avg')?.value || 0;
+  const avgForecast = summaryMonthlyAverage.find(r => r.id === 'forecast-avg')?.value || 0;
+  const avgActual = summaryMonthlyAverage.find(r => r.id === 'actual-avg')?.value || 0;
+  const allAvgZero = avgGoal === 0 && avgForecast === 0 && avgActual === 0;
 
-
-  //mockup table
   const HeaderPredict = [
-    { header: 'ระดับความสำคัญ', key: 'priority' },
-    { header: 'จำนวน', key: 'amount' },
-    { header: '%', key: 'percent', },
-    { header: 'มูลค่ารวม', key: 'value', align: 'right' },
+    { header: "ระดับความสำคัญ", key: "priority" },
+    { header: "จำนวน", key: "amount" },
+    { header: "%", key: "percent" },
+    { header: "มูลค่ารวม", key: "value", align: "right" },
   ];
-
-  const predictValues = [
-    { priority: "★5", amount: 30, percent: 33.44, value: 1166715 },
-    { priority: "★4", amount: 15, percent: 26.68, value: 930859 },
-    { priority: "★3", amount: 20, percent: 20.00, value: 697796 },
-    { priority: "★2", amount: 15, percent: 13.26, value: 462638 },
-    { priority: "★1", amount: 20, percent: 6.62, value: 230970 },
-    { priority: "★0", amount: 0, percent: 0, value: 0 },
-  ];
-
+  const predictValues = summary
+    ? summary.priority_breakdown.map((p: PriorityBreak) => ({
+        id: `p-${p.priority}`,
+        priority: `★${p.priority}`,
+        amount: p.count,
+        percent: p.weight_percent,
+        value: p.amount,
+      }))
+    : [];
   const HeaderCustomer = [
-    { header: 'อันดับที่', key: 'rank' },
-    { header: 'ลูกค้า', key: 'customer' },
-    { header: 'โอกาส%', key: 'percent', },
-
+    { header: "อันดับที่", key: "rank" },
+    { header: "ลูกค้า", key: "customer" },
+    { header: "โอกาส%", key: "percent" },
   ];
-
-  const customers = [
-    { rank: 1, customer: "บริษัท A", percent: 80 },
-    { rank: 2, customer: "บริษัท B", percent: 77 },
-    { rank: 3, customer: "บริษัท C", percent: 75 },
-    { rank: 4, customer: "บริษัท D", percent: 72 },
-    { rank: 5, customer: "บริษัท E", percent: 70 },
-    { rank: 6, customer: "บริษัท F", percent: 50 },
-    { rank: 7, customer: "บริษัท G", percent: 45 },
-    { rank: 8, customer: "บริษัท H", percent: 20 },
-    { rank: 9, customer: "บริษัท I", percent: 15 },
-    { rank: 10, customer: "บริษัท J", percent: 10 },
+  const customers = summary
+    ? summary.top_customers.map((c: TopCustomer, i: number) => ({
+        id: c.customer_id,
+        rank: i + 1,
+        customer: c.company_name,
+        percent: c.probability,
+      }))
+    : [];
+  // Status breakdown -> adapt to SummaryTable format
+  const HeaderStatus = [
+    { header: "สถานะ", key: "status" },
+    { header: "จำนวน", key: "count", align: "right" },
+    { header: "มูลค่า", key: "amount", align: "right" },
+  { header: "มูลค่าถ่วงน้ำหนัก", key: "weighted_amount", align: "right" },
   ];
+  const statusValues = summary
+    ? (() => {
+        const rows = summary.status_breakdown.map((s: StatusBreak) => ({
+          id: s.status,
+          status: s.status,
+          count: s.count,
+          amount: Math.round(s.amount),
+          weighted_amount: Math.round(s.weighted_amount),
+        }));
+        if (rows.length) {
+          const total = rows.reduce(
+            (acc, r) => {
+              acc.count += r.count;
+              acc.amount += r.amount;
+              acc.weighted_amount += r.weighted_amount;
+              return acc;
+            },
+            { status: "รวม", count: 0, amount: 0, weighted_amount: 0 }
+          );
+          rows.push({ id: "TOTAL", ...total });
+        }
+        return rows;
+      })()
+    : [];
+
+  const handleSearch = () => {
+    refetchForecast();
+  };
+
+  // Weight modal handlers
+  const openWeightModal = async () => {
+    setShowWeightModal(true);
+    setLoadingWeights(true);
+    try {
+      const { data } = await api.get(SALES_FORECAST.WEIGHTS);
+      type ApiWeight = {
+        forecast_weight_config_id: string;
+        priority: number;
+        weight_percent: string | number;
+      };
+      const rows: WeightRow[] =
+        (data.responseObject as ApiWeight[] | undefined)?.map((r) => ({
+          forecast_weight_config_id: r.forecast_weight_config_id,
+          priority: r.priority,
+          weight_percent: Number(r.weight_percent),
+        })) || [];
+      for (let p = 1; p <= 5; p++) {
+        if (!rows.find((r) => r.priority === p))
+          rows.push({ priority: p, weight_percent: 0 });
+      }
+      rows.sort((a, b) => b.priority - a.priority);
+      setWeights(rows);
+    } finally {
+      setLoadingWeights(false);
+    }
+  };
+  const saveWeightRow = async (row: WeightRow) => {
+    if (!actor_id) return;
+    await api.post(SALES_FORECAST.WEIGHTS, {
+      priority: row.priority,
+      weight_percent: row.weight_percent,
+      actor_id,
+    });
+  };
+  const saveAllWeights = async () => {
+    if (!actor_id) return;
+    for (const r of weights) {
+      await saveWeightRow(r);
+    }
+    qc.invalidateQueries({ queryKey: ["sales-forecast-summary"] });
+    setShowWeightModal(false);
+  };
+
+  // Goal modal handlers
+  const openGoalModal = async () => {
+    setShowGoalModal(true);
+    setLoadingGoals(true);
+    try {
+      const { data } = await api.get(SALES_FORECAST.GOALS, {
+        params: {
+          year: year.toString(),
+          team_id: team || undefined,
+          employee_id: responsible || undefined,
+        },
+      });
+      const rows: GoalRow[] = data.responseObject || [];
+      const annual = rows.find((r) => r.month === null);
+      setAnnualGoalInput(
+        annual ? Number(annual.goal_amount) : summary?.goals.annual_goal || ""
+      );
+      const monthly: Record<number, number | ""> = {};
+      rows
+        .filter((r) => r.month !== null)
+        .forEach((r) => {
+          if (r.month != null) monthly[r.month] = Number(r.goal_amount);
+        });
+      setMonthlyGoalInputs(monthly);
+    } finally {
+      setLoadingGoals(false);
+    }
+  };
+  const saveAnnualGoal = async () => {
+    if (annualGoalInput === "" || annualGoalInput < 0 || !actor_id) return;
+    await api.post(SALES_FORECAST.GOALS, {
+      year,
+      month: null,
+      team_id: team,
+      employee_id: responsible,
+      goal_amount: annualGoalInput,
+      actor_id,
+    });
+  };
+  const saveMonthlyGoal = async (m: number) => {
+    const v = monthlyGoalInputs[m];
+    if (v === "" || v < 0 || !actor_id) return;
+    await api.post(SALES_FORECAST.GOALS, {
+      year,
+      month: m,
+      team_id: team,
+      employee_id: responsible,
+      goal_amount: v,
+      actor_id,
+    });
+  };
+  const saveAllGoals = async () => {
+    if (!actor_id) return;
+    await saveAnnualGoal();
+    for (let m = 1; m <= 12; m++) {
+      if (monthlyGoalInputs[m] !== undefined) await saveMonthlyGoal(m);
+    }
+    qc.invalidateQueries({ queryKey: ["sales-forecast-summary"] });
+    setShowGoalModal(false);
+    refetchForecast();
+  };
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Pull query params (so navigation from Predict Sell with ?year=... etc works)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const y = params.get("year");
+    const month = params.get("month");
+    const start = params.get("start_date");
+    const end = params.get("end_date");
+    const t = params.get("team_id");
+    const r = params.get("responsible_id");
+    const tag = params.get("tag_id");
+    const scenarioId = params.get("scenario_id");
+  const productIds = params.get("product_ids");
+    if (y) {
+      const yi = Number(y);
+      if (!isNaN(yi)) update({ year: yi });
+    }
+    if (month && y && !start && !end) {
+      const m = Number(month);
+      const yi = Number(y);
+      if (!isNaN(m) && m >= 1 && m <= 12 && !isNaN(yi)) {
+        update({
+          startDate: new Date(yi, m - 1, 1),
+          endDate: new Date(yi, m, 0),
+        });
+      }
+    } else {
+      if (start) update({ startDate: new Date(start) });
+      if (end) update({ endDate: new Date(end) });
+    }
+    if (t) update({ teamId: t });
+    if (r) update({ responsibleId: r });
+    if (tag) update({ tagId: tag });
+    if (scenarioId) setSelectedScenarioId(scenarioId);
+    if (productIds) {
+      const arr = productIds.split(",").filter(Boolean);
+      if (arr.length) setUrlProductIds(arr);
+    } else if (urlProductIds) {
+      setUrlProductIds(undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+  const renderTooltip = (props: TooltipProps<number, string>) => {
+    const { active, payload } = props;
+    if (!active || !payload || !payload.length) return null;
+    const d = payload[0].payload as {
+      month: string;
+      target: number;
+      actual: number;
+      forecast: number;
+    };
+    const gap = d.target - d.actual;
+    const achieve = d.target ? (d.actual / d.target) * 100 : 0;
+    return (
+      <div className="bg-white border rounded p-2 text-xs shadow">
+        <div>{d.month}</div>
+        <div>Target: {d.target.toLocaleString()}</div>
+        <div>Actual: {d.actual.toLocaleString()}</div>
+        <div>Forecast: {d.forecast.toLocaleString()}</div>
+        <div>Gap (Actual vs Target): {gap.toLocaleString()}</div>
+        <div>Achievement %: {achieve.toFixed(1)}%</div>
+      </div>
+    );
+  };
 
   return (
     <div>
-
-      <p className="text-2xl font-bold">รายงานพยากรณ์ยอดขาย</p>
+      <p className="mb-4 text-2xl font-bold">รายงานพยากรณ์ยอดขาย</p>
       <div className="p-4 bg-white shadow-md mb-3 rounded-md w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ">
-
-          {/* ทีม */}
-
-          <div className="flex flex-col w-full">
-            <label className="text-md mb-1">ทีม</label>
-            <DependentSelectComponent
-              id="team"
-              value={teamOptions.find((opt) => opt.value === team) || null}
-              onChange={(option) => setTeam(option ? String(option.value) : null)}
-              onInputChange={handleTeamSearch}
-              fetchDataFromGetAPI={fetchDataTeamDropdown}
-              valueKey="id"
-              labelKey="name"
-              placeholder="รายชื่อทีม"
-              isClearable
-              label=""
-              labelOrientation="horizontal"
-              classNameLabel=""
-              classNameSelect="w-full "
-              nextFields={{ left: "responsible-telno", right: "responsible-telno", up: "address", down: "responsible" }}
-
-
-            />
+        {riskAgg && (
+          <div className="flex flex-wrap gap-2 mb-4 text-xs">
+            <span className="px-2 py-1 rounded bg-red-100 text-red-700">
+              อายุ&gt;60วัน: {riskAgg.aging}
+              {riskTotal
+                ? ` (${((riskAgg.aging / riskTotal) * 100).toFixed(0)}%)`
+                : ""}
+            </span>
+            <span className="px-2 py-1 rounded bg-amber-100 text-amber-700">
+              น้ำหนัก&lt;30%: {riskAgg.lowWeight}
+              {riskTotal
+                ? ` (${((riskAgg.lowWeight / riskTotal) * 100).toFixed(0)}%)`
+                : ""}
+            </span>
+            <span className="px-2 py-1 rounded bg-pink-100 text-pink-700">
+              ไม่มีการเคลื่อนไหว: {riskAgg.noActivity}
+              {riskTotal
+                ? ` (${((riskAgg.noActivity / riskTotal) * 100).toFixed(0)}%)`
+                : ""}
+            </span>
+            <span className="px-2 py-1 rounded bg-slate-100 text-slate-700">
+              รวม: {riskAgg.total}
+            </span>
           </div>
-
-          {/* พนักงานขาย */}
-
-          <div className="flex flex-col w-full">
-            <label className="text-md mb-1">พนักงานขาย</label>
-            <DependentSelectComponent
-              id="responsible"
-              value={responsibleOptions.find((opt) => opt.value === responsible) || null}
-              onChange={(option) => setResponsible(option ? String(option.value) : null)}
-              onInputChange={handleTeamSearch}
-              fetchDataFromGetAPI={fetchDataMemberInteam}
-              valueKey="id"
-              labelKey="name"
-              placeholder="รายชื่อบุคลากร"
-              isClearable
-              label=""
-              labelOrientation="horizontal"
-              classNameLabel=""
-              classNameSelect="w-full "
-              nextFields={{ left: "responsible-email", right: "responsible-email", up: "team", down: "contact-person" }}
-
-            />
-          </div>
-
-          {/* วันที่เริ่ม */}
-
-          <div className="flex flex-col w-full">
-            <label className="text-md  mb-1">วันที่เริ่ม</label>
-            <DatePickerComponent
-              id="start-date"
-              selectedDate={initMonth}
-              onChange={(date) => setInitMonth(date)}
-              classNameLabel=""
-              classNameInput="w-full"
-            />
-          </div>
-
-          {/* วันที่สิ้นสุด */}
-
-          <div className="flex flex-col w-full">
-            <label className="text-md  mb-1">ระยะเวลา</label>
-            <DatePickerComponent
-              id="end-date"
-              selectedDate={endMonth}
-              onChange={(date) => setEndMonth(date)}
-              classNameLabel=""
-              classNameInput="w-full"
-            />
-          </div>
-
-          <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
-            <Buttons
-              btnType="primary"
-              variant="outline"
-              className="w-full sm:w-auto sm:min-w-[100px]"
-
-            >
-              ค้นหา
-            </Buttons>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-4">
+          <div className="sm:col-span-6 flex flex-col md:flex-row md:items-end gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 flex-1">
+              <div className="flex flex-col w-full">
+                <label htmlFor="team" className="text-md mb-1">
+                  ทีม
+                </label>
+                <DependentSelectComponent
+                  id="team"
+                  value={teamOptions.find((opt) => opt.value === team) || null}
+                  onChange={(option) =>
+                    update({ teamId: option ? String(option.value) : null })
+                  }
+                  onInputChange={handleTeamSearch}
+                  fetchDataFromGetAPI={fetchDataTeamDropdown}
+                  valueKey="id"
+                  labelKey="name"
+                  placeholder="รายชื่อทีม"
+                  isClearable
+                  label=""
+                  labelOrientation="horizontal"
+                  classNameLabel=""
+                  classNameSelect="w-full "
+                  nextFields={{
+                    left: "responsible-telno",
+                    right: "responsible-telno",
+                    up: "address",
+                    down: "responsible",
+                  }}
+                />
+              </div>
+              <div className="flex flex-col w-full">
+                <label htmlFor="responsible" className="text-md mb-1">
+                  พนักงานขาย
+                </label>
+                <DependentSelectComponent
+                  id="responsible"
+                  value={
+                    responsibleOptions.find(
+                      (opt) => opt.value === responsible
+                    ) || null
+                  }
+                  onChange={(option) =>
+                    update({
+                      responsibleId: option ? String(option.value) : null,
+                    })
+                  }
+                  onInputChange={handleTeamSearch}
+                  fetchDataFromGetAPI={fetchDataMemberInteam}
+                  valueKey="id"
+                  labelKey="name"
+                  placeholder="รายชื่อบุคลากร"
+                  isClearable
+                  label=""
+                  labelOrientation="horizontal"
+                  classNameLabel=""
+                  classNameSelect="w-full "
+                  nextFields={{
+                    left: "responsible-email",
+                    right: "responsible-email",
+                    up: "team",
+                    down: "contact-person",
+                  }}
+                />
+              </div>
+              <div className="flex flex-col w-full">
+                <label htmlFor="start-date" className="text-md  mb-1">
+                  วันที่เริ่ม
+                </label>
+                <DatePickerComponent
+                  id="start-date"
+                  selectedDate={initMonth}
+                  onChange={(date) => update({ startDate: date })}
+                  classNameLabel=""
+                  classNameInput="w-full"
+                />
+              </div>
+              <div className="flex flex-col w-full">
+                <label htmlFor="end-date" className="text-md  mb-1">
+                  ระยะเวลา
+                </label>
+                <DatePickerComponent
+                  id="end-date"
+                  selectedDate={endMonth}
+                  onChange={(date) => update({ endDate: date })}
+                  classNameLabel=""
+                  classNameInput="w-full"
+                />
+              </div>
+              <div className="flex flex-col w-full">
+                <label htmlFor="year-select" className="text-md mb-1">
+                  ปี
+                </label>
+                <select
+                  id="year-select"
+                  value={year}
+                  onChange={(e) => update({ year: Number(e.target.value) })}
+                  className="border rounded px-2 py-2"
+                >
+                  {yearOptions.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col w-full">
+                <label htmlFor="tag-filter" className="text-md mb-1">
+                  Tag
+                </label>
+                <select
+                  id="tag-filter"
+                  value={tagId || ""}
+                  onChange={(e) => update({ tagId: e.target.value || null })}
+                  className="border rounded px-2 py-2"
+                >
+                  <option value="">ทั้งหมด</option>
+                  {tagOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="min-w-[220px]">
+              <label htmlFor="scenario-select" className="text-md mb-1">
+                ฉากจำลอง
+              </label>
+              <select
+                id="scenario-select"
+                value={selectedScenarioId || ""}
+                onChange={(e) => {
+                  const val = e.target.value || null;
+                  setSelectedScenarioId(val);
+                  const params = new URLSearchParams(location.search);
+                  if (val) params.set("scenario_id", val);
+                  else params.delete("scenario_id");
+                  window.history.replaceState(
+                    {},
+                    "",
+                    `${location.pathname}?${params.toString()}`
+                  );
+                }}
+                className="border rounded px-2 py-2 w-full"
+              >
+                <option value="">(ฐานข้อมูลเดิม)</option>
+                {scenarios.map((s) => (
+                  <option
+                    key={s.sales_forecast_scenario_id}
+                    value={s.sales_forecast_scenario_id}
+                  >
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              {loadingScenarioSummary && selectedScenarioId ? (
+                <div className="text-xs text-gray-500 mt-1">
+                  Loading scenario...
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
+        {/* <div className="sm:col-span-5 flex justify-end mt-4">
+          <Buttons btnType="primary" variant="outline" className="w-full sm:w-auto sm:min-w-[100px]" onClick={handleSearch}>ค้นหา</Buttons>
+        </div> */}
+        <div className="sm:col-span-1 md:col-span-2 lg:col-span-3 flex flex-wrap gap-2 justify-end items-end">
+          <Buttons btnType="default" variant="outline" onClick={openGoalModal} className="sm:min-w-[110px]">แก้ไขเป้าหมาย</Buttons>
+          <Buttons btnType="default" variant="outline" onClick={openWeightModal} className="sm:min-w-[110px]">แก้ไขน้ำหนัก</Buttons>
+          <Buttons btnType="primary" variant="outline" className="w-full sm:w-auto sm:min-w-[100px]" onClick={handleSearch}>ค้นหา</Buttons>
+          <Buttons btnType="primary" variant="outline" className="w-full sm:w-auto sm:min-w-[100px]" /* onClick={handleOpenPdf}*/>
+            <FiPrinter style={{ fontSize: 18 }} /> พิมพ์
+          </Buttons>
+        </div>
       </div>
+
+      {loadingForecast ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+          {["s1", "s2", "s3", "s4", "s5"].map((key) => (
+            <div key={key} className="h-20 animate-pulse bg-gray-200 rounded" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+          {kpis.map((k) => {
+            const showScenario =
+              k.scenarioValue !== undefined && selectedScenarioId;
+            const diff = k.diff;
+            const beneficialPositive = k.beneficialPositive; // already inverted for gap when needed
+            const diffFormatted =
+              diff !== undefined
+                ? k.suffix === "%"
+                  ? `${diff > 0 ? "+" : ""}${diff.toFixed(1)}%`
+                  : `${diff > 0 ? "+" : ""}${
+                      k.format
+                        ? Math.round(diff).toLocaleString()
+                        : diff.toLocaleString()
+                    }`
+                : "";
+            const scenarioValDisplay = showScenario
+              ? k.suffix === "%"
+                ? (k.scenarioValue as number).toFixed(1) + "%"
+                : k.format
+                ? Math.round(k.scenarioValue as number).toLocaleString()
+                : k.scenarioValue
+              : null;
+            return (
+              <div
+                key={k.label}
+                className={`p-4 rounded shadow text-sm ${
+                  k.key === "gap_to_goal" &&
+                  summary?.gap_to_goal !== null &&
+                  summary?.gap_to_goal <= 0
+                    ? "bg-green-100 text-green-700"
+                    : k.key === "forecast_year_end"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-blue-50 text-slate-800"
+                }`}
+              >
+                <p className="font-semibold mb-1">{k.label}</p>
+                <p className="text-lg font-bold">
+                  {k.format ? Math.round(k.value).toLocaleString() : k.value}
+                  {k.suffix || ""}
+                </p>
+                {showScenario && (
+                  <div className="text-[11px] mt-1">
+                    <span className="font-semibold">Scenario:</span>{" "}
+                    {scenarioValDisplay}
+                    {diff !== 0 && diff !== undefined && (
+                      <span
+                        className={`ml-1 font-semibold ${
+                          beneficialPositive && beneficialPositive > 0
+                            ? "text-green-600"
+                            : beneficialPositive && beneficialPositive < 0
+                            ? "text-red-600"
+                            : ""
+                        }`}
+                      >
+                        {diffFormatted}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className=" bg-white shadow-md rounded-lg">
         <div className="p-2 bg-sky-100 rounded-t-lg">
           <p className="font-semibold">เอาไว้ทำหัวรายงานในอนาคต</p>
         </div>
         <div className="p-7 pb-5 w-full max-w-full">
-
-          {/* content */}
           <div>
             <p className="text-2xl font-semibold mb-1">รายงานพยากรณ์ยอดขาย</p>
             <p className="text-sm text-gray-600">บริษัท CRM Manager (DEMO)</p>
-            <p className="text-xs text-gray-500 mb-6">ปี 2024</p>
+            <p className="text-xs text-gray-500 mb-6">ปี {year}</p>
           </div>
-          {/* chart */}
           <p className="text-lg font-semibold mb-2 text-gray-700">
             เป้าหมายยอดขายสะสม เทียบ ยอดขายสะสมคาดการณ์
           </p>
           <div ref={chartRef1} className="w-full h-[500px] border-b-2 mb-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={saleData}
-                margin={{ top: 10, right: 30, left: 40, bottom: 50 }}
-                barSize={30}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis
-                  allowDecimals={false}
-                  domain={[0, 12000000]}
-                  tickCount={7}     // จำนวนเส้นแบ่งแนวนอน (เช่น ทุก 2,000,000)
-                  tickFormatter={(value) => value.toLocaleString()}
-                />
-                <Tooltip formatter={(value) => value.toLocaleString()} />
-                <Legend />
-                <Bar dataKey="pointSale" name="เป้าหมายยอดขายสะสม (THB)" fill="#3b82f6" />
-                <Bar dataKey="predictSale" name="ยอดขายสะสมคาดการณ์ (THB)" fill="#FF6633" />
-
-              </BarChart>
-            </ResponsiveContainer>
+            {loadingForecast ? (
+              <div className="flex items-center justify-center h-full">
+                Loading...
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={chartData}
+                  margin={{ top: 10, right: 30, left: 40, bottom: 50 }}
+                  onClick={handleChartClick}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis
+                    allowDecimals={false}
+                    domain={[
+                      0,
+                      Math.max(
+                        ...chartData.map((d) =>
+                          Math.max(d.actual, d.forecast, d.target, 1)
+                        )
+                      ) * 1.2,
+                    ]}
+                    tickFormatter={(value) => value.toLocaleString()}
+                  />
+                  <Tooltip content={renderTooltip} />
+                  <Legend />
+                  <Bar dataKey="target" name="เป้าหมาย (บาท)" fill="#3b82f6" barSize={20} />
+                  <Bar dataKey="forecast" name="คาดการณ์ (บาท)" fill="#f97316" barSize={20} />
+                  <Line type="monotone" dataKey="actual" name="ยอดจริง (บาท)" stroke="#16a34a" strokeWidth={3} dot />
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
           </div>
-
-          {/* table  */}
-          <Table.Root variant="surface" size="2" className="whitespace-nowrap mb-10">
+          <Table.Root
+            variant="surface"
+            size="2"
+            className="whitespace-nowrap mb-10"
+          >
             <Table.Header>
-              <Table.Row >
-                <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
-                {months.map((month) => (
-
-                  <Table.ColumnHeaderCell key={month} className="text-end">{month}</Table.ColumnHeaderCell>
+              <Table.Row>
+                <Table.ColumnHeaderCell>
+                  <span className="sr-only">Metric</span>
+                </Table.ColumnHeaderCell>
+                {derivedMonths.map((month) => (
+                  <Table.ColumnHeaderCell key={month} className="text-end">
+                    {month}
+                  </Table.ColumnHeaderCell>
                 ))}
               </Table.Row>
             </Table.Header>
-
             <Table.Body>
               {salesDataTable.map((row) => {
-                const isGrowthRow = row.label.includes('%');
+                const isGrowthRow = row.label.includes("%");
+                const isActualMonthly = row.label === "Actual Monthly";
+                const paceThreshold =
+                  summary?.pace?.required_avg_per_remaining_month || 0;
                 return (
-                  <Table.Row key={row.label} className={isGrowthRow ? 'bg-blue-50' : ''}>
-                    <Table.RowHeaderCell className={isGrowthRow ? 'text-blue-700 font-semibold' : ''}>{row.label}</Table.RowHeaderCell>
-                    {row.values.map((value, index) => (
-                      <Table.Cell
-                        key={index}
-                        className={`text-end ${isGrowthRow ? 'font-semibold' : ''}`}
-                      >
-                        {value.toLocaleString()}
-                      </Table.Cell>
-                    ))}
+                  <Table.Row
+                    key={row.label}
+                    className={isGrowthRow ? "bg-blue-50" : ""}
+                  >
+                    <Table.RowHeaderCell
+                      className={
+                        isGrowthRow ? "text-blue-700 font-semibold" : ""
+                      }
+                    >
+                      {row.label}
+                    </Table.RowHeaderCell>
+                    {row.values.map((value, idx) => {
+                      const highlight =
+                        isActualMonthly &&
+                        paceThreshold > 0 &&
+                        value < paceThreshold;
+                      return (
+                        <Table.Cell
+                          key={`${row.label}-${idx}`}
+                          className={`text-end ${
+                            isGrowthRow ? "font-semibold" : ""
+                          } ${
+                            highlight
+                              ? "bg-red-50 text-red-700 font-semibold"
+                              : ""
+                          }`}
+                        >
+                          {value.toLocaleString()}
+                        </Table.Cell>
+                      );
+                    })}
                   </Table.Row>
-                )
-              }
-              )}
+                );
+              })}
             </Table.Body>
           </Table.Root>
-
-          {/* 2 chart */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-5">
-            {/* กราฟรวมยอดสะสม */}
-            <div ref={chartRef2} className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={summaryTotal}
-                  margin={{ bottom: 20, left: 50 }}
-                  barSize={40}
-
-                >
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} />
-                  <YAxis tickFormatter={(v) => v.toLocaleString()} />
-                  <Tooltip
-                    formatter={(v) => `${Number(v).toLocaleString()} บาท`}
-                    wrapperStyle={{ maxWidth: 150, whiteSpace: 'normal' }}
-                  />
-
-                  <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => value.toLocaleString() }}>
-                    {summaryTotal.map((data, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={colorData[index % colorData.length]}
-                      />
-                    ))}
-                  </Bar>
-
-                </BarChart>
-              </ResponsiveContainer>
+            <div
+              ref={chartRef2}
+              className="w-full h-[300px] sm:h-[400px] md:h-[500px]"
+            >
+              <div className="mb-2 flex flex-col gap-1">
+        <p className="text-sm font-semibold">เป้าหมายรวม vs คาดการณ์รวม</p>
+                <p className="text-xs text-gray-500">
+                  {hasTotalData
+          ? `อัตราบรรลุ: ${achievementPct.toFixed(1)}% | ช่องว่าง: ${gapToGoal > 0 ? gapToGoal.toLocaleString() + ' บาท' : gapToGoal === 0 ? '0' : 'เกินเป้า ' + Math.abs(gapToGoal).toLocaleString() + ' บาท'}`
+          : 'ยังไม่มีข้อมูล (เป้าหมายหรือคาดการณ์เป็น 0)'}
+                </p>
+              </div>
+              {hasTotalData ? (
+                <ResponsiveContainer width="100%" height="85%">
+                  <BarChart
+                    data={summaryTotal}
+                    margin={{ bottom: 10, left: 40, right: 20 }}
+                    barSize={50}
+                  >
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} />
+                    <YAxis tickFormatter={(v) => v.toLocaleString()} />
+                    <Tooltip
+                      formatter={(v) => `${Number(v).toLocaleString()} บาท`}
+                      wrapperStyle={{ maxWidth: 150, whiteSpace: 'normal' }}
+                    />
+                    <Bar dataKey="value">
+                      {summaryTotal.map(d => (
+                        <Cell key={d.id} fill={d.id === 'forecast-total' ? '#f97316' : '#3b82f6'} />
+                      ))}
+                      {/* Custom labels including % for forecast bar */}
+                      {summaryTotal.map(d => (
+                        <text
+                          key={d.id + '-lbl'}
+                          className="fill-gray-700 text-[11px]"
+                          x={0}
+                          y={0}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-sm text-gray-400 border rounded-md bg-white">
+                  ไม่มีข้อมูลสำหรับแสดงกราฟ
+                </div>
+              )}
             </div>
-
-            {/* กราฟเฉลี่ยรายเดือน */}
-            <div ref={chartRef3} className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={summaryMonthlyAverage}
-                  margin={{ bottom: 20, left: 50 }}
-                  barSize={40}
-                >
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} interval={0} />
-                  <YAxis tickFormatter={(v) => v.toLocaleString()} />
-                  <Tooltip
-                    formatter={(v) => `${Number(v).toLocaleString()} บาท`}
-                    wrapperStyle={{ maxWidth: 150, whiteSpace: 'normal' }}
-                  />
-
-                  <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => value.toLocaleString() }}>
-                    {summaryMonthlyAverage.map((data, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={colorData[index % colorData.length]}
-                      />
-                    ))}
-                  </Bar>
-
-                </BarChart>
-              </ResponsiveContainer>
+            <div
+              ref={chartRef3}
+              className="w-full h-[300px] sm:h-[400px] md:h-[500px]"
+            >
+              <div className="mb-2 flex flex-col gap-1">
+                <p className="text-sm font-semibold">ค่าเฉลี่ยรายเดือน (เป้าหมาย / คาดการณ์ / จริง)</p>
+                <p className="text-xs text-gray-500">
+                  {allAvgZero ? 'ยังไม่มีข้อมูลเพียงพอสำหรับค่าเฉลี่ยรายเดือน' : 'เปรียบเทียบค่าเฉลี่ยต่อเดือนเพื่อดูความเร็ว (pacing)'}
+                </p>
+              </div>
+              {allAvgZero ? (
+                <div className="h-full flex items-center justify-center text-sm text-gray-400 border rounded-md bg-white">
+                  ไม่มีข้อมูลสำหรับแสดงกราฟ
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="85%">
+                  <BarChart data={summaryMonthlyAverage} margin={{ bottom: 10, left: 40, right: 20 }} barSize={50}>
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} />
+                    <YAxis tickFormatter={v => v.toLocaleString()} />
+                    <Tooltip formatter={(v) => `${Number(v).toLocaleString()} บาท`} />
+                    <Bar dataKey="value" label={{ position: 'top', formatter: (value: number) => value.toLocaleString() }}>
+                      {summaryMonthlyAverage.map(d => (
+                        <Cell key={d.id} fill={d.id === 'forecast-avg' ? '#f97316' : d.id === 'actual-avg' ? '#16a34a' : '#3b82f6'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
-
-
           </div>
-          {/* table  */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-3 mt-6">
-            <SummaryTable
-              title="สัดส่วนใบเสนอราคาคาดการณ์ แบ่งตามความสำคัญ"
-              columns={HeaderPredict}
-              data={predictValues}
-            />
-            <SummaryTable
-              title="10 อันดับลูกค้าที่มีโอกาสซื้อสูงสุด"
-              columns={HeaderCustomer}
-              data={customers}
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 px-3 mt-6">
+            <div className="lg:col-span-1">
+              <SummaryTable
+                title="สัดส่วนใบเสนอราคาคาดการณ์ แบ่งตามความสำคัญ"
+                columns={HeaderPredict}
+                data={predictValues}
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <SummaryTable
+                title="10 อันดับลูกค้าที่มีโอกาสซื้อสูงสุด"
+                columns={HeaderCustomer}
+                data={customers}
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <SummaryTable
+                title="สรุปใบเสนอราคาแยกตามสถานะ"
+                columns={HeaderStatus}
+                data={statusValues}
+              />
+            </div>
           </div>
         </div>
       </div>
-      <div className="flex justify-between space-x-5 mt-5">
 
-        <Buttons
-          btnType="primary"
-          variant="outline"
-          className="w-30"
-          onClick={handleOpenPdf}
-        >
-          <FiPrinter style={{ fontSize: 18 }} />
+  {/* Action buttons moved to top near filters for better UX */}
 
-          พิมพ์
-        </Buttons>
-      </div>
+      {showWeightModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-lg w-full max-w-xl p-6 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">แก้ไขน้ำหนักโอกาสขาย</h2>
+            {loadingWeights ? (
+              <div>Loading...</div>
+            ) : (
+              <table className="w-full text-sm mb-4">
+                <thead>
+                  <tr>
+                    <th className="text-left p-2">Priority</th>
+                    <th className="text-left p-2">Weight %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {weights.map((w) => (
+                    <tr key={w.priority} className="border-t">
+                      <td className="p-2">★{w.priority}</td>
+                      <td className="p-2">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={w.weight_percent}
+                          onChange={(e) =>
+                            setWeights((ws) =>
+                              ws.map((r) =>
+                                r.priority === w.priority
+                                  ? {
+                                      ...r,
+                                      weight_percent: Number(e.target.value),
+                                    }
+                                  : r
+                              )
+                            )
+                          }
+                          className="border rounded px-2 py-1 w-24 text-right"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <div className="flex justify-end gap-2">
+              <Buttons
+                btnType="cancel"
+                variant="outline"
+                onClick={() => setShowWeightModal(false)}
+              >
+                ยกเลิก
+              </Buttons>
+              <Buttons
+                btnType="primary"
+                variant="outline"
+                onClick={saveAllWeights}
+              >
+                บันทึก
+              </Buttons>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showGoalModal && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-lg w-full max-w-3xl p-6 max-h-[85vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">
+              แก้ไขเป้าหมายยอดขาย {year}
+            </h2>
+            {loadingGoals ? (
+              <div>Loading...</div>
+            ) : (
+              <div className="space-y-6">
+                <div>
+                  <label
+                    htmlFor="annual-goal-input"
+                    className="block text-sm font-medium mb-1"
+                  >
+                    เป้าหมายรวม (Annual)
+                  </label>
+                  <input
+                    id="annual-goal-input"
+                    type="number"
+                    min={0}
+                    value={annualGoalInput}
+                    onChange={(e) =>
+                      setAnnualGoalInput(
+                        e.target.value === "" ? "" : Number(e.target.value)
+                      )
+                    }
+                    className="border rounded px-3 py-2 w-full"
+                  />
+                </div>
+                <div>
+                  <div className="text-sm font-medium mb-2">
+                    เป้าหมายรายเดือน (ปล่อยว่างใช้ค่าเฉลี่ย)
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <div key={m} className="flex flex-col">
+                        <label
+                          htmlFor={`month-goal-${m}`}
+                          className="text-xs mb-1"
+                        >
+                          เดือน {m}
+                        </label>
+                        <input
+                          id={`month-goal-${m}`}
+                          type="number"
+                          min={0}
+                          value={monthlyGoalInputs[m] ?? ""}
+                          onChange={(e) =>
+                            setMonthlyGoalInputs((prev) => ({
+                              ...prev,
+                              [m]:
+                                e.target.value === ""
+                                  ? ""
+                                  : Number(e.target.value),
+                            }))
+                          }
+                          className="border rounded px-2 py-1"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-6">
+              <Buttons
+                btnType="cancel"
+                variant="outline"
+                onClick={() => setShowGoalModal(false)}
+              >
+                ยกเลิก
+              </Buttons>
+              <Buttons
+                btnType="primary"
+                variant="outline"
+                onClick={saveAllGoals}
+              >
+                บันทึก
+              </Buttons>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
