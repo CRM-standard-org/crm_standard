@@ -84,7 +84,7 @@ export default function ReportYears() {
 
   return (
     <div>
-      <p className="text-2xl font-bold">รายงานยอดขายประจำปี</p>
+      <p className=" mb-4 text-2xl font-bold">รายงานยอดขายประจำปี</p>
 
       <div className="p-3 px-5 flex flex-wrap gap-3 items-center bg-white mb-3 shadow-md w-full">
         <div className="w-full sm:w-auto">

@@ -91,7 +91,7 @@ export default function SummarySale() {
 
   return (
     <div>
-      <p className="text-2xl font-bold">รายงานสรุปยอดขาย</p>
+      <p className=" mb-4 text-2xl font-bold">รายงานสรุปยอดขาย</p>
       <div className="p-4 bg-white shadow-md mb-3 rounded-md w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
           <div className="flex flex-col w-full">

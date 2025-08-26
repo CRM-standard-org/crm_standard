@@ -31,7 +31,7 @@ import RadioComponent from "@/components/customs/radios/radio.component";
 import { useAddress } from "@/hooks/useAddress";
 import { TypeAddressResponse } from "@/types/response/response.address";
 import { OptionType } from "@/components/customs/select/select.main.component";
-import { useResponseToOptions } from "@/hooks/useOptionType";
+// import { useResponseToOptions } from "@/hooks/useOptionType";
 import { useTeam } from "@/hooks/useTeam";
 import { useTeamMember } from "@/hooks/useTeam";
 import FileUploadComponent from "@/components/customs/uploadFIle/FileUploadComponent";
@@ -47,21 +47,21 @@ import MasterSelectTableComponent from "@/components/customs/select/selectTable.
 import { useAllCustomer, useCustomerById, useSelectCustomerAddress, useSelectCustomerContact } from "@/hooks/useCustomer";
 import { TypeAllCustomerResponse, TypeCustomerAddress, TypeCustomerContacts, TypeCustomerResponse } from "@/types/response/response.customer";
 
-import { useQuotationById, useSelectVat } from "@/hooks/useQuotation";
-import { TypeAllQuotationResponse, TypeQuotationProducts, TypeQuotationResponse, TypeVatResponse } from "@/types/response/response.quotation";
+import { useQuotationById } from "@/hooks/useQuotation";
+import { TypeAllQuotationResponse, TypeQuotationProducts, TypeQuotationResponse } from "@/types/response/response.quotation";
 import { useSelectEmployee, useSelectResponsible } from "@/hooks/useEmployee";
 import { Button } from "@/components/ui/button";
 import { RiCheckLine, RiDeleteBin6Line, RiEditLine } from "react-icons/ri";
 import { appConfig } from "@/configs/app.config";
 import { usePaymentFileById, useSaleOrderById } from "@/hooks/useSaleOrder";
-import { payment_file, TypeSaleOrderPaymentFileResponse, TypeSaleOrderPaymentLog, TypeSaleOrderProducts, TypeSaleOrderResponse } from "@/types/response/response.saleorder";
+import { payment_file, TypeSaleOrderPaymentFileResponse, TypeSaleOrderPaymentLog, TypeSaleOrderProducts, TypeSaleOrderResponse, TypeSaleOrderStatus } from "@/types/response/response.saleorder";
 import { LuSquareCheckBig } from "react-icons/lu";
 import { FaTruck } from "react-icons/fa";
 import { IoIosCube } from "react-icons/io";
 
 import { PayLoadCreateSaleOrderPaymentLog, PayLoadUpdateSaleOrderCompany, PayLoadUpdateSaleOrderPayment, PayLoadUpdateSaleOrderPaymentLog } from "@/types/requests/request.saleOrder";
 import { addFileInSaleOrder, deleteFileInSaleOrder, updateCompanySaleOrder, updatePaymentSaleOrder, createSaleOrderPaymentLog, updateSaleOrderPaymentLog, deleteSaleOrderPaymentLog, updateExpectManufacture, updateManufacture, updateExpectDelivery, updateExpectReceipt, updateDelivery, updateReceipt } from "@/services/saleOrder.service";
-import { FiCheck } from "react-icons/fi";
+// removed check icon; auto-save UX
 import { MdImageNotSupported } from "react-icons/md";
 import dayjs from "dayjs";
 
@@ -204,7 +204,7 @@ export default function EditSaleOrder() {
     const [searchProduct, setSearchProduct] = useState("");
     const [searchGroupProduct, setSearchGroupProduct] = useState("");
     const [searchUnit, setSearchUnit] = useState("");
-    const [searchVat, setSearchVat] = useState("");
+    // removed VAT search state (unused here)
     const [searchPayment, setSearchPayment] = useState("");
     const [searchCurrency, setSearchCurrency] = useState("");
     const [searchEmployee, setSearchEmployee] = useState("");
@@ -221,6 +221,9 @@ export default function EditSaleOrder() {
     const [paymentDate, setPaymentDate] = useState<Date | null>(null);
     const [updatePaymentCondition, setUpdatePaymentCondition] = useState<string | null>(null);
     const [paymentValue, setPaymentValue] = useState<number>(0);
+    // ควบคุมโหมดชำระเต็มจำนวน เพื่อปิดแก้ไขจำนวนเงินและกรอกให้อัตโนมัติ
+    const [isFullPaymentCreate, setIsFullPaymentCreate] = useState<boolean>(false);
+    const [isFullPaymentEdit, setIsFullPaymentEdit] = useState<boolean>(false);
     const [updatePaymentOption, setUpdatePaymentOption] = useState<string | null>(null);
     const [updatePaymentOptionName, setUpdatePaymentOptionName] = useState<string>("");
     const [paymentRemark, setPaymentRemark] = useState("");
@@ -238,6 +241,26 @@ export default function EditSaleOrder() {
 
 
     const [saleOrderPaymentFile, setSaleOrderPaymentFile] = useState<TypeSaleOrderPaymentFileResponse>();
+
+    // Track initial status dates to detect changes and to allow revert on failure
+    const [initialStatusDates, setInitialStatusDates] = useState<{
+        expectManufacture: Date | null;
+        manufacture: Date | null;
+        expectDelivery: Date | null;
+        delivery: Date | null;
+        expectReceipt: Date | null;
+        receipt: Date | null;
+    }>({
+        expectManufacture: null,
+        manufacture: null,
+        expectDelivery: null,
+        delivery: null,
+        expectReceipt: null,
+        receipt: null,
+    });
+
+    // Per-field saving indicator
+    const [savingStatus, setSavingStatus] = useState<Record<string, boolean>>({});
 
 
     //fetch quotation detail 
@@ -326,14 +349,10 @@ export default function EditSaleOrder() {
 
     // //fetch customer detail 
     const customerId = customer ?? "";
-    const { data: dataCustomerById, refetch: refetchCustomerById } = useCustomerById({ customerId });
+    const { data: dataCustomerById } = useCustomerById({ customerId });
 
-    useEffect(() => {
-        fetchDataCustomer();
-    }, [dataCustomerById, dataAddress])
-
-    const fetchDataCustomer = async () => {
-        const customer = dataCustomerById?.responseObject.customer;
+    const fetchDataCustomer = useCallback(async () => {
+        const customer = dataCustomerById?.responseObject?.customer;
         if (!customer || !dataAddress) return;
 
         const mainAddress = customer.customer_address.find((address) => address.main_address);
@@ -351,22 +370,28 @@ export default function EditSaleOrder() {
         setContactPerson(mainContact?.name ?? "");
         setEmailContact(mainContact?.email ?? "");
         setTelNoContact(mainContact?.phone ?? "");
-    };
+    }, [dataCustomerById, dataAddress]);
+
+    useEffect(() => {
+        fetchDataCustomer();
+    }, [fetchDataCustomer]);
 
     //fetch quotation detail
 
     useEffect(() => {
         fetchDataQuotation();
-    }, [saleOrderDetails, dataAddress])
+    }, [saleOrderDetails, dataAddress]);
 
-    const getLatestFieldDate = (logs: any[], field: string): string | null => {
+    const getLatestFieldDate = (logs: TypeSaleOrderStatus[], field: keyof TypeSaleOrderStatus): string | null => {
         const filtered = logs
-            .filter(log => log[field])
+            .filter((log) => Boolean(log[field]))
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        return filtered.length > 0 ? filtered[0][field] : null;
+        const latest = filtered[0];
+        const value = latest ? latest[field] : null;
+        return typeof value === "string" ? value : value ?? null;
     };
 
-    const fetchDataQuotation = async () => {
+    const fetchDataQuotation = useCallback(async () => {
 
         if (saleOrderDetails?.responseObject) {
 
@@ -420,40 +445,40 @@ export default function EditSaleOrder() {
             setNote(saleOrderDetails.responseObject.additional_notes ?? "")
             setRemark(saleOrderDetails.responseObject.remark ?? "")
 
-            //วันที่
-            setExpectManufactureDate(
-                getLatestFieldDate(dataSaleOrder.status, "expected_manufacture_factory_date")
-                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "expected_manufacture_factory_date")!)
-                    : null
-            );
-            setManufactureDate(
-                getLatestFieldDate(dataSaleOrder.status, "manufacture_factory_date")
-                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "manufacture_factory_date")!)
-                    : null
-            );
-            setExpectDeliveryDate(
-                getLatestFieldDate(dataSaleOrder.status, "expected_delivery_date_success")
-                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "expected_delivery_date_success")!)
-                    : null
-            );
-            setDeliveryDate(
-                getLatestFieldDate(dataSaleOrder.status, "delivery_date_success")
-                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "delivery_date_success")!)
-                    : null
-            );
-            setExpectReceiptDate(
-                getLatestFieldDate(dataSaleOrder.status, "expected_receipt_date")
-                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "expected_receipt_date")!)
-                    : null
-            );
-            setReceiptDate(
-                getLatestFieldDate(dataSaleOrder.status, "receipt_date")
-                    ? new Date(getLatestFieldDate(dataSaleOrder.status, "receipt_date")!)
-                    : null
-            );
+            // วันที่ - derive from status logs and keep an initial snapshot for revert on failures
+            const statusLogs: TypeSaleOrderStatus[] = saleOrderDetails.responseObject.status ?? [];
+            const expManStr = getLatestFieldDate(statusLogs, "expected_manufacture_factory_date");
+            const manStr = getLatestFieldDate(statusLogs, "manufacture_factory_date");
+            const expDelStr = getLatestFieldDate(statusLogs, "expected_delivery_date_success");
+            const delStr = getLatestFieldDate(statusLogs, "delivery_date_success");
+            const expRecStr = getLatestFieldDate(statusLogs, "expected_receipt_date");
+            const recStr = getLatestFieldDate(statusLogs, "receipt_date");
+
+            const expManDate = expManStr ? new Date(expManStr) : null;
+            const manDate = manStr ? new Date(manStr) : null;
+            const expDelDate = expDelStr ? new Date(expDelStr) : null;
+            const delDate = delStr ? new Date(delStr) : null;
+            const expRecDate = expRecStr ? new Date(expRecStr) : null;
+            const recDate = recStr ? new Date(recStr) : null;
+
+            setExpectManufactureDate(expManDate);
+            setManufactureDate(manDate);
+            setExpectDeliveryDate(expDelDate);
+            setDeliveryDate(delDate);
+            setExpectReceiptDate(expRecDate);
+            setReceiptDate(recDate);
+
+            setInitialStatusDates({
+                expectManufacture: expManDate,
+                manufacture: manDate,
+                expectDelivery: expDelDate,
+                delivery: delDate,
+                expectReceipt: expRecDate,
+                receipt: recDate,
+            });
 
         }
-    }
+    }, [saleOrderDetails]);
 
     const generateInstallments = (count: number, total: number) => {
         //แบ่งให้เท่าๆกัน
@@ -474,40 +499,7 @@ export default function EditSaleOrder() {
         }
     }, [installments, paymentCondition, netTotal]);
 
-    const mockDataSaleOrder = [
-        {
-            className: "",
-            cells: [
-                { value: "1", className: "text-center" },
-                { value: "dd/mm/yy", className: "text-left" },
-                { value: "THB 10,000", className: "text-left" },
-                { value: "เต็มจำนวน", className: "text-left" },
-                { value: "ธนาคาร", className: "text-left" },
-                { value: "", className: "text-left" },
-
-            ],
-            data: {
-                color_name: "Red",
-                color_id: 1,
-            },
-        },
-        {
-            className: "",
-            cells: [
-                { value: "2", className: "text-center" },
-                { value: "dd/mm/yy", className: "text-left" },
-                { value: "THB 10,000", className: "text-left" },
-                { value: "เต็มจำนวน", className: "text-left" },
-                { value: "ธนาคาร", className: "text-left" },
-                { value: "", className: "text-left" },
-
-            ],
-            data: {
-                color_name: "Red",
-                color_id: 1,
-            },
-        }
-    ];
+    // removed unused mockDataSaleOrder
 
     const headers = [
         { label: "ลำดับ", colSpan: 1, className: "w-auto" },
@@ -548,9 +540,8 @@ export default function EditSaleOrder() {
     }, [Address]);
 
     useEffect(() => {
-        if (!Array.isArray(dataAddress)) return setCountryOptions([]);
-
-        const { options } = useResponseToOptions(dataAddress, "country_id", "country_name");
+        if (!Array.isArray(dataAddress)) { setCountryOptions([]); return; }
+    const options: OptionType[] = dataAddress.map((c: TypeAddressResponse) => ({ label: c.country_name, value: c.country_id }));
         setCountryOptions(options);
     }, [dataAddress]);
 
@@ -565,11 +556,10 @@ export default function EditSaleOrder() {
     }, [dataAddress]);
 
     useEffect(() => {
-        if (!Array.isArray(dataAddress)) return setProvinceOptions([]);
-
-        const selectedCountry = dataAddress.find(item => item.country_id === country);
-        const provinceList = selectedCountry?.province ?? [];
-        const { options } = useResponseToOptions(provinceList, "province_id", "province_name");
+        if (!Array.isArray(dataAddress)) { setProvinceOptions([]); return; }
+    const selectedCountry = dataAddress.find((item: TypeAddressResponse) => item.country_id === country);
+    const provinceList = selectedCountry?.province ?? [];
+    const options: OptionType[] = provinceList.map((p) => ({ label: p.province_name, value: p.province_id }));
         setProvinceOptions(options);
     }, [dataAddress, country]);
 
@@ -586,12 +576,11 @@ export default function EditSaleOrder() {
 
 
     useEffect(() => {
-        if (!Array.isArray(dataAddress)) return setDistrictOptions([]);
-
-        const selectedCountry = dataAddress.find(item => item.country_id === country);
-        const selectedProvince = selectedCountry?.province?.find(item => item.province_id === province);
-        const districtList = selectedProvince?.district ?? [];
-        const { options } = useResponseToOptions(districtList, "district_id", "district_name");
+        if (!Array.isArray(dataAddress)) { setDistrictOptions([]); return; }
+    const selectedCountry = dataAddress.find((item: TypeAddressResponse) => item.country_id === country);
+    const selectedProvince = selectedCountry?.province?.find((item) => item.province_id === province);
+    const districtList = selectedProvince?.district ?? [];
+    const options: OptionType[] = districtList.map((d) => ({ label: d.district_name, value: d.district_id }));
         setDistrictOptions(options);
     }, [dataAddress, country, province]);
 
@@ -609,7 +598,7 @@ export default function EditSaleOrder() {
 
 
     //fetch customer contact
-    const { data: dataCustomerContact, refetch: refetchCustomerContact } = useSelectCustomerContact({
+    const { data: dataCustomerContact } = useSelectCustomerContact({
         customerId,
         searchText: searchCustomerContact,
     })
@@ -629,7 +618,7 @@ export default function EditSaleOrder() {
     };
 
     //fetch customer address
-    const { data: dataCustomerAddress, refetch: refetchCustomerAddress } = useSelectCustomerAddress({
+    const { data: dataCustomerAddress } = useSelectCustomerAddress({
         customerId,
         searchText: searchCustomerAddress,
     })
@@ -688,34 +677,19 @@ export default function EditSaleOrder() {
     // };
 
     //fetch vat
-    const { data: dataVat, refetch: refetchVat } = useSelectVat({
-        searchText: searchVat
-    })
-    const fetchDataVatDropdown = async () => {
-        const vatList = dataVat?.responseObject.data ?? [];
-        return {
-            responseObject: vatList.map((Item: TypeVatResponse) => ({
-                id: Item.vat_id,
-                name: Item.vat_percentage,
-            }))
-        }
-    }
-    const handleVatSearch = (searchText: string) => {
-        setSearchVat(searchText);
-        refetchVat;
-    }
+    // const { data: dataVat } = useSelectVat({ searchText: searchVat })
     //เงื่อนไขการชำระเงิน
     const fetchPaymentCondition = async () => {
         return {
             responseObject: [
-                { id: 1, name: "เต็มจำนวน" },
-                { id: 2, name: "แบ่งชำระ" },
+                { value: "1", label: "เต็มจำนวน" },
+                { value: "2", label: "แบ่งชำระ" },
             ],
         };
     };
-    const mapPaymentTermNameToId = (name: string): number | null => {
-        if (name === "เต็มจำนวน") return 1;
-        if (name === "แบ่งชำระ") return 2;
+    const mapPaymentTermNameToId = (name: string): string | null => {
+        if (name === "เต็มจำนวน") return "1";
+        if (name === "แบ่งชำระ") return "2";
         return null;
     };
     //fetch Group Product
@@ -870,7 +844,7 @@ export default function EditSaleOrder() {
             else {
                 showToast("ไม่สามารถแก้ไขข้อมูลใบสั่งขายได้", false);
             }
-        } catch (error) {
+    } catch {
             showToast("ไม่สามารถแก้ไขข้อมูลใบสั่งขายได้", false);
         }
     };
@@ -1148,6 +1122,14 @@ export default function EditSaleOrder() {
         setPaymentDate(new Date(item.payment_date));
         setPaymentValue(item.amount_paid);
         setUpdatePaymentCondition(item.payment_term_name);
+        // ถ้าเป็นเต็มจำนวน ให้เซ็ตสถานะและกรอกยอดคงเหลือในรอบนี้
+        if (item.payment_term_name === "เต็มจำนวน") {
+            const remain = Number(remainingTotal || 0);
+            setIsFullPaymentEdit(true);
+            setPaymentValue(remain);
+        } else {
+            setIsFullPaymentEdit(false);
+        }
         setUpdatePaymentOption(item.payment_method.payment_method_id);
         setUpdatePaymentOptionName(item.payment_method.payment_method_name);
         setPaymentRemark(item.payment_remark);
@@ -1179,7 +1161,7 @@ export default function EditSaleOrder() {
         if (paymentLogId) {
             refetchPaymentFile();
         }
-    }, [paymentLogId]);
+    }, [paymentLogId, refetchPaymentFile]);
 
     useEffect(() => {
         if (dataPaymentFile?.responseObject) {
@@ -1222,6 +1204,7 @@ export default function EditSaleOrder() {
         }
 
         if (paymentValue > remainingTotal) {
+            setErrorFields((prev) => ({ ...prev, paymentValue: true }));
             showToast("จำนวนเงินที่ชำระมากกว่ายอดคงเหลือ", false);
             return;
         }
@@ -1240,9 +1223,12 @@ export default function EditSaleOrder() {
 
             if (response.statusCode === 200) {
                 showToast("สร้างประวัติการชำระเรียบร้อยแล้ว", true);
+                // ปิด modal เมื่อบันทึกสำเร็จ
+                setIsPaymentDialogOpen(false);
                 setPaymentDate(new Date());
                 setUpdatePaymentCondition(null);
                 setPaymentValue(0);
+                setIsFullPaymentCreate(false);
                 setUpdatePaymentOption(null);
                 setUploadedProve([]);
                 setUploadKey(prev => prev + 1);
@@ -1259,7 +1245,7 @@ export default function EditSaleOrder() {
             else {
                 showToast("ไม่สามารถอัพเดทการชำระได้", false);
             }
-        } catch (error) {
+    } catch {
             showToast("ไม่สามารถอัพเดทการชำระได้", false);
         }
     };
@@ -1281,6 +1267,7 @@ export default function EditSaleOrder() {
         }
 
         if (paymentValue > remainingTotal) {
+            setErrorFields((prev) => ({ ...prev, editPaymentValue: true }));
             showToast("จำนวนเงินที่ชำระมากกว่ายอดคงเหลือ", false);
             return;
         }
@@ -1304,9 +1291,12 @@ export default function EditSaleOrder() {
 
             if (response.statusCode === 200) {
                 showToast("อัพเดทการชำระเรียบร้อยแล้ว", true);
+                // ปิด modal เมื่อบันทึกสำเร็จ
+                setIsEditDialogOpen(false);
                 setPaymentDate(new Date());
                 setUpdatePaymentCondition(null);
                 setPaymentValue(0);
+                setIsFullPaymentEdit(false);
                 setUpdatePaymentOption(null);
                 setUploadedProve([]);
                 setUploadKey(prev => prev + 1);
@@ -1325,7 +1315,7 @@ export default function EditSaleOrder() {
             else {
                 showToast("ไม่สามารถอัพเดทการชำระได้", false);
             }
-        } catch (error) {
+    } catch {
             showToast("ไม่สามารถอัพเดทการชำระได้", false);
         }
     };
@@ -1350,142 +1340,100 @@ export default function EditSaleOrder() {
             else {
                 showToast("ไม่สามารถลบประวัติชำระเงินได้", false);
             }
-        } catch (error) {
+    } catch {
             showToast("ไม่สามารถลบประวัติชำระเงินได้", false);
         }
     };
     // handle status
-    const handleConfirmExpectManufacture = async () => {
-        if (!expectManufactureDate) {
-            showToast("กรุณาระบุวัน", false);
-            return;
-        }
-
+    const handleConfirmExpectManufacture = async (selectedDate: Date | null) => {
+        if (!selectedDate) { showToast("กรุณาระบุวัน", false); return; }
+        setSavingStatus((s) => ({ ...s, expectManufacture: true }));
+        setExpectManufactureDate(selectedDate);
         try {
             const response = await updateExpectManufacture(saleOrderId, {
-                expected_manufacture_factory_date: expectManufactureDate ? dayjs(expectManufactureDate).format("YYYY-MM-DD") : ""
+                expected_manufacture_factory_date: dayjs(selectedDate).format("YYYY-MM-DD")
             });
-
-            if (response.statusCode === 200) {
-                showToast("อัพเดทสถานะเรียบร้อย", true);
-                refetchSaleOrder();
-            }
-            else {
-                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-            }
-        } catch (error) {
-            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-        }
+            if (response.statusCode === 200) { showToast("บันทึกแล้ว", true); refetchSaleOrder(); }
+            else { setExpectManufactureDate(initialStatusDates.expectManufacture); showToast("บันทึกไม่สำเร็จ", false); }
+        } catch {
+            setExpectManufactureDate(initialStatusDates.expectManufacture);
+            showToast("บันทึกไม่สำเร็จ", false);
+        } finally { setSavingStatus((s) => ({ ...s, expectManufacture: false })); }
     }
-    const handleConfirmManufacture = async () => {
-        if (!manufactureDate) {
-            showToast("กรุณาระบุวัน", false);
-            return;
-        }
-
+    const handleConfirmManufacture = async (selectedDate: Date | null) => {
+        if (!selectedDate) { showToast("กรุณาระบุวัน", false); return; }
+        setSavingStatus((s) => ({ ...s, manufacture: true }));
+        setManufactureDate(selectedDate);
         try {
             const response = await updateManufacture(saleOrderId, {
-                manufacture_factory_date: manufactureDate ? dayjs(manufactureDate).format("YYYY-MM-DD") : ""
+                manufacture_factory_date: dayjs(selectedDate).format("YYYY-MM-DD")
             });
-
-            if (response.statusCode === 200) {
-                showToast("อัพเดทสถานะเรียบร้อย", true);
-                refetchSaleOrder();
-            }
-            else {
-                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-            }
-        } catch (error) {
-            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-        }
+            if (response.statusCode === 200) { showToast("บันทึกแล้ว", true); refetchSaleOrder(); }
+            else { setManufactureDate(initialStatusDates.manufacture); showToast("บันทึกไม่สำเร็จ", false); }
+        } catch {
+            setManufactureDate(initialStatusDates.manufacture);
+            showToast("บันทึกไม่สำเร็จ", false);
+        } finally { setSavingStatus((s) => ({ ...s, manufacture: false })); }
     }
-    const handleConfirmExpectDelivery = async () => {
-        if (!expectDeliveryDate) {
-            showToast("กรุณาระบุวัน", false);
-            return;
-        }
-
+    const handleConfirmExpectDelivery = async (selectedDate: Date | null) => {
+        if (!selectedDate) { showToast("กรุณาระบุวัน", false); return; }
+        setSavingStatus((s) => ({ ...s, expectDelivery: true }));
+        setExpectDeliveryDate(selectedDate);
         try {
             const response = await updateExpectDelivery(saleOrderId, {
-                expected_delivery_date_success: expectDeliveryDate ? dayjs(expectDeliveryDate).format("YYYY-MM-DD") : ""
+                expected_delivery_date_success: dayjs(selectedDate).format("YYYY-MM-DD")
             });
-
-            if (response.statusCode === 200) {
-                showToast("อัพเดทสถานะเรียบร้อย", true);
-                refetchSaleOrder();
-            }
-            else {
-                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-            }
-        } catch (error) {
-            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-        }
+            if (response.statusCode === 200) { showToast("บันทึกแล้ว", true); refetchSaleOrder(); }
+            else { setExpectDeliveryDate(initialStatusDates.expectDelivery); showToast("บันทึกไม่สำเร็จ", false); }
+        } catch {
+            setExpectDeliveryDate(initialStatusDates.expectDelivery);
+            showToast("บันทึกไม่สำเร็จ", false);
+        } finally { setSavingStatus((s) => ({ ...s, expectDelivery: false })); }
     }
-    const handleConfirmDelivery = async () => {
-        if (!deliveryDate) {
-            showToast("กรุณาระบุวัน", false);
-            return;
-        }
-
+    const handleConfirmDelivery = async (selectedDate: Date | null) => {
+        if (!selectedDate) { showToast("กรุณาระบุวัน", false); return; }
+        setSavingStatus((s) => ({ ...s, delivery: true }));
+        setDeliveryDate(selectedDate);
         try {
             const response = await updateDelivery(saleOrderId, {
-                delivery_date_success: deliveryDate ? dayjs(deliveryDate).format("YYYY-MM-DD") : ""
+                delivery_date_success: dayjs(selectedDate).format("YYYY-MM-DD")
             });
-
-            if (response.statusCode === 200) {
-                showToast("อัพเดทสถานะเรียบร้อย", true);
-                refetchSaleOrder();
-            }
-            else {
-                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-            }
-        } catch (error) {
-            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-        }
+            if (response.statusCode === 200) { showToast("บันทึกแล้ว", true); refetchSaleOrder(); }
+            else { setDeliveryDate(initialStatusDates.delivery); showToast("บันทึกไม่สำเร็จ", false); }
+        } catch {
+            setDeliveryDate(initialStatusDates.delivery);
+            showToast("บันทึกไม่สำเร็จ", false);
+        } finally { setSavingStatus((s) => ({ ...s, delivery: false })); }
     }
-    const handleConfirmExpectReceipt = async () => {
-        if (!expectReceiptDate) {
-            showToast("กรุณาระบุวัน", false);
-            return;
-        }
-
+    const handleConfirmExpectReceipt = async (selectedDate: Date | null) => {
+        if (!selectedDate) { showToast("กรุณาระบุวัน", false); return; }
+        setSavingStatus((s) => ({ ...s, expectReceipt: true }));
+        setExpectReceiptDate(selectedDate);
         try {
             const response = await updateExpectReceipt(saleOrderId, {
-                expected_receipt_date: expectReceiptDate ? dayjs(expectReceiptDate).format("YYYY-MM-DD") : ""
+                expected_receipt_date: dayjs(selectedDate).format("YYYY-MM-DD")
             });
-
-            if (response.statusCode === 200) {
-                showToast("อัพเดทสถานะเรียบร้อย", true);
-                refetchSaleOrder();
-            }
-            else {
-                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-            }
-        } catch (error) {
-            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-        }
+            if (response.statusCode === 200) { showToast("บันทึกแล้ว", true); refetchSaleOrder(); }
+            else { setExpectReceiptDate(initialStatusDates.expectReceipt); showToast("บันทึกไม่สำเร็จ", false); }
+        } catch {
+            setExpectReceiptDate(initialStatusDates.expectReceipt);
+            showToast("บันทึกไม่สำเร็จ", false);
+        } finally { setSavingStatus((s) => ({ ...s, expectReceipt: false })); }
     }
-    const handleConfirmReceipt = async () => {
-        if (!receiptDate) {
-            showToast("กรุณาระบุวัน", false);
-            return;
-        }
-
+    const handleConfirmReceipt = async (selectedDate: Date | null) => {
+        if (!selectedDate) { showToast("กรุณาระบุวัน", false); return; }
+        setSavingStatus((s) => ({ ...s, receipt: true }));
+        setReceiptDate(selectedDate);
         try {
             const response = await updateReceipt(saleOrderId, {
-                receipt_date: receiptDate ? dayjs(receiptDate).format("YYYY-MM-DD") : ""
+                receipt_date: dayjs(selectedDate).format("YYYY-MM-DD")
             });
-
-            if (response.statusCode === 200) {
-                showToast("อัพเดทสถานะเรียบร้อย", true);
-                refetchSaleOrder();
-            }
-            else {
-                showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-            }
-        } catch (error) {
-            showToast("ไม่สามารถอัพเดทสถานะเรียบร้อยได้", false);
-        }
+            if (response.statusCode === 200) { showToast("บันทึกแล้ว", true); refetchSaleOrder(); }
+            else { setReceiptDate(initialStatusDates.receipt); showToast("บันทึกไม่สำเร็จ", false); }
+        } catch {
+            setReceiptDate(initialStatusDates.receipt);
+            showToast("บันทึกไม่สำเร็จ", false);
+        } finally { setSavingStatus((s) => ({ ...s, receipt: false })); }
     }
     const remainingTotal = dataSaleOrder?.grand_total - dataSaleOrder?.totalAmountPaid;
 
@@ -1566,6 +1514,37 @@ export default function EditSaleOrder() {
 
                             />
                         </div>
+                        {/* คัดลอกที่อยู่จากลูกค้า (เติมอัตโนมัติ) */}
+                        <div className="">
+                            <MasterSelectComponent
+                                id="customer-address"
+                                onChange={(option) => {
+                                    const selectedId = option ? String(option.value) : null;
+                                    setCustomerAddress(selectedId);
+
+                                    if (selectedId) {
+                                        const selected = customerAddressOptions.find(item => item.address_id === selectedId);
+                                        if (selected) {
+                                            setPlaceName(selected.place_name)
+                                            setAddress(selected.address)
+                                            setCountry(selected.country.country_id)
+                                            setProvince(selected.province.province_id)
+                                            setDistrict(selected.district.district_id)
+                                        }
+                                    }
+                                }}
+                                fetchDataFromGetAPI={fetchDataCustomerAddressDropdown}
+                                onInputChange={handleCustomerAddressSearch}
+                                valueKey="id"
+                                labelKey="name"
+                                label="คัดลอกที่อยู่จากลูกค้า (อัตโนมัติ)"
+                                placeholder="กรุณาเลือก..."
+                                classNameLabel="w-1/2 flex"
+                                classNameSelect="w-full "
+                                nextFields={{ up: "date-delivery", down: "province" }}
+                            />
+                            <p className="text-xs text-slate-500 mt-1">เมื่อเลือก ระบบจะกรอก ชื่อสถานที่, ที่อยู่, ประเทศ, จังหวัด และอำเภอ ให้อัตโนมัติ</p>
+                        </div>
                         <div className="">
                             <DependentSelectComponent
                                 id="province"
@@ -1636,39 +1615,9 @@ export default function EditSaleOrder() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 require="require"
-                                nextFields={{ up: "district", down: "customer-address" }}
+                                nextFields={{ up: "district", down: "contact-person" }}
                                 isError={errorFields.address}
 
-                            />
-                        </div>
-                        <div className="">
-                            <MasterSelectComponent
-                                id="customer-address"
-                                onChange={(option) => {
-                                    const selectedId = option ? String(option.value) : null;
-                                    setCustomerAddress(selectedId);
-
-                                    if (selectedId) {
-                                        const selected = customerAddressOptions.find(item => item.address_id === selectedId);
-                                        if (selected) {
-                                            setPlaceName(selected.place_name)
-                                            setAddress(selected.address)
-                                            setCountry(selected.country.country_id)
-                                            setProvince(selected.province.province_id)
-                                            setDistrict(selected.district.district_id)
-                                        }
-                                    }
-                                }}
-                                fetchDataFromGetAPI={fetchDataCustomerAddressDropdown}
-                                onInputChange={handleCustomerAddressSearch}
-                                valueKey="id"
-                                labelKey="name"
-                                label="ที่อยู่หลักของลูกค้า"
-                                placeholder="กรุณาเลือก..."
-                                classNameLabel="w-1/2 flex"
-                                classNameSelect="w-full "
-                                nextFields={{ up: "address", down: "contact-person" }}
-                            
                             />
                         </div>
 
@@ -1680,6 +1629,35 @@ export default function EditSaleOrder() {
                     <div className="border-b-2 border-main mb-6"></div>
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
+                        {/* คัดลอกผู้ติดต่อลูกค้า (เติมอัตโนมัติ) */}
+                        <div className="">
+                            <MasterSelectComponent
+                                id="customer-contact"
+                                onChange={(option) => {
+                                    const selectedId = option ? String(option.value) : null;
+                                    setCustomerContact(selectedId);
+
+                                    if (selectedId) {
+                                        const selected = customerContactOptions.find(item => item.customer_contact_id === selectedId);
+                                        if (selected) {
+                                            setContactPerson(selected.name)
+                                            setEmailContact(selected.email)
+                                            setTelNoContact(selected.phone)
+                                        }
+                                    }
+                                }}
+                                fetchDataFromGetAPI={fetchDataCustomerContactDropdown}
+                                onInputChange={handleCustomerContactSearch}
+                                valueKey="id"
+                                labelKey="name"
+                                label="คัดลอกผู้ติดต่อลูกค้า (อัตโนมัติ)"
+                                placeholder="กรุณาเลือก..."
+                                classNameLabel="w-1/2 flex"
+                                classNameSelect="w-full "
+                                nextFields={{ up: "address", down: "contact-person" }}
+                            />
+                            <p className="text-xs text-slate-500 mt-1">เมื่อเลือก ระบบจะกรอก ชื่อผู้ติดต่อ, อีเมล และเบอร์โทร ให้อัตโนมัติ</p>
+                        </div>
                         <div className="">
                             <InputAction
                                 id="contact-person"
@@ -1691,7 +1669,7 @@ export default function EditSaleOrder() {
                                 classNameLabel="w-1/2 flex "
                                 classNameInput="w-full"
                                 require="require"
-                                nextFields={{ up: "customer-address", down: "telno-contact" }}
+                                nextFields={{ up: "customer-contact", down: "telno-contact" }}
                                 isError={errorFields.contactPerson}
 
                             />
@@ -1731,33 +1709,7 @@ export default function EditSaleOrder() {
 
                             />
                         </div>
-                        <div className="">
-                            <MasterSelectComponent
-                                id="customer-contact"
-                                onChange={(option) => {
-                                    const selectedId = option ? String(option.value) : null;
-                                    setCustomerContact(selectedId);
-
-                                    if (selectedId) {
-                                        const selected = customerContactOptions.find(item => item.customer_contact_id === selectedId);
-                                        if (selected) {
-                                            setContactPerson(selected.name)
-                                            setEmailContact(selected.email)
-                                            setTelNoContact(selected.phone)
-                                        }
-                                    }
-                                }}
-                                fetchDataFromGetAPI={fetchDataCustomerContactDropdown}
-                                onInputChange={handleCustomerContactSearch}
-                                valueKey="id"
-                                labelKey="name"
-                                label="ผู้ติดต่อหลักของลูกค้า"
-                                placeholder="กรุณาเลือก..."
-                                classNameLabel="w-1/2 flex"
-                                classNameSelect="w-full "
-                                nextFields={{ up: "email-contact", down: "customer" }}
-                            />
-                        </div>
+                        
                     </div>
                 </div>
                 <div className="flex justify-end mt-5">
@@ -2451,22 +2403,16 @@ export default function EditSaleOrder() {
                                             <label className="text-md font-medium text-gray-700">
                                                 วันที่คาดว่าจะผลิตเสร็จ
                                             </label>
-                                            <button
-                                                onClick={handleConfirmExpectManufacture}
-                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
-                                            >
-                                                <FiCheck size={16} />
-                                            </button>
-
+                                            {savingStatus.expectManufacture && <span className="text-xs text-slate-500">กำลังบันทึก…</span>}
                                         </div>
-
                                         <DatePickerComponent
                                             selectedDate={expectManufactureDate}
-                                            onChange={setExpectManufactureDate}
+                                            onChange={(d) => handleConfirmExpectManufacture(d)}
                                             placeholder="dd/mm/yy"
                                             required
                                             classNameInput="w-full"
                                         />
+                                        <p className="text-xs text-slate-500">เลือกวันที่แล้วบันทึกอัตโนมัติ</p>
                                     </div>
 
                                     {/* วันที่ผลิตเสร็จจริง */}
@@ -2475,21 +2421,16 @@ export default function EditSaleOrder() {
                                             <label className="text-md font-medium text-slate-700">
                                                 วันที่ผลิตเสร็จจริง
                                             </label>
-                                            <button
-                                                onClick={handleConfirmManufacture}
-                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
-                                            >
-                                                <FiCheck size={16} />
-                                            </button>
+                                            {savingStatus.manufacture && <span className="text-xs text-slate-500">กำลังบันทึก…</span>}
                                         </div>
                                         <DatePickerComponent
                                             selectedDate={manufactureDate}
-                                            onChange={setManufactureDate}
+                                            onChange={(d) => handleConfirmManufacture(d)}
                                             placeholder="dd/mm/yy"
                                             required
                                             classNameInput="w-full"
                                         />
-
+                                        <p className="text-xs text-slate-500">เลือกวันที่แล้วบันทึกอัตโนมัติ</p>
                                     </div>
                                 </div>
                             </div>
@@ -2510,22 +2451,16 @@ export default function EditSaleOrder() {
                                             <label className="text-md font-medium text-slate-700">
                                                 วันที่คาดว่าจะจัดส่งเสร็จ
                                             </label>
-                                            <button
-                                                onClick={handleConfirmExpectDelivery}
-                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
-                                            >
-                                                <FiCheck size={16} />
-                                            </button>
+                                            {savingStatus.expectDelivery && <span className="text-xs text-slate-500">กำลังบันทึก…</span>}
                                         </div>
                                         <DatePickerComponent
                                             selectedDate={expectDeliveryDate}
-                                            onChange={setExpectDeliveryDate}
+                                            onChange={(d) => handleConfirmExpectDelivery(d)}
                                             placeholder="dd/mm/yy"
                                             required
                                             classNameInput="w-full"
                                         />
-
-
+                                        <p className="text-xs text-slate-500">เลือกวันที่แล้วบันทึกอัตโนมัติ</p>
                                     </div>
 
                                     {/* วันจัดส่งสินค้าเสร็จจริง */}
@@ -2534,21 +2469,16 @@ export default function EditSaleOrder() {
                                             <label className="text-md font-medium text-slate-700">
                                                 วันจัดส่งสินค้าเสร็จจริง
                                             </label>
-                                            <button
-                                                onClick={handleConfirmDelivery}
-                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
-                                            >
-                                                <FiCheck size={16} />
-                                            </button>
+                                            {savingStatus.delivery && <span className="text-xs text-slate-500">กำลังบันทึก…</span>}
                                         </div>
                                         <DatePickerComponent
                                             selectedDate={deliveryDate}
-                                            onChange={setDeliveryDate}
+                                            onChange={(d) => handleConfirmDelivery(d)}
                                             placeholder="dd/mm/yy"
                                             required
                                             classNameInput="w-full"
                                         />
-
+                                        <p className="text-xs text-slate-500">เลือกวันที่แล้วบันทึกอัตโนมัติ</p>
                                     </div>
                                 </div>
                             </div>
@@ -2569,21 +2499,16 @@ export default function EditSaleOrder() {
                                             <label className="text-md font-medium text-slate-700">
                                                 วันที่คาดว่าจะได้รับสินค้า
                                             </label>
-                                            <button
-                                                onClick={handleConfirmExpectReceipt}
-                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
-                                            >
-                                                <FiCheck size={16} />
-                                            </button>
+                                            {savingStatus.expectReceipt && <span className="text-xs text-slate-500">กำลังบันทึก…</span>}
                                         </div>
                                         <DatePickerComponent
                                             selectedDate={expectReceiptDate}
-                                            onChange={setExpectReceiptDate}
+                                            onChange={(d) => handleConfirmExpectReceipt(d)}
                                             placeholder="dd/mm/yy"
                                             required
                                             classNameInput="w-full"
                                         />
-
+                                        <p className="text-xs text-slate-500">เลือกวันที่แล้วบันทึกอัตโนมัติ</p>
                                     </div>
 
                                     {/* วันที่ได้รับสินค้าจริง */}
@@ -2592,21 +2517,16 @@ export default function EditSaleOrder() {
                                             <label className="text-md font-medium text-slate-700">
                                                 วันที่ได้รับสินค้าจริง <span style={{ color: "red" }}>*</span>
                                             </label>
-                                            <button
-                                                onClick={handleConfirmReceipt}
-                                                className="p-1 rounded bg-green-400 hover:bg-green-500 text-white"
-                                            >
-                                                <FiCheck size={16} />
-                                            </button>
+                                            {savingStatus.receipt && <span className="text-xs text-slate-500">กำลังบันทึก…</span>}
                                         </div>
                                         <DatePickerComponent
                                             selectedDate={receiptDate}
-                                            onChange={setReceiptDate}
+                                            onChange={(d) => handleConfirmReceipt(d)}
                                             placeholder="dd/mm/yy"
                                             required
                                             classNameInput="w-full"
                                         />
-
+                                        <p className="text-xs text-slate-500">เลือกวันที่แล้วบันทึกอัตโนมัติ</p>
                                     </div>
                                 </div>
                             </div>
@@ -2629,7 +2549,6 @@ export default function EditSaleOrder() {
                                     const labelColor = getStatusColor(status.sale_order_status);
                                     let label = "";
                                     let dateValue = "";
-                                    let remark = "";
                                     if (status.expected_manufacture_factory_date) {
                                         label = "วันที่คาดว่าจะผลิตเสร็จ";
                                         dateValue = new Date(status.expected_manufacture_factory_date).toLocaleDateString("th-TH");
@@ -2650,9 +2569,7 @@ export default function EditSaleOrder() {
                                         dateValue = new Date(status.receipt_date).toLocaleDateString("th-TH");
                                     }
 
-                                    if (["สำเร็จ", "ไม่สำเร็จ"].includes(status.sale_order_status)) {
-                                        remark = status.sale_order_status_remark || "-";
-                                    }
+                                    // หมายเหตุจะแสดงจาก status.sale_order_status_remark โดยตรงด้านล่างเมื่อสถานะเป็น สำเร็จ/ไม่สำเร็จ
 
 
                                     const createdDate = status.created_at
@@ -2741,27 +2658,30 @@ export default function EditSaleOrder() {
                         required
                         isError={errorFields.paymentDate}
                     />
-
                     <MasterSelectComponent
                         id="payment-condition"
                         onChange={(option) => {
-                            const condition = option ? String(option.name) : null;
+                            const condition = option ? String(option.label) : null;
                             setUpdatePaymentCondition(condition);
-
+                            const remain = Number(remainingTotal || 0);
                             if (condition === "เต็มจำนวน") {
-                                setPaymentValue(remainingTotal);
+                                setIsFullPaymentCreate(true);
+                                setPaymentValue(remain);
+                                setErrorFields((prev) => ({ ...prev, paymentValue: false }));
+                            } else {
+                                setIsFullPaymentCreate(false);
                             }
                         }}
                         fetchDataFromGetAPI={fetchPaymentCondition}
-                        valueKey="id"
-                        labelKey="name"
+                        valueKey="value"
+                        labelKey="label"
                         placeholder="กรุณาเลือก..."
                         isClearable
                         label="เงื่อนไขชำระเงิน"
-                        labelOrientation="horizontal"
                         onAction={handleCreatePaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex"
                         classNameSelect="w-full "
+                        key={`create-paycond-${updatePaymentCondition ?? 'none'}`}
                         nextFields={{ up: "payment-date", down: "payment-value" }}
                         require="require"
                         isError={errorFields.updatePaymentCondition}
@@ -2770,17 +2690,32 @@ export default function EditSaleOrder() {
                     <InputAction
                         id="payment-value"
                         placeholder=""
-                        onChange={(e) => setPaymentValue(Number(e.target.value))}
+                        type="number"
+                        onChange={(e) => {
+                            const remain = Number(remainingTotal || 0);
+                            const raw = Number(e.target.value);
+                            const clamped = Math.max(0, Math.min(raw, remain));
+                            setPaymentValue(Number.isFinite(clamped) ? clamped : 0);
+                            if (raw > remain) {
+                                setErrorFields((prev) => ({ ...prev, paymentValue: true }));
+                            } else {
+                                setErrorFields((prev) => ({ ...prev, paymentValue: false }));
+                            }
+                        }}
                         value={paymentValue.toString()}
                         label="เงินที่จะชำระ"
                         labelOrientation="horizontal"
                         onAction={handleCreatePaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex "
                         classNameInput="w-full text-end pe-3"
+                        disabled={isFullPaymentCreate}
                         nextFields={{ up: "payment-condition", down: "payment-option" }}
                         require="require"
                         isError={errorFields.paymentValue}
                     />
+                    <div className="text-xs text-gray-500 text-right -mt-4 mb-2">
+                        ยอดคงเหลือ: {Number(remainingTotal || 0).toFixed(2)} บาท{isFullPaymentCreate ? " • ระบบกรอกให้อัตโนมัติ (เต็มจำนวน)" : ""}
+                    </div>
                     <MasterSelectComponent
                         id="payment-option"
                         onChange={(option) => setUpdatePaymentOption(option ? String(option.value) : null)}
@@ -2791,7 +2726,6 @@ export default function EditSaleOrder() {
                         placeholder="กรุณาเลือก..."
                         isClearable
                         label="วิธีการชำระเงิน"
-                        labelOrientation="horizontal"
                         onAction={handleCreatePaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex"
                         classNameSelect="w-full "
@@ -2853,25 +2787,34 @@ export default function EditSaleOrder() {
                     <MasterSelectComponent
                         id="payment-condition"
                         onChange={(option) => {
-                            const condition = option ? String(option.name) : null;
+                            const condition = option ? String(option.label) : null;
                             setUpdatePaymentCondition(condition);
-
+                            console.log(condition)
+                            console.log(option)
+                            const remain = Number(remainingTotal || 0);
                             if (condition === "เต็มจำนวน") {
-                                const newValue = paymentValue + remainingTotal
-                                setPaymentValue(newValue);
+                                setIsFullPaymentEdit(true);
+                                setPaymentValue(remain);
+                                setErrorFields((prev) => ({ ...prev, editPaymentValue: false }));
+                            } else {
+                                setIsFullPaymentEdit(false);
                             }
                         }}
                         fetchDataFromGetAPI={fetchPaymentCondition}
-                        valueKey="id"
-                        labelKey="name"
+                        valueKey="value"
+                        labelKey="label"
                         placeholder="กรุณาเลือก..."
                         isClearable
                         label="เงื่อนไขชำระเงิน"
-                        labelOrientation="horizontal"
                         onAction={handleCreatePaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex"
                         classNameSelect="w-full "
-                        defaultValue={{ label: updatePaymentCondition, value: mapPaymentTermNameToId(updatePaymentCondition) }}
+                        key={`edit-paycond-${paymentLogId}-${updatePaymentCondition ?? 'none'}`}
+                        defaultValue={
+                            updatePaymentCondition
+                                ? { label: updatePaymentCondition, value: mapPaymentTermNameToId(updatePaymentCondition) }
+                                : undefined
+                        }
                         nextFields={{ up: "payment-date", down: "payment-value" }}
                         require="require"
                         isError={errorFields.editUpdatePaymentCondition}
@@ -2880,17 +2823,32 @@ export default function EditSaleOrder() {
                     <InputAction
                         id="payment-value"
                         placeholder=""
-                        onChange={(e) => setPaymentValue(Number(e.target.value))}
+                        type="number"
+                        onChange={(e) => {
+                            const remain = Number(remainingTotal || 0);
+                            const raw = Number(e.target.value);
+                            const clamped = Math.max(0, Math.min(raw, remain));
+                            setPaymentValue(Number.isFinite(clamped) ? clamped : 0);
+                            if (raw > remain) {
+                                setErrorFields((prev) => ({ ...prev, editPaymentValue: true }));
+                            } else {
+                                setErrorFields((prev) => ({ ...prev, editPaymentValue: false }));
+                            }
+                        }}
                         value={paymentValue.toString()}
                         label="เงินที่จะชำระ"
                         labelOrientation="horizontal"
                         onAction={handleEditPaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex "
                         classNameInput="w-full text-end pe-3"
+                        disabled={isFullPaymentEdit}
                         nextFields={{ up: "payment-condition", down: "payment-condition" }}
                         require="require"
                         isError={errorFields.editPaymentValue}
                     />
+                    <div className="text-xs text-gray-500 text-right -mt-4 mb-2">
+                        ยอดคงเหลือ: {Number(remainingTotal || 0).toFixed(2)} บาท{isFullPaymentEdit ? " • ระบบกรอกให้อัตโนมัติ (เต็มจำนวน)" : ""}
+                    </div>
 
                     <MasterSelectComponent
                         id="payment-option"
@@ -2902,7 +2860,6 @@ export default function EditSaleOrder() {
                         placeholder="กรุณาเลือก..."
                         isClearable
                         label="วิธีการชำระเงิน"
-                        labelOrientation="horizontal"
                         onAction={handleEditPaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex"
                         classNameSelect="w-full "

@@ -1,8 +1,4 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import MasterTableFeature from "@/components/customs/display/master.main.component";
-import DialogComponent from "@/components/customs/dialog/dialog.main.component";
-import InputAction from "@/components/customs/input/input.main.component";
-// import { getQuotationData } from "@/services/ms.quotation.service.ts";
 import {
   BarChart,
   Bar,
@@ -11,22 +7,16 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  LabelList,
   Cell,
   Legend,
   Pie,
-  PieChart
-} from 'recharts';
-import { Table, Box, Text } from "@radix-ui/themes";
-// import { useToast } from "@/components/customs/alert/ToastContext"; // not used currently
-
-//
+  PieChart,
+} from "recharts";
+import { Table } from "@radix-ui/themes";
 import { useSearchParams } from "react-router-dom";
-
-import SalesForecastTable from "@/components/customs/display/forcast.main.component";
-
-import MasterSelectComponent, { OptionType } from "@/components/customs/select/select.main.component";
-
+import MasterSelectComponent, {
+  OptionType,
+} from "@/components/customs/select/select.main.component";
 import { useSelectTag } from "@/hooks/useCustomerTag";
 import { TypeTagColorResponse } from "@/types/response/response.tagColor";
 import Buttons from "@/components/customs/button/button.main.component";
@@ -40,13 +30,11 @@ import { FiPrinter } from "react-icons/fi";
 import html2canvas from "html2canvas-pro";
 import { useSalesForecastSummary } from "@/hooks/useDashboard";
 
-
 // (Removed unused dateTableType definition)
 
 //
 export default function ReportCategorySale() {
   // Removed unused local states (searchText, colorsName, data)
-
 
   const [tagId, setTagId] = useState<string | null>(null);
 
@@ -56,7 +44,9 @@ export default function ReportCategorySale() {
   const [team, setTeam] = useState<string | null>(null);
   const [teamOptions, setTeamOptions] = useState<OptionType[]>([]);
   const [responsible, setResponsible] = useState<string | null>(null);
-  const [responsibleOptions, setResponsibleOptions] = useState<OptionType[]>([]);
+  const [responsibleOptions, setResponsibleOptions] = useState<OptionType[]>(
+    []
+  );
   // const { showToast } = useToast(); // reserved for future error toasts
   const [searchParams] = useSearchParams();
   const page = searchParams.get("page") ?? "1";
@@ -67,15 +57,11 @@ export default function ReportCategorySale() {
   const [searchTeam, setSearchTeam] = useState("");
   // const [searchYear, setSearchYear] = useState(""); // (reserved) not yet used explicitly
 
-
-
   const chartRef1 = useRef<HTMLDivElement>(null);
   const chartRef2 = useRef<HTMLDivElement>(null);
   const chartRef3 = useRef<HTMLDivElement>(null);
 
-
   const handleOpenPdf = async () => {
-
     if (chartRef2.current) {
       const canvas1 = await html2canvas(chartRef1.current);
       const canvas2 = await html2canvas(chartRef2.current);
@@ -84,9 +70,33 @@ export default function ReportCategorySale() {
       const image2 = canvas2.toDataURL("image/png");
       const image3 = canvas3.toDataURL("image/png");
 
-      const blob = await pdf(<ReportCategoryPDF chartImage1={image1} chartImage2={image2} chartImage3={image3} />).toBlob();
+      // build printable data
+      const startLabel = formatDisplayDate(displayStartDate);
+      const endLabel = formatDisplayDate(displayEndDate);
+      const monthsForPdf = months;
+      const salesTableForPdf = salesDataTable.map(r => ({ label: r.label, values: r.values }));
+      const quotationForPdf = quotationData.map(q => ({ month: q.month, realValue: q.realValue, predictValue: q.predictValue }));
+      const realValuesForPdf = realValues.map(r => ({ priority: r.priority, amount: r.amount, percent: Math.round((r.percent + Number.EPSILON) * 100) / 100, value: r.value }));
+      const predictValuesForPdf = predictValues.map(r => ({ priority: r.priority, amount: r.amount, percent: Math.round((r.percent + Number.EPSILON) * 100) / 100, value: r.value }));
+
+      const blob = await pdf(
+        <ReportCategoryPDF
+          chartImage1={image1}
+          chartImage2={image2}
+          chartImage3={image3}
+          startDate={startLabel}
+          endDate={endLabel}
+          tagName={displayTagName}
+          teamName={displayTeamName}
+          months={monthsForPdf}
+          salesDataTable={salesTableForPdf}
+          quotationData={quotationForPdf}
+          realValues={realValuesForPdf}
+          predictValues={predictValuesForPdf}
+        />
+      ).toBlob();
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      window.open(url, "_blank");
     }
   };
   //fetch ข้อมูล tag ลูกค้า
@@ -129,12 +139,15 @@ export default function ReportCategorySale() {
     searchText: searchTeam,
   });
   const fetchDataTeamDropdown = async () => {
-  const teamList: { team_id: string; name: string }[] = dataTeam?.responseObject.data ?? [];
-    const responseObject = teamList.map(t => ({ id: t.team_id, name: t.name }));
-    setTeamOptions(responseObject.map(r=> ({ value: r.id, label: r.name })));
+    const teamList: { team_id: string; name: string }[] =
+      dataTeam?.responseObject.data ?? [];
+    const responseObject = teamList.map((t) => ({
+      id: t.team_id,
+      name: t.name,
+    }));
+    setTeamOptions(responseObject.map((r) => ({ value: r.id, label: r.name })));
     return { responseObject };
   };
-
 
   const handleTeamSearch = (searchText: string) => {
     setSearchTeam(searchText);
@@ -142,12 +155,20 @@ export default function ReportCategorySale() {
   };
   //fetch Member in team
   const fetchDataMemberInteam = async () => {
-  const member: { employee_id: string; first_name: string; last_name?: string }[] = dataTeamMember?.responseObject.data.member ?? [];
-    const responseObject = member.map(m => ({ id: m.employee_id, name: `${m.first_name} ${m.last_name || ''}`.trim() }));
-    setResponsibleOptions(responseObject.map(r=> ({ value: r.id, label: r.name })));
+    const member: {
+      employee_id: string;
+      first_name: string;
+      last_name?: string;
+    }[] = dataTeamMember?.responseObject.data.member ?? [];
+    const responseObject = member.map((m) => ({
+      id: m.employee_id,
+      name: `${m.first_name} ${m.last_name || ""}`.trim(),
+    }));
+    setResponsibleOptions(
+      responseObject.map((r) => ({ value: r.id, label: r.name }))
+    );
     return { responseObject };
   };
-
 
   // ===== Sales Forecast Summary Integration =====
   // Build payload only when user searches to avoid spamming queries while typing/filtering.
@@ -160,15 +181,88 @@ export default function ReportCategorySale() {
     tag_id?: string;
   }
   const [payload, setPayload] = useState<SummaryPayload | null>(null);
-  const monthNames = useMemo(()=> ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'], []);
+  const monthNames = useMemo(
+    () => [
+      "ม.ค.",
+      "ก.พ.",
+      "มี.ค.",
+      "เม.ย.",
+      "พ.ค.",
+      "มิ.ย.",
+      "ก.ค.",
+      "ส.ค.",
+      "ก.ย.",
+      "ต.ค.",
+      "พ.ย.",
+      "ธ.ค.",
+    ],
+    []
+  );
+
+  // Full Thai month names for display like "1 มกราคม 2024"
+  const fullMonthNames = useMemo(
+    () => [
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
+    ],
+    []
+  );
+
+  // Format a Date into `D <Thai month> YYYY`. If null, returns empty string.
+  const formatDisplayDate = useCallback(
+    (d: Date | null) => {
+      if (!d) return "";
+      return `${d.getDate()} ${
+        fullMonthNames[d.getMonth()]
+      } ${d.getFullYear()}`;
+    },
+    [fullMonthNames]
+  );
+
+  // For the report header show selected range when available; otherwise fall back to
+  // start of current year -> today (reasonable default).
+  const displayStartDate =
+    initMonth ?? new Date(new Date().getFullYear(), 0, 1);
+  const displayEndDate = endMonth ?? new Date();
+
+  // Derive display names for selected tag and team (fallback to 'ทั้งหมด')
+  const displayTagName = useMemo(() => {
+    if (!tagId) return "ทั้งหมด";
+    const found = (dataTag?.responseObject?.data ?? []).find(
+      (t: TypeTagColorResponse) => t.tag_id === tagId
+    );
+    return found?.tag_name ?? "ทั้งหมด";
+  }, [tagId, dataTag]);
+
+  const displayTeamName = useMemo(() => {
+    if (!team) return "ทั้งหมด";
+    const teams: { team_id: string; name: string }[] =
+      dataTeam?.responseObject.data ?? [];
+    const found = teams.find((t) => t.team_id === team);
+    return found?.name ?? "ทั้งหมด";
+  }, [team, dataTeam]);
 
   const buildPayload = useCallback((): SummaryPayload => {
-    const crossYear = !!(initMonth && endMonth && initMonth.getFullYear() !== endMonth.getFullYear());
+    const crossYear = !!(
+      initMonth &&
+      endMonth &&
+      initMonth.getFullYear() !== endMonth.getFullYear()
+    );
     const year = initMonth?.getFullYear();
     return {
       ...(crossYear ? {} : { year }),
-      start_date: initMonth ? initMonth.toISOString().slice(0,10) : undefined,
-      end_date: endMonth ? endMonth.toISOString().slice(0,10) : undefined,
+      start_date: initMonth ? initMonth.toISOString().slice(0, 10) : undefined,
+      end_date: endMonth ? endMonth.toISOString().slice(0, 10) : undefined,
       team_id: team || undefined,
       responsible_id: responsible || undefined,
       tag_id: tagId || undefined,
@@ -176,85 +270,129 @@ export default function ReportCategorySale() {
   }, [initMonth, endMonth, team, responsible, tagId]);
 
   // initial load
-  useEffect(()=> { setPayload(buildPayload()); }, [buildPayload]);
+  useEffect(() => {
+    setPayload(buildPayload());
+  }, [buildPayload]);
 
-  const { data: summaryResp, isLoading: loadingSummary, refetch: refetchSummary } = useSalesForecastSummary(payload || {}, !!payload);
+  const {
+    data: summaryResp,
+    isLoading: loadingSummary,
+    refetch: refetchSummary,
+  } = useSalesForecastSummary(payload || {}, !!payload);
   const summary = summaryResp?.responseObject;
 
   // Derived month range for display (limit to selected start/end if provided)
-  const monthRange = useMemo(()=> {
+  const monthRange = useMemo(() => {
     if (!summary) return [] as number[];
     const startM = initMonth ? initMonth.getMonth() + 1 : 1;
     const endM = endMonth ? endMonth.getMonth() + 1 : 12;
-    return Array.from({length: 12}, (_,i)=> i+1).filter(m=> m >= startM && m <= endM);
+    return Array.from({ length: 12 }, (_, i) => i + 1).filter(
+      (m) => m >= startM && m <= endM
+    );
   }, [summary, initMonth, endMonth]);
 
-  const months = monthRange.map(m=> monthNames[m-1]);
+  const months = monthRange.map((m) => monthNames[m - 1]);
 
   // Table data (monthly actual vs forecast)
-  interface MonthlyActual { month: number; sales: number; }
-  interface MonthlyForecast { month: number; forecast: number; }
-  const salesDataTable = useMemo(()=> {
+  interface MonthlyActual {
+    month: number;
+    sales: number;
+  }
+  interface MonthlyForecast {
+    month: number;
+    forecast: number;
+  }
+  const salesDataTable = useMemo(() => {
     if (!summary) return [] as { label: string; values: number[] }[];
     const actualMap: Record<number, number> = {};
-    (summary.actual.monthly as MonthlyActual[]).forEach(r=> { actualMap[r.month] = r.sales || 0; });
+    (summary.actual.monthly as MonthlyActual[]).forEach((r) => {
+      actualMap[r.month] = r.sales || 0;
+    });
     const forecastMap: Record<number, number> = {};
-    (summary.forecast.monthly as MonthlyForecast[]).forEach(r=> { forecastMap[r.month] = r.forecast || 0; });
+    (summary.forecast.monthly as MonthlyForecast[]).forEach((r) => {
+      forecastMap[r.month] = r.forecast || 0;
+    });
     return [
-      { label: 'มูลค่าใบเสนอราคาจริง', values: monthRange.map(m=> Math.round(actualMap[m]||0)) },
-      { label: 'มูลค่าใบเสนอราคาคาดการณ์', values: monthRange.map(m=> Math.round(forecastMap[m]||0)) },
+      {
+        label: "มูลค่าใบเสนอราคาจริง",
+        values: monthRange.map((m) => Math.round(actualMap[m] || 0)),
+      },
+      {
+        label: "มูลค่าใบเสนอราคาคาดการณ์",
+        values: monthRange.map((m) => Math.round(forecastMap[m] || 0)),
+      },
     ];
   }, [summary, monthRange]);
 
   // Bar chart dataset
-  const quotationData = useMemo(()=> {
-    if (!summary) return [] as { month: string; realValue: number; predictValue: number }[];
+  const quotationData = useMemo(() => {
+    if (!summary)
+      return [] as { month: string; realValue: number; predictValue: number }[];
     const actualMap: Record<number, number> = {};
-    (summary.actual.monthly as MonthlyActual[]).forEach(r=> { actualMap[r.month] = r.sales || 0; });
+    (summary.actual.monthly as MonthlyActual[]).forEach((r) => {
+      actualMap[r.month] = r.sales || 0;
+    });
     const forecastMap: Record<number, number> = {};
-    (summary.forecast.monthly as MonthlyForecast[]).forEach(r=> { forecastMap[r.month] = r.forecast || 0; });
-    return monthRange.map(m=> ({ month: monthNames[m-1], realValue: Math.round(actualMap[m]||0), predictValue: Math.round(forecastMap[m]||0) }));
+    (summary.forecast.monthly as MonthlyForecast[]).forEach((r) => {
+      forecastMap[r.month] = r.forecast || 0;
+    });
+    return monthRange.map((m) => ({
+      month: monthNames[m - 1],
+      realValue: Math.round(actualMap[m] || 0),
+      predictValue: Math.round(forecastMap[m] || 0),
+    }));
   }, [summary, monthRange, monthNames]);
 
   // Priority breakdown -> reuse for both actual/forecast pies (back-end presently supplies single set)
   const PIE_COLORS = ["#a855f7", "#0ea5e9", "#15803d", "#f97316", "#0f4c75"];
-  interface PriorityBreak { priority: number; count: number; amount: number; weight_percent: number; }
+  interface PriorityBreak {
+    priority: number;
+    count: number;
+    amount: number;
+    weight_percent: number;
+  }
   const priorityBreakdown: PriorityBreak[] = summary?.priority_breakdown || [];
-  const totalPriorityAmount = priorityBreakdown.reduce((s, p)=> s + (p.amount||0), 0) || 1;
-  const pieDataActual = priorityBreakdown.map(p=> ({ priority: `★${p.priority}`, value: p.amount }));
-  const pieDataForecast = priorityBreakdown.map(p=> ({ priority: `★${p.priority}`, value: p.amount }));
+  const totalPriorityAmount =
+    priorityBreakdown.reduce((s, p) => s + (p.amount || 0), 0) || 1;
+  const pieDataActual = priorityBreakdown.map((p) => ({
+    priority: `★${p.priority}`,
+    value: p.amount,
+  }));
+  const pieDataForecast = priorityBreakdown.map((p) => ({
+    priority: `★${p.priority}`,
+    value: p.amount,
+  }));
 
   const HeaderColumns = [
-    { header: 'ระดับความสำคัญ', key: 'priority' },
-    { header: 'จำนวน', key: 'amount' },
-    { header: '%', key: 'percent' },
-    { header: 'มูลค่ารวม', key: 'value', align: 'right' },
+    { header: "ระดับความสำคัญ", key: "priority" },
+    { header: "จำนวน", key: "amount" },
+    { header: "%", key: "percent" },
+    { header: "มูลค่ารวม", key: "value", align: "right" },
   ];
-  const realValues = priorityBreakdown.map(p=> ({
+  const realValues = priorityBreakdown.map((p) => ({
     priority: `★${p.priority}`,
     amount: p.count,
-    percent: ((p.amount||0)/ totalPriorityAmount * 100) || 0,
-    value: Math.round(p.amount||0),
+    percent: ((p.amount || 0) / totalPriorityAmount) * 100 || 0,
+    value: Math.round(p.amount || 0),
   }));
-  const predictValues = priorityBreakdown.map(p=> ({
+  const predictValues = priorityBreakdown.map((p) => ({
     priority: `★${p.priority}`,
     amount: p.count,
     percent: p.weight_percent, // using weight percent to reflect forecast weighting
-    value: Math.round(p.amount||0),
+    value: Math.round(p.amount || 0),
   }));
 
   const handleSearch = () => {
     const next = buildPayload();
     setPayload(next);
     // slight defer to ensure state update before refetch (react-query will auto based on key)
-    setTimeout(()=> refetchSummary(), 0);
+    setTimeout(() => refetchSummary(), 0);
   };
 
   return (
     <div>
-
-      <p className="text-2xl font-bold">รายงานพยากรณ์ยอดขายตามหมวดหมู่</p>
-      <div className="p-4 bg-white shadow-md mb-3 rounded-md w-full">
+      <p className=" mb-4 text-2xl font-bold">รายงานพยากรณ์ยอดขายตามหมวดหมู่</p>
+      <div className="p-4 gap-4 bg-white shadow-md mb-3 rounded-md w-full flex flex-col">
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 items-center">
           {/* ทีม */}
 
@@ -263,7 +401,9 @@ export default function ReportCategorySale() {
             <DependentSelectComponent
               id="team"
               value={teamOptions.find((opt) => opt.value === team) || null}
-              onChange={(option) => setTeam(option ? String(option.value) : null)}
+              onChange={(option) =>
+                setTeam(option ? String(option.value) : null)
+              }
               onInputChange={handleTeamSearch}
               fetchDataFromGetAPI={fetchDataTeamDropdown}
               valueKey="id"
@@ -274,11 +414,14 @@ export default function ReportCategorySale() {
               labelOrientation="horizontal"
               classNameLabel=""
               classNameSelect="w-full "
-              nextFields={{ left: "responsible-telno", right: "responsible-telno", up: "address", down: "responsible" }}
-
+              nextFields={{
+                left: "responsible-telno",
+                right: "responsible-telno",
+                up: "address",
+                down: "responsible",
+              }}
             />
           </div>
-
 
           {/* พนักงานขาย */}
 
@@ -286,8 +429,13 @@ export default function ReportCategorySale() {
             <label className="text-md mb-1">พนักงานขาย</label>
             <DependentSelectComponent
               id="responsible"
-              value={responsibleOptions.find((opt) => opt.value === responsible) || null}
-              onChange={(option) => setResponsible(option ? String(option.value) : null)}
+              value={
+                responsibleOptions.find((opt) => opt.value === responsible) ||
+                null
+              }
+              onChange={(option) =>
+                setResponsible(option ? String(option.value) : null)
+              }
               onInputChange={handleTeamSearch}
               fetchDataFromGetAPI={fetchDataMemberInteam}
               valueKey="id"
@@ -298,7 +446,12 @@ export default function ReportCategorySale() {
               labelOrientation="horizontal"
               classNameLabel=""
               classNameSelect="w-full "
-              nextFields={{ left: "responsible-email", right: "responsible-email", up: "team", down: "contact-person" }}
+              nextFields={{
+                left: "responsible-email",
+                right: "responsible-email",
+                up: "team",
+                down: "contact-person",
+              }}
             />
           </div>
 
@@ -307,7 +460,9 @@ export default function ReportCategorySale() {
             <label className="text-md mb-1">หมวดหมู่สินค้า</label>
             <MasterSelectComponent
               id="category"
-              onChange={(option) => setTagId(option ? String(option.value) : null)}
+              onChange={(option) =>
+                setTagId(option ? String(option.value) : null)
+              }
               fetchDataFromGetAPI={fetchDataTagDropdown}
               onInputChange={handleTagSearch}
               valueKey="id"
@@ -315,12 +470,10 @@ export default function ReportCategorySale() {
               placeholder="รายชื่อหมวดหมู่สินค้า"
               isClearable
               label=""
-              labelOrientation="horizontal"
               classNameLabel=""
               classNameSelect="w-full "
             />
           </div>
-
 
           {/* วันที่เริ่ม */}
           <div className="flex flex-col w-full">
@@ -347,18 +500,26 @@ export default function ReportCategorySale() {
               classNameInput="w-full"
             />
           </div>
-
-          <div className="sm:col-span-1 md:col-span-3 lg:col-span-5 flex justify-end">
-            <Buttons
-              btnType="primary"
-              variant="outline"
-              className="w-full sm:w-auto sm:min-w-[100px]"
-              onClick={handleSearch}
-              disabled={loadingSummary}
-            >
-              {loadingSummary ? 'กำลังค้นหา...' : 'ค้นหา'}
-            </Buttons>
-          </div>
+        </div>
+        <div className="flex flex-wrap gap-3 justify-end">
+          <Buttons
+            btnType="primary"
+            variant="outline"
+            className="w-full sm:w-auto sm:min-w-[100px]"
+            onClick={handleSearch}
+            disabled={loadingSummary}
+          >
+            {loadingSummary ? "กำลังค้นหา..." : "ค้นหา"}
+          </Buttons>
+          <Buttons
+            btnType="primary"
+            variant="outline"
+            className="w-full sm:w-auto sm:min-w-[100px]"
+            onClick={handleOpenPdf}
+            disabled={!summary || loadingSummary}
+          >
+            <FiPrinter style={{ fontSize: 18 }} /> พิมพ์
+          </Buttons>
         </div>
       </div>
       <div className=" bg-white shadow-md rounded-lg pb-5">
@@ -366,54 +527,67 @@ export default function ReportCategorySale() {
           <p className="font-semibold">เอาไว้ทำหัวรายงานในอนาคต</p>
         </div>
         <div className="p-7 pb-5 w-full max-w-full overflow-x-auto lg:overflow-x-visible space-y-4">
-
           {/* content */}
           <div>
-            <p className="text-2xl font-semibold mb-1">รายงานพยากรณ์ยอดขายตามหมวดหมู่</p>
+            <p className="text-2xl font-semibold mb-1">
+              รายงานพยากรณ์ยอดขายตามหมวดหมู่
+            </p>
             <p className="text-sm text-gray-600">บริษัท CRM Manager (DEMO)</p>
-            <p className="text-xs text-gray-500 mb-6">1 มกราคม 2024 - 31 เมษายน 2024</p>
+            <p className="text-xs text-gray-500 mb-6">{`${formatDisplayDate(
+              displayStartDate
+            )} - ${formatDisplayDate(displayEndDate)}`}</p>
           </div>
 
           <div className="flex flex-row space-x-3">
-            <p>หมวดหมู่สินค้า : ทั้งหมด</p>
-            <p>ทีม : ทั้งหมด</p>
+            <p>หมวดหมู่สินค้า : {displayTagName}</p>
+            <p>ทีม : {displayTeamName}</p>
           </div>
 
           <div>มูลค่าใบเสนอราคาจริง เทียบ มูลค่าใบเสนอราคาคาดการณ์ (Q01)</div>
           <Table.Root variant="surface" size="2" className="whitespace-nowrap ">
             <Table.Header>
-              <Table.Row >
+              <Table.Row>
                 <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
                 {months.map((month) => (
-                  <Table.ColumnHeaderCell key={month} className="text-end">{month}</Table.ColumnHeaderCell>
+                  <Table.ColumnHeaderCell key={month} className="text-end">
+                    {month}
+                  </Table.ColumnHeaderCell>
                 ))}
               </Table.Row>
             </Table.Header>
 
             <Table.Body>
               {salesDataTable.map((row) => {
-                const isGrowthRow = row.label.includes('%');
+                const isGrowthRow = row.label.includes("%");
                 return (
-                  <Table.Row key={row.label} className={isGrowthRow ? 'bg-blue-50' : ''}>
-                    <Table.RowHeaderCell className={isGrowthRow ? 'text-blue-700 font-semibold' : ''}>{row.label}</Table.RowHeaderCell>
+                  <Table.Row
+                    key={row.label}
+                    className={isGrowthRow ? "bg-blue-50" : ""}
+                  >
+                    <Table.RowHeaderCell
+                      className={
+                        isGrowthRow ? "text-blue-700 font-semibold" : ""
+                      }
+                    >
+                      {row.label}
+                    </Table.RowHeaderCell>
                     {row.values.map((value, index) => (
                       <Table.Cell
                         key={index}
-                        className={`text-end ${isGrowthRow ? 'font-semibold' : ''}`}
+                        className={`text-end ${
+                          isGrowthRow ? "font-semibold" : ""
+                        }`}
                       >
                         {value.toLocaleString()}
                       </Table.Cell>
                     ))}
                   </Table.Row>
-                )
-              }
-              )}
+                );
+              })}
             </Table.Body>
           </Table.Root>
           <div className="grid grid-cols-1 lg:grid-cols-2 pt-5">
-
             <div ref={chartRef1} className="w-full h-[500px]">
-
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={quotationData}
@@ -422,11 +596,22 @@ export default function ReportCategorySale() {
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis allowDecimals={false} tickFormatter={(value) => value.toLocaleString()} />
+                  <YAxis
+                    allowDecimals={false}
+                    tickFormatter={(value) => value.toLocaleString()}
+                  />
                   <Tooltip formatter={(value) => value.toLocaleString()} />
                   <Legend />
-                  <Bar dataKey="realValue" name="มูลค่าใบเสนอราคาจริง" fill="#3b82f6" />
-                  <Bar dataKey="predictValue" name="มูลค่าใบเสนอราคาคาดการณ์" fill="#FF6633" />
+                  <Bar
+                    dataKey="realValue"
+                    name="มูลค่าใบเสนอราคาจริง"
+                    fill="#3b82f6"
+                  />
+                  <Bar
+                    dataKey="predictValue"
+                    name="มูลค่าใบเสนอราคาคาดการณ์"
+                    fill="#FF6633"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -434,8 +619,13 @@ export default function ReportCategorySale() {
           <div className="grid grid-cols-1 lg:grid-cols-2 pt-5 gap-4">
             {/* Actual Pie */}
             <div>
-              <p className="font-semibold text-center mb-2">สัดส่วนในเสนอราคาจริง แบ่งตามความสำคัญ</p>
-              <div ref={chartRef2} className="flex flex-col items-center space-y-4">
+              <p className="font-semibold text-center mb-2">
+                สัดส่วนในเสนอราคาจริง แบ่งตามความสำคัญ
+              </p>
+              <div
+                ref={chartRef2}
+                className="flex flex-col items-center space-y-4"
+              >
                 <PieChart width={250} height={250}>
                   <Pie
                     data={pieDataActual}
@@ -445,17 +635,22 @@ export default function ReportCategorySale() {
                     cy="50%"
                     outerRadius={120}
                     label
-
                   >
                     {pieDataActual.map((entry) => (
-                      <Cell key={`cell-a-${entry.priority}`} fill={PIE_COLORS[Number(entry.priority.replace('★','')) % PIE_COLORS.length]} />
+                      <Cell
+                        key={`cell-a-${entry.priority}`}
+                        fill={
+                          PIE_COLORS[
+                            Number(entry.priority.replace("★", "")) %
+                              PIE_COLORS.length
+                          ]
+                        }
+                      />
                     ))}
                   </Pie>
                 </PieChart>
-
               </div>
               <div className="flex flex-col items-center">
-
                 <SummaryTable
                   title=""
                   columns={HeaderColumns}
@@ -465,8 +660,13 @@ export default function ReportCategorySale() {
             </div>
             {/* Forecast Pie */}
             <div>
-              <p className="font-semibold text-center mb-2">สัดส่วนในเสนอราคาคาดการณ์ แบ่งตามความสำคัญ</p>
-              <div ref={chartRef3} className="flex flex-col items-center space-y-4">
+              <p className="font-semibold text-center mb-2">
+                สัดส่วนในเสนอราคาคาดการณ์ แบ่งตามความสำคัญ
+              </p>
+              <div
+                ref={chartRef3}
+                className="flex flex-col items-center space-y-4"
+              >
                 <PieChart width={250} height={250}>
                   <Pie
                     data={pieDataForecast}
@@ -478,14 +678,20 @@ export default function ReportCategorySale() {
                     label
                   >
                     {pieDataForecast.map((entry) => (
-                      <Cell key={`cell-f-${entry.priority}`} fill={PIE_COLORS[Number(entry.priority.replace('★','')) % PIE_COLORS.length]} />
+                      <Cell
+                        key={`cell-f-${entry.priority}`}
+                        fill={
+                          PIE_COLORS[
+                            Number(entry.priority.replace("★", "")) %
+                              PIE_COLORS.length
+                          ]
+                        }
+                      />
                     ))}
                   </Pie>
                 </PieChart>
-
               </div>
               <div className="flex flex-col items-center">
-
                 <SummaryTable
                   title=""
                   columns={HeaderColumns}
@@ -493,24 +699,8 @@ export default function ReportCategorySale() {
                 />
               </div>
             </div>
-
           </div>
-
-
         </div>
-      </div>
-      <div className="flex justify-between space-x-5 mt-5">
-
-        <Buttons
-          btnType="primary"
-          variant="outline"
-          className="w-30"
-          onClick={handleOpenPdf}
-        >
-          <FiPrinter style={{ fontSize: 18 }} />
-
-          พิมพ์
-        </Buttons>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import Select, { ActionMeta, SingleValue, SelectInstance } from "react-select";
 export type OptionType = {
   label: string;
   value: string | number | null;
-  [key: string]: any; // For additional properties
+  [key: string]: unknown; // For additional properties
 };
 
 type DependentSelectComponentProps = {
@@ -15,8 +15,13 @@ type DependentSelectComponentProps = {
   ) => void;
   id?: string;
   nextFields?: { left?: string; right?: string; up?: string; down?: string; };
-  value: SingleValue<OptionType> | null; // รับค่าที่แปลงแล้วจากข้างนอก
-  fetchDataFromGetAPI: () => Promise<any>; // Function to fetch data
+  // value can be an OptionType or a primitive id (string|number|null)
+  value: SingleValue<OptionType> | string | number | null; // รับค่าที่แปลงแล้วจากข้างนอก
+  fetchDataFromGetAPI: (search?: string) => Promise<{ responseObject?: Record<string, unknown>[] }>; // Function to fetch data
+  // fetchDataFromGetAPI may optionally accept a search string: (search?: string) => Promise<any>
+  isSearchable?: boolean; // enable type-ahead search
+  minSearchLength?: number; // minimum chars to trigger search
+  debounceMs?: number; // debounce time for input
   onInputChange?: (inputText: string) => void;
   valueKey: string; // Key to extract the value from fetched options
   labelKey: string; // Key to extract the label from fetched options
@@ -55,11 +60,19 @@ const DependentSelectComponent: React.FC<DependentSelectComponentProps> = ({
   require = "",
   isError,
   heightInput = "32px",
-  defaultValue,
+  // defaultValue removed (unused)
   isDisabled,
   errorMessage,
+  isSearchable = true,
+  minSearchLength = 0,
+  debounceMs = 300,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const [inputValue, setInputValue] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const debounceRef = useRef<number | null>(null);
+  // props are provided via destructure with defaults
 
   useEffect(() => {
     if (isError && containerRef.current) {
@@ -110,27 +123,33 @@ const DependentSelectComponent: React.FC<DependentSelectComponentProps> = ({
   const selectRef = useRef<SelectInstance<OptionType> | null>(null);
 
 
+  const fetchOptions = async (search?: string) => {
+    try {
+      setIsLoading(true);
+      // call the fetch function; if it accepts a parameter it will use it, otherwise JS ignores it
+      const res = await fetchDataFromGetAPI(search);
+      const formattedOptions = (res?.responseObject || []).map((item) => {
+        const row = item as Record<string, unknown>;
+        return ({
+          label: String(row[labelKey] ?? ""),
+          // normalize value to string to avoid type mismatch between stored form value and option.value
+          value: row[valueKey] != null ? String(row[valueKey]) : null,
+          ...row,
+        } as OptionType);
+      });
+      setOptions(formattedOptions || []);
+    } catch (error) {
+      console.error("Error fetching select options:", error);
+      setOptions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchOptions = async () => {
-      try {
-        const res = await fetchDataFromGetAPI();
-        const formattedOptions = res?.responseObject?.map((item: any) => ({
-
-          label: item[labelKey],
-          value: item[valueKey],
-          ...item, // Include additional data if needed
-        }));
-        setOptions(formattedOptions);
-        if (!formattedOptions) {
-          // console.log("formattedOptions", formattedOptions);
-          // setValue(null);
-        }
-      } catch (error) {
-        console.error("Error fetching select options:", error);
-      }
-    };
-
+    // initial load without search
     fetchOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchDataFromGetAPI, valueKey, labelKey]);
 
   // useEffect(() => {
@@ -168,24 +187,63 @@ const DependentSelectComponent: React.FC<DependentSelectComponentProps> = ({
         //   onChange(option, actionMeta);
         // }}
         // defaultValue={defaultValue}
-        value={value}
+        // ensure the value passed to react-select is the exact option object from the internal options array
+        value={
+          ((): SingleValue<OptionType> | null => {
+            if (value == null) return null;
+            // if it's an object with value property
+            if (typeof value === "object" && (value as Record<string, unknown>).value !== undefined) {
+              const v = (value as Record<string, unknown>).value;
+              const found = options.find((opt) => String(opt.value) === String(v));
+              if (found) return found;
+              // fallback: if parent provided a label, use it
+              const label = (value as Record<string, unknown>).label ?? String(v);
+              return { label: String(label), value: v } as OptionType;
+            }
+            // primitive (string|number)
+            const found = options.find((opt) => String(opt.value) === String(value));
+            if (found) return found;
+            // fallback synthetic option so react-select shows the selection
+            return { label: String(value), value: value as string | number | null } as OptionType;
+          })()
+        }
         onChange={(option, actionMeta) => {
           onChange(option, actionMeta); // ส่งกลับไปยัง parent
         }}
-        onInputChange={(inputValue, { action }) => {
-          if (action === "input-change" && onInputChange) {
-            onInputChange(inputValue);
+        onInputChange={(newValue, { action }) => {
+          if (action === "input-change") {
+            setInputValue(newValue);
+            if (onInputChange) onInputChange(newValue);
+
+            if (!isSearchable) return;
+
+            // stop previous debounce
+            if (debounceRef.current) window.clearTimeout(debounceRef.current);
+
+            // only trigger if length meets minSearchLength
+            if ((newValue || "").length < (minSearchLength || 0)) {
+              // if cleared, optionally reload base options
+              if (!newValue) fetchOptions();
+              return;
+            }
+
+            debounceRef.current = window.setTimeout(() => {
+              fetchOptions(newValue);
+            }, debounceMs);
           }
         }}
+        isSearchable={isSearchable}
+        isLoading={isLoading}
         placeholder={placeholder}
         isClearable={isClearable}
         classNamePrefix="react-select"
         className={`${classNameSelect} ${isError ? "ring-2 ring-red-500 animate-shake rounded-sm" : ""}`}
 
-        ref={selectRef}
+  ref={selectRef}
         inputId={id}
         tabIndex={0}
         onKeyDown={handleKeyDown}
+  onMenuOpen={() => fetchOptions(inputValue)}
         styles={{
           control: (base, state) => ({
             ...base,
@@ -218,12 +276,12 @@ const DependentSelectComponent: React.FC<DependentSelectComponentProps> = ({
             margin: "0",
             color: state.isDisabled ? "#0007149f" : "#000000",
           }),
-          indicatorsContainer: (provided, state) => ({
+          indicatorsContainer: (provided) => ({
             ...provided,
             height: heightInput,
           }),
         }}
-        isDisabled={isDisabled}
+  isDisabled={isDisabled}
       />
       {errorMessage && (
         <div className=" text-red-600 pt-1 text-xs"> {errorMessage}</div>

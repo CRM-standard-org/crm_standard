@@ -12,7 +12,7 @@ import {
 
 import { styles } from './style';
 
-import { TypeSaleOrderResponse } from '@/types/response/response.saleorder';
+// no longer need saleorder type here
 
 Font.register({
     family: 'THSarabunNew',
@@ -25,58 +25,42 @@ type ReportCategoryPDFProps = {
     chartImage1: string | null;
     chartImage2: string | null;
     chartImage3: string | null;
+    // optional live data to render in PDF
+    startDate?: string;
+    endDate?: string;
+    tagName?: string;
+    teamName?: string;
+    months?: string[];
+    salesDataTable?: { label: string; values: (number | string)[] }[];
+    quotationData?: { month: string; realValue: number; predictValue: number }[];
+    realValues?: { priority: string; amount: number; percent: number; value: number }[];
+    predictValues?: { priority: string; amount: number; percent: number; value: number }[];
 };
 
-//mockup chart
-const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.'];
-const salesDataTable = [
-    {
-        label: 'มูลค่าใบเสนอราคาจริง',
-        values: [859837, 827474, 805669, 782765],
-    },
-    {
-        label: 'มูลค่าใบเสนอราคาคาดการณ์',
-        values: [859837, 827474, 805669, 782765],
-    },
-
-];
-
-const quotationData = [
-    { month: "ม.ค.", realValue: 860000, predictValue: 915000 },
-    { month: "ก.พ.", realValue: 825000, predictValue: 840000 },
-    { month: "มี.ค.", realValue: 810000, predictValue: 855000 },
-    { month: "เม.ย.", realValue: 775000, predictValue: 870000 },
-
-];
-
-
-//mockup 2 table
 const HeaderColumns = [
     { header: 'ระดับความสำคัญ', key: 'priority' },
     { header: 'จำนวน', key: 'amount' },
     { header: '%', key: 'percent', },
     { header: 'มูลค่ารวม', key: 'value', align: 'right' },
 ];
+// HeaderColumns remains static
+const ReportCategoryPDF: React.FC<ReportCategoryPDFProps> = ({
+    chartImage1,
+    chartImage2,
+    chartImage3,
+    startDate,
+    endDate,
+    tagName,
+    teamName,
+    months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.'],
+    salesDataTable = [],
+    quotationData = [],
+    realValues = [],
+    predictValues = [],
+}) => {
 
-const realValues = [
-    { priority: "★5", amount: 30, percent: 33.33, value: 1091806 },
-    { priority: "★4", amount: 15, percent: 26.67, value: 873641 },
-    { priority: "★3", amount: 20, percent: 20.00, value: 655149 },
-    { priority: "★2", amount: 15, percent: 13.33, value: 436657 },
-    { priority: "★1", amount: 20, percent: 6.67, value: 218492 },
-    { priority: "★0", amount: 0, percent: 0, value: 0 },
-];
-
-
-const predictValues = [
-    { priority: "★5", amount: 30, percent: 33.44, value: 1166715 },
-    { priority: "★4", amount: 15, percent: 26.68, value: 930859 },
-    { priority: "★3", amount: 20, percent: 20.00, value: 697796 },
-    { priority: "★2", amount: 15, percent: 13.26, value: 462638 },
-    { priority: "★1", amount: 20, percent: 6.62, value: 230970 },
-    { priority: "★0", amount: 0, percent: 0, value: 0 },
-];
-const ReportCategoryPDF: React.FC<ReportCategoryPDFProps> = ({ chartImage1, chartImage2, chartImage3 }) => {
+    const headerStart = startDate || '';
+    const headerEnd = endDate || '';
 
     return (
         <Document>
@@ -87,8 +71,8 @@ const ReportCategoryPDF: React.FC<ReportCategoryPDFProps> = ({ chartImage1, char
                         <Image src={companyLogoBase64} style={styles.logo} />
                         <Text style={styles.companyName}>รายงานพยากรณ์ยอดขายตามหมวดหมู่</Text>
                         <Text style={styles.companySub}>บริษัท CRM Manager (DEMO)</Text>
-                        <Text style={styles.companySubSmall}>1 มกราคม 2024 - 31 เมษายน 2024</Text>
-                        <Text style={styles.companySubSmall}>หมวดหมู่สินค้า : ทั้งหมด ทีม : ทั้งหมด</Text>
+                        <Text style={styles.companySubSmall}>{headerStart ? `${headerStart} - ${headerEnd}` : ''}</Text>
+                        <Text style={styles.companySubSmall}>{`หมวดหมู่สินค้า : ${tagName || 'ทั้งหมด'} ทีม : ${teamName || 'ทั้งหมด'}`}</Text>
                         <Text style={styles.companySubSmall}>มูลค่าใบเสนอราคาจริง เทียบ มูลค่าใบเสนอราคาคาดการณ์ (Q01)</Text>
                     </View>
                 </View>
@@ -97,33 +81,18 @@ const ReportCategoryPDF: React.FC<ReportCategoryPDFProps> = ({ chartImage1, char
                 <View>
                     <View style={styles.tableHeader}>
                         <Text style={styles.labelCell}>มูลค่า</Text>
-                        {months.map((month) => (
-                            <Text key={month} style={styles.headerCell}>{month}</Text>
+                        {months.map((m) => (
+                            <Text key={m} style={styles.headerCell}>{m}</Text>
                         ))}
                     </View>
 
                     {salesDataTable.map((row, idx) => (
-
-
-                        <View
-                            key={idx}
-                            style={[
-                                styles.tableRow,
-                            ]}
-                        >
-                            <Text style={styles.labelCell}>
-                                {row.label}
-                            </Text>
+                        <View key={idx} style={styles.tableRow}>
+                            <Text style={styles.labelCell}>{row.label}</Text>
                             {row.values.map((val, i) => (
-                                <Text
-                                    key={i}
-                                    style={styles.dataCell}
-                                >
-                                    {typeof val === 'number' ? val.toLocaleString() : val}
-                                </Text>
+                                <Text key={i} style={styles.dataCell}>{typeof val === 'number' ? val.toLocaleString() : String(val)}</Text>
                             ))}
                         </View>
-
                     ))}
                 </View>
                 {/* Chart */}
