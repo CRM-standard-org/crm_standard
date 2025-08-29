@@ -570,7 +570,6 @@ export default function CreateCustomer() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="นิสัยลูกค้า"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2"
                                 classNameSelect="w-full "
                                 nextFields={{ up: "contact-person", down: "position" }}
@@ -604,7 +603,6 @@ export default function CreateCustomer() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="บทบาทลูกค้า"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2 "
                                 classNameSelect="w-full "
                                 require="require"
@@ -675,7 +673,6 @@ export default function CreateCustomer() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ช่องทางการติดต่อ"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2"
                                 classNameSelect="w-full"
                                 nextFields={{ up: "telno-extension", down: `${contactOption ? contactOption?.toLowerCase() : "company"}` }}

@@ -628,7 +628,6 @@ export default function EditEmployeeDetails() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="บทบาท"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 defaultValue={{ label: employeeRoleName, value: employeeRole }}
@@ -678,7 +677,6 @@ export default function EditEmployeeDetails() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="สถานะ"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 defaultValue={{ label: employeeStatusName, value: employeeStatus }}
@@ -713,7 +711,6 @@ export default function EditEmployeeDetails() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ทีม"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 defaultValue={{ label: teamName, value: team }}
@@ -874,7 +871,6 @@ export default function EditEmployeeDetails() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ช่องทางการติดต่อ"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2"
                                 classNameSelect="w-full"
                                 defaultValue={{ label: contactNameOption, value: contactOption }}

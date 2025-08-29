@@ -57,7 +57,7 @@ export type Filter = {
 
 const passwordRule = z.string().min(8, "Password at least 8 characters").regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, "Password must contain letters and numbers");
 const emailRule = z.string().email("Invalid email format");
-const phoneRule = z.string().regex(/^[0-9]{6,15}$/,"Phone 6-15 digits");
+const phoneRule = z.string().regex(/^\d{6,15}$/,"Phone 6-15 digits");
 
 export const CreateSchema = z.object({
     body : z.object({
@@ -110,6 +110,16 @@ export const UpdateSchema = z.object({
         team_id: z.string().max(50).optional(),
         remove_profile_picture: z.boolean().optional(),
     }).refine(d=> !d.end_date || !d.start_date || d.end_date >= d.start_date, { message: "end_date must be after start_date", path:["end_date"]})
+});
+
+// Bulk import employees: array of CreateSchema bodies
+export const ImportEmployeesSchema = z.object({
+    body: z.object({
+        items: z
+            .array(CreateSchema.shape.body)
+            .min(1, "items is required")
+            .max(1000, "maximum 1000 rows per import"),
+    }),
 });
 
 

@@ -20,6 +20,7 @@ type DialogComponentProps = {
     | "default"
     | "primary"
     | "general";
+  maxWidth?: string;
 };
 
 const DialogComponent = ({
@@ -33,10 +34,11 @@ const DialogComponent = ({
   cancelText = "Cancel",
   classNameConfirmBtn,
   confirmBtnType,
+  maxWidth,
 }: DialogComponentProps) => {
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
-      <Dialog.Content maxWidth="450px" className=" relative ">
+      <Dialog.Content maxWidth={maxWidth ?? "450px"} className=" relative ">
         <Dialog.Title className="text-center">{title}</Dialog.Title>
         <Flex
           direction="column"
@@ -57,13 +59,13 @@ const DialogComponent = ({
           className="w-full px-6 pt-4 pb-6 left-0 bottom-0 absolute "
         >
           {/* <Dialog.Close> */}
-            <Buttons
-              btnType={confirmBtnType ?? "submit"}
-              onClick={onConfirm}
-              className={classNameConfirmBtn}
-            >
-              {confirmText}
-            </Buttons>
+          <Buttons
+            btnType={confirmBtnType ?? "submit"}
+            onClick={onConfirm}
+            className={classNameConfirmBtn}
+          >
+            {confirmText}
+          </Buttons>
           {/* </Dialog.Close> */}
           <Dialog.Close>
             <Buttons btnType="cancel" onClick={onClose}>

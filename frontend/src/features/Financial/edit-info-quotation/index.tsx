@@ -1107,7 +1107,6 @@ export default function EditInfoQuotation() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ลูกค้า"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 nextFields={{ up: "customer-contact", down: "team" }}
@@ -1738,7 +1737,6 @@ export default function EditInfoQuotation() {
                             placeholder="สกุลเงิน"
                             isClearable
                             label=""
-                            labelOrientation="horizontal"
                             classNameLabel="w-1/2 flex"
                             classNameSelect="w-full "
                             nextFields={{ left: "email", right: "email", up: "responsible", down: "doc-release-date" }}
@@ -2013,7 +2011,6 @@ export default function EditInfoQuotation() {
                                     placeholder="กรุณาเลือก..."
                                     isClearable
                                     label="วิธีการชำระเงิน"
-                                    labelOrientation="horizontal"
                                     classNameLabel="w-1/2 flex"
                                     classNameSelect="w-full "
                                     defaultValue={{ label: paymentMethodName, value: paymentOption ?? "" }}

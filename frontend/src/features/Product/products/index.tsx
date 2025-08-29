@@ -376,7 +376,6 @@ export default function Products() {
             labelKey="name"
             placeholder="กรุณาเลือก..."
             label="กลุ่มสินค้า"
-            labelOrientation="horizontal"
             onAction={handleConfirm}
             nextFields={{ up: "product-detail", down: "unit" }}
             classNameLabel="w-60"
@@ -394,7 +393,6 @@ export default function Products() {
             labelKey="name"
             placeholder="กรุณาเลือก..."
             label="หน่วยสินค้า"
-            labelOrientation="horizontal"
             onAction={handleConfirm}
             nextFields={{ up: "group", down: "price" }}
             classNameLabel="w-60"
@@ -471,7 +469,6 @@ export default function Products() {
             labelKey="name"
             placeholder="กรุณาเลือก..."
             label="กลุ่มสินค้า"
-            labelOrientation="horizontal"
             onAction={handleEditConfirm}
             nextFields={{ up: "product-detail", down: "unit" }}
             classNameLabel="w-60"
@@ -489,7 +486,6 @@ export default function Products() {
             labelKey="name"
             placeholder="กรุณาเลือก..."
             label="หน่วยสินค้า"
-            labelOrientation="horizontal"
             onAction={handleEditConfirm}
             nextFields={{ up: "group", down: "price" }}
             classNameLabel="w-60"

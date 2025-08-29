@@ -6,7 +6,7 @@ import {
 } from "@common/utils/httpHandlers";
 import { authorizeByName } from "@common/middleware/permissions";
 import { employeeService } from "@modules/employee/employeeService";
-import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema , GetByIdSchema , UpdateSchema } from "@modules/employee/employeeModel";
+import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema , GetByIdSchema , UpdateSchema, ImportEmployeesSchema } from "@modules/employee/employeeModel";
 import authenticateToken from "@common/middleware/authenticateToken";
 import { upload , handleMulter } from '@common/middleware/multerConfig';
 
@@ -77,6 +77,22 @@ export const employeeRouter = (() => {
             const files = req.files as Express.Multer.File[];
             const employee_id_by = req.token.payload.uuid;
             const resultService = await employeeService.update(employee_id,payloadData, employee_id_by, files);
+            handleServiceResponse(resultService, res);
+        } catch (err: any) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+    });
+
+    // Bulk import (no files per row, only JSON array in payload)
+    router.post("/import", authenticateToken, authorizeByName("พนักงาน", ["A"]), async (req: Request, res: Response) => {
+        try {
+            const validation = ImportEmployeesSchema.safeParse({ body: req.body });
+            if (!validation.success) {
+                return res.status(400).json({ success: false, message: validation.error.message });
+            }
+            const employee_id = req.token.payload.uuid;
+            const items = validation.data.body.items as any[];
+            const resultService = await employeeService.importMany(items, employee_id);
             handleServiceResponse(resultService, res);
         } catch (err: any) {
             res.status(500).json({ success: false, message: err.message });

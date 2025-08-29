@@ -262,7 +262,6 @@ export default function PredictSell() {
             placeholder="กรุณาเลือกปี"
             isClearable
             label=""
-            labelOrientation="horizontal"
             classNameLabel="w-1/2"
             classNameSelect="w-full"
           />

@@ -7,6 +7,41 @@ import { employees } from '@prisma/client';
 
 
 export const employeeService = {
+    importMany: async (items: TypePayloadEmployee[], employee_id: string) => {
+        try {
+            let success = 0;
+            const errors: Array<{ index: number; message: string }> = [];
+            for (let i = 0; i < items.length; i++) {
+                const p = items[i];
+                try {
+                    // basic unique check by username
+                    const exists = await employeeRepository.findByUsername(p.username, p.employee_code);
+                    if (exists) {
+                        errors.push({ index: i, message: 'Username or employee code already exists' });
+                        continue;
+                    }
+                    await employeeRepository.create(p, employee_id, []);
+                    success++;
+                } catch (e: any) {
+                    errors.push({ index: i, message: e.message || 'create failed' });
+                }
+            }
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                'Employee import processed',
+                { success, failed: errors.length, errors },
+                StatusCodes.OK
+            );
+        } catch (ex) {
+            const errorMessage = 'Error import employees :' + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    },
     create: async (payload: TypePayloadEmployee, employee_id : string , files: Express.Multer.File[] ) => {
         try{
             const checkNameReplace = await employeeRepository.findByUsername(payload.username);

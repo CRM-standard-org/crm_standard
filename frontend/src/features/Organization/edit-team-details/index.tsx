@@ -377,7 +377,6 @@ export default function EditTeamDetails() {
                                 placeholder="รายชื่อบุคลากร"
                                 isClearable
                                 label="หัวหน้าทีม"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full"
                                 defaultValue={

@@ -297,7 +297,6 @@ export default function CreateTeam() {
                                 placeholder="รายชื่อบุคลากร"
                                 isClearable
                                 label="หัวหน้าทีม"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full"
                                 nextFields={{ up: "team-name", down: "team-detail" }}

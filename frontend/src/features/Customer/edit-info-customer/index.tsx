@@ -146,7 +146,6 @@ export default function EditInfoCustomer() {
                       placeholder="ซื้ออย่างน้อย"
                       isClearable
                       label="เงื่อนไขการเริ่มต้นของสถานะ"
-                      labelOrientation="horizontal"
                       classNameLabel="w-80 flex"
                       classNameSelect="w-full lg:ms-2"
                       nextFields={{
@@ -170,7 +169,6 @@ export default function EditInfoCustomer() {
                       placeholder="ซื้ออย่างน้อย"
                       isClearable
                       label="เงื่อนไขการเริ่มต้นของสถานะ"
-                      labelOrientation="horizontal"
                       classNameLabel="w-80 flex"
                       classNameSelect="w-full lg:ms-2"
                       nextFields={{

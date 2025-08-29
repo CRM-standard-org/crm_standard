@@ -20,7 +20,6 @@ import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { TbFileDescription } from "react-icons/tb";
 import CheckboxMainComponent from "../checkboxs/checkbox.main.component";
 import BadgeStatus from "../badges/badgeStatus";
-import { Link } from "react-router-dom";
 import MasterSelectComponent from "../select/select.main.component";
 import DatePickerComponent from "../dateSelect/dateSelect.main.component";
 
@@ -60,13 +59,12 @@ interface MasterTableFeatureProps {
   }>;
 
   headers: Array<{ label: string; colSpan?: number; className?: string }>; // Table header configuration (supports nested headers and custom classes)
-  headerTab?: boolean //จะให้มี tabs บน header รึป่าว
+  headerTab?: boolean; //จะให้มี tabs บน header รึป่าว
   groupTabs?: {
     id: string;
     name: string;
     onChange: () => void;
   }[];
-
 
   rowData: Array<{
     className?: string; // Custom class for the row
@@ -89,8 +87,11 @@ interface MasterTableFeatureProps {
   hideTitle?: boolean;
   hidePagination?: boolean;
   onCreateBtn?: boolean;
-  onCreateBtnClick?: (data: any) => void;
+  onImportExcelBtn?: boolean;
   nameCreateBtn?: string;
+  onCreateBtnClick?: (data: any) => void;
+  onImportExcelBtnClick?: (data: any) => void;
+  nameImportExcelBtn?: string;
   onDropdown?: boolean;
   dropdownItem?: Array<{
     placeholder: string;
@@ -136,7 +137,10 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
   hideTitle,
   onCreateBtn,
   onCreateBtnClick,
+  onImportExcelBtn,
+  onImportExcelBtnClick,
   nameCreateBtn,
+  nameImportExcelBtn,
   onDropdown,
   dropdownItem,
   onDatePicker,
@@ -156,9 +160,7 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
   const pageSize = searchParams.get("pageSize") ?? "25";
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
-
 
   //ให้ตัวแรกของ tab ใน group tabs ตัวแรกเสมอ
   useEffect(() => {
@@ -166,8 +168,6 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
       setFilterGroup(groupTabs[0].id);
     }
   }, [groupTabs]);
-
-
 
   const RowDataByType = ({
     cell,
@@ -265,7 +265,11 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
     <div className="lg:w-full m-auto">
       {!hideTitle && (
         <Flex justify={"between"}>
-          <Text size="6" weight="bold" className="text-center whitespace-nowrap">
+          <Text
+            size="6"
+            weight="bold"
+            className="text-center whitespace-nowrap"
+          >
             {title}
           </Text>
           {!hideTitleBtn && (
@@ -307,61 +311,63 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
               ค้นหา
             </Buttons>
           )}
-          {onDropdown && dropdownItem?.map((item, index) => (
-            <MasterSelectComponent
-              key={index}
-              onChange={(option) => {
-                const value = option ? String(option.value) : null;
-                setSelectedOption(value);
-                item.onChange?.(value); // ส่งค่ากลับ parent
-              }}
-              onInputChange={item.handleChange}
-              fetchDataFromGetAPI={item.fetchData}
-              valueKey="id"
-              labelKey="name"
-              placeholder={item.placeholder}
-              isClearable
-              labelOrientation="horizontal"
-              classNameLabel="w-5 flex justify-center"
-              classNameSelect="w-full"
-            />
-          ))}
-          {onDatePicker && datePickerItem?.map((item, index) => (
-            <DatePickerComponent
-              key={index}
-              placeholder={item.placeholder || "dd/mm/yy"}
-              selectedDate={item.selectedDate}
-              onChange={item.onChange}
-              classNameLabel="w-5 flex justify-center"
-              classNameInput="w-full"
-            />
-          ))}
+          {onDropdown &&
+            dropdownItem?.map((item, index) => (
+              <MasterSelectComponent
+                key={index}
+                onChange={(option) => {
+                  const value = option ? String(option.value) : null;
+                  setSelectedOption(value);
+                  item.onChange?.(value); // ส่งค่ากลับ parent
+                }}
+                onInputChange={item.handleChange}
+                fetchDataFromGetAPI={item.fetchData}
+                valueKey="id"
+                labelKey="name"
+                placeholder={item.placeholder}
+                isClearable
+                classNameLabel="w-5 flex justify-center"
+                classNameSelect="w-full"
+              />
+            ))}
+          {onDatePicker &&
+            datePickerItem?.map((item, index) => (
+              <DatePickerComponent
+                key={index}
+                placeholder={item.placeholder || "dd/mm/yy"}
+                selectedDate={item.selectedDate}
+                onChange={item.onChange}
+                classNameLabel="w-5 flex justify-center"
+                classNameInput="w-full"
+              />
+            ))}
 
-
-
-          {
-            onCreateBtn && (
-
-              <Buttons
-                btnType="primary"
-                variant="outline"
-                className="w-30"
-                onClick={onCreateBtnClick}
-              >
-                {nameCreateBtn}
-              </Buttons>
-
-
-            )
-          }
-
+          {onCreateBtn && (
+            <Buttons
+              btnType="primary"
+              variant="outline"
+              className="w-30"
+              onClick={onCreateBtnClick}
+            >
+              {nameCreateBtn}
+            </Buttons>
+          )}
+          {onImportExcelBtn && (
+            <Buttons
+              btnType="primary"
+              variant="outline"
+              className="w-30"
+              onClick={onImportExcelBtnClick}
+            >
+              {nameImportExcelBtn}
+            </Buttons>
+          )}
         </Flex>
         {tabs && tabs?.length > 0 && (
           <Tabs.Root
             defaultValue={defaultValueTab ?? tabs[0].value}
             onValueChange={onTabsValueChange}
             className=" mb-4 mt-2"
-
           >
             <Tabs.List>
               {tabs?.map((tab) => (
@@ -373,32 +379,31 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
           </Tabs.Root>
         )}
 
-
-
         {/* Table */}
         <div className={`w-full overflow-x-auto  ${classNameTableContent}`}>
-
           {/* Header Table */}
           {headerTab && (
             <div className="w-full overflow-x-auto whitespace-nowrap bg-sky-100 rounded-t-md">
-              {groupTabs && groupTabs.map((group) => (
-                <button
-                  key={group.id}
-                  onClick={() => {
-                    setFilterGroup(group.id);
-                    group.onChange();
-                  }}
-                  className={`inline-block px-4 py-2 rounded-t-md text-sm font-medium 
-      ${filterGroup === group.id
-                      ? "bg-main text-white border-b-2"
-                      : "bg-sky-100 text-[#3a5673] hover:bg-[#cde7fd]"}`}
-                >
-                  {group.name}
-                </button>
-              ))}
+              {groupTabs &&
+                groupTabs.map((group) => (
+                  <button
+                    key={group.id}
+                    onClick={() => {
+                      setFilterGroup(group.id);
+                      group.onChange();
+                    }}
+                    className={`inline-block px-4 py-2 rounded-t-md text-sm font-medium 
+      ${
+        filterGroup === group.id
+          ? "bg-main text-white border-b-2"
+          : "bg-sky-100 text-[#3a5673] hover:bg-[#cde7fd]"
+      }`}
+                  >
+                    {group.name}
+                  </button>
+                ))}
             </div>
           )}
-
 
           {/* {headerTab && (
 
@@ -417,15 +422,20 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
             </Tabs.Root>
           )} */}
           <Table.Root className="w-full bg-white rounded-md">
-
             <Table.Header className="sticky top-0 z-0">
               <Table.Row className="text-center bg-main text-white sticky top-0 z-10 whitespace-nowrap ">
                 {headers.map((header, index) => (
                   <Table.ColumnHeaderCell
                     key={index}
                     colSpan={header.colSpan}
-                    className={`${index === 0 && !headerTab ? "rounded-tl-md" : ""}
-                    ${index === headers.length - 1 && !headerTab ? "rounded-tr-md" : ""}
+                    className={`${
+                      index === 0 && !headerTab ? "rounded-tl-md" : ""
+                    }
+                    ${
+                      index === headers.length - 1 && !headerTab
+                        ? "rounded-tr-md"
+                        : ""
+                    }
                     h-6 ${header.className || ""}`}
                   >
                     {header.label}
@@ -439,19 +449,22 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
                 rowData.map((row, rowIndex) => (
                   <Table.Row
                     key={rowIndex}
-                    className={`hover:bg-gray-100 whitespace-nowrap ${row.className || ""}`}
+                    className={`hover:bg-gray-100 whitespace-nowrap ${
+                      row.className || ""
+                    }`}
                   >
                     {row.cells.map((cell, colIndex) => (
                       <Table.Cell
                         key={colIndex}
-                        className={`h-10 p-2 border border-gray-300 ${cell.className || ""}`}
+                        className={`h-10 p-2 border border-gray-300 ${
+                          cell.className || ""
+                        }`}
                       >
                         <RowDataByType cell={cell} />
                       </Table.Cell>
                     ))}
                     {onView && (
                       <Table.Cell className="text-center w-16 border border-gray-300">
-
                         <IconButton
                           variant="ghost"
                           aria-label="View"
@@ -499,26 +512,22 @@ const MasterTableFeature: React.FC<MasterTableFeatureProps> = ({
               )}
             </Table.Body>
           </Table.Root>
-
         </div>
 
-
-        {
-          !hidePagination && (
-            <Box className="w-full mt-2">
-              <PaginationWithLinks
-                page={parseInt(page)}
-                pageSize={parseInt(pageSize)}
-                totalCount={totalData ?? 0}
-                pageSizeSelectOptions={{
-                  pageSizeOptions: [15, 25, 35, 50],
-                }}
-              />
-            </Box>
-          )
-        }
-      </Box >
-    </div >
+        {!hidePagination && (
+          <Box className="w-full mt-2">
+            <PaginationWithLinks
+              page={parseInt(page)}
+              pageSize={parseInt(pageSize)}
+              totalCount={totalData ?? 0}
+              pageSizeSelectOptions={{
+                pageSizeOptions: [15, 25, 35, 50],
+              }}
+            />
+          </Box>
+        )}
+      </Box>
+    </div>
   );
 };
 

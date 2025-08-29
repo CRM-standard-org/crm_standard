@@ -1169,7 +1169,6 @@ export default function CustomerDetails() {
                             placeholder="กรุณาเลือก..."
                             isClearable
                             label="บทบาทลูกค้า"
-                            labelOrientation="horizontal"
                             onAction={handleCreateContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
@@ -1191,7 +1190,6 @@ export default function CustomerDetails() {
                             placeholder="กรุณาเลือก..."
                             isClearable
                             label="ช่องทางติดต่อ"
-                            labelOrientation="horizontal"
                             onAction={handleCreateContactConfirm}
                             nextFields={{ up: "role", down: `${contactOption ? contactOption?.toLowerCase() : "character"}` }}
                             classNameLabel="w-40 min-w-20 flex "
@@ -1223,7 +1221,6 @@ export default function CustomerDetails() {
                             placeholder="กรุณาเลือก..."
                             isClearable
                             label="นิสัยลูกค้า"
-                            labelOrientation="horizontal"
                             onAction={handleCreateContactConfirm}
                             nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}`, down: "first-contact" }}
                             classNameLabel="w-40 min-w-20 flex"
@@ -1320,7 +1317,6 @@ export default function CustomerDetails() {
                             placeholder="กรุณาเลือก..."
                             isClearable
                             label="บทบาทลูกค้า"
-                            labelOrientation="horizontal"
                             onAction={handleEditContactConfirm}
                             classNameLabel="w-40 min-w-20 flex "
                             classNameSelect="w-full "
@@ -1342,7 +1338,6 @@ export default function CustomerDetails() {
                             placeholder="กรุณาเลือก..."
                             isClearable
                             label="ช่องทางติดต่อ"
-                            labelOrientation="horizontal"
                             onAction={handleEditContactConfirm}
                             nextFields={{ up: "role", down: `${contactOption ? contactOption?.toLowerCase() : "character"}` }}
                             classNameLabel="w-40 min-w-20 flex "
@@ -1375,7 +1370,6 @@ export default function CustomerDetails() {
                             placeholder="กรุณาเลือก..."
                             isClearable
                             label="นิสัยลูกค้า"
-                            labelOrientation="horizontal"
                             onAction={handleEditContactConfirm}
                             nextFields={{ up: `${contactOption ? contactOption?.toLowerCase() : "contact-option"}`, down: "first-contact" }}
                             classNameLabel="w-40 min-w-20 flex"

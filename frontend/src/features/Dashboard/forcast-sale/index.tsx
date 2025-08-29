@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -30,6 +30,91 @@ import { useSalesForecastRiskAggregate } from "@/hooks/useSalesForecastRiskAggre
 import type { TooltipProps } from "recharts";
 import { useForecastFilters } from "../ForecastFilterContext";
 import { useSelectTag } from "@/hooks/useCustomerTag";
+import { useLocalProfileData } from "@/zustand/useProfile";
+import { useToast } from "@/components/customs/alert/ToastContext";
+
+// -------- Helper components & utilities (reduce complexity in main component) --------
+
+// (number formatting helper removed; use inline toLocaleString where needed)
+
+function getKpiClass(key: string, gapToGoal?: number | null) {
+  if (key === "gap_to_goal" && gapToGoal !== null && gapToGoal !== undefined && gapToGoal <= 0) {
+    return "bg-green-100 text-green-700";
+  }
+  if (key === "forecast_year_end") return "bg-amber-100 text-amber-800";
+  return "bg-blue-50 text-slate-800";
+}
+
+type KPIBoxProps = {
+  item: {
+    key: string;
+    label: string;
+    value: number;
+    format: boolean;
+    suffix?: string;
+    scenarioValue?: number;
+    diff?: number;
+    beneficialPositive?: number;
+  };
+  hasScenario: boolean;
+  gapToGoal?: number | null;
+};
+
+function KPIBox({ item: k, hasScenario, gapToGoal }: KPIBoxProps) {
+  const mainVal = k.format ? Math.round(k.value).toLocaleString() : k.value;
+
+  let scenarioValDisplay: string | null = null;
+  if (hasScenario && k.scenarioValue !== undefined) {
+    if (k.suffix === "%") scenarioValDisplay = `${k.scenarioValue.toFixed(1)}%`;
+    else scenarioValDisplay = k.format ? Math.round(k.scenarioValue).toLocaleString() : String(k.scenarioValue);
+  }
+
+  let diffFormatted = "";
+  if (k.diff !== undefined) {
+    const sign = k.diff > 0 ? "+" : "";
+    if (k.suffix === "%") diffFormatted = `${sign}${k.diff.toFixed(1)}%`;
+    else diffFormatted = `${sign}${k.format ? Math.round(k.diff).toLocaleString() : k.diff.toLocaleString()}`;
+  }
+
+  let diffClass = "";
+  if (k.beneficialPositive) {
+    if (k.beneficialPositive > 0) diffClass = "text-green-600";
+    else if (k.beneficialPositive < 0) diffClass = "text-red-600";
+  }
+
+  return (
+    <div className={`p-4 rounded shadow text-sm ${getKpiClass(k.key, gapToGoal)}`}>
+      <p className="font-semibold mb-1">{k.label}</p>
+      <p className="text-lg font-bold">{mainVal}{k.suffix || ""}</p>
+      {hasScenario && scenarioValDisplay && (
+        <div className="text-[11px] mt-1">
+          <span className="font-semibold">Scenario:</span> {scenarioValDisplay}
+          {k.diff !== 0 && k.diff !== undefined && (
+            <span className={`ml-1 font-semibold ${diffClass}`}>{diffFormatted}</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ForecastTooltip(props: TooltipProps<number, string>) {
+  const { active, payload } = props;
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload as { month: string; target: number; actual: number; forecast: number };
+  const gap = d.target - d.actual;
+  const achieve = d.target ? (d.actual / d.target) * 100 : 0;
+  return (
+    <div className="bg-white border rounded p-2 text-xs shadow">
+      <div>{d.month}</div>
+      <div>Target: {d.target.toLocaleString()}</div>
+      <div>Actual: {d.actual.toLocaleString()}</div>
+      <div>Forecast: {d.forecast.toLocaleString()}</div>
+      <div>Gap (Actual vs Target): {gap.toLocaleString()}</div>
+      <div>Achievement %: {achieve.toFixed(1)}%</div>
+    </div>
+  );
+}
 
 interface WeightRow {
   forecast_weight_config_id?: string;
@@ -116,13 +201,21 @@ export default function ForcastSale() {
     Record<number, number | "">
   >({});
   const [loadingGoals, setLoadingGoals] = useState(false);
+  const [savingGoals, setSavingGoals] = useState(false);
+  const [savingWeights, setSavingWeights] = useState(false);
+
+  // Small helpers to reduce nested updates inside JSX handlers
+  const updateWeightPercent = (priority: number, value: number) => {
+    setWeights((ws) => ws.map((r) => (r.priority === priority ? { ...r, weight_percent: value } : r)));
+  };
+  const updateMonthlyGoal = (m: number, value: string) => {
+    setMonthlyGoalInputs((prev) => ({ ...prev, [m]: value === "" ? "" : Number(value) }));
+  };
 
   // Query client & actor
   const qc = useQueryClient();
-  const actor_id =
-    (typeof window !== "undefined"
-      ? localStorage.getItem("employee_id")
-      : null) || undefined;
+  const actor_id = useLocalProfileData((s) => s.profile.employee_id) || undefined;
+  const { showToast } = useToast();
 
   // Refs for PDF capture
   const chartRef1 = useRef<HTMLDivElement>(null);
@@ -506,30 +599,29 @@ export default function ForcastSale() {
     { header: "มูลค่า", key: "amount", align: "right" },
   { header: "มูลค่าถ่วงน้ำหนัก", key: "weighted_amount", align: "right" },
   ];
-  const statusValues = summary
-    ? (() => {
-        const rows = summary.status_breakdown.map((s: StatusBreak) => ({
-          id: s.status,
-          status: s.status,
-          count: s.count,
-          amount: Math.round(s.amount),
-          weighted_amount: Math.round(s.weighted_amount),
-        }));
-        if (rows.length) {
-          const total = rows.reduce(
-            (acc, r) => {
-              acc.count += r.count;
-              acc.amount += r.amount;
-              acc.weighted_amount += r.weighted_amount;
-              return acc;
-            },
-            { status: "รวม", count: 0, amount: 0, weighted_amount: 0 }
-          );
-          rows.push({ id: "TOTAL", ...total });
-        }
-        return rows;
-      })()
-    : [];
+  const statusValues = useMemo(() => {
+    if (!summary) return [] as Array<{ id: string; status: string; count: number; amount: number; weighted_amount: number }>;
+    const rows = summary.status_breakdown.map((s: StatusBreak) => ({
+      id: s.status,
+      status: s.status,
+      count: s.count,
+      amount: Math.round(s.amount),
+      weighted_amount: Math.round(s.weighted_amount),
+    }));
+    if (rows.length) {
+      const total = rows.reduce(
+        (acc, r) => {
+          acc.count += r.count;
+          acc.amount += r.amount;
+          acc.weighted_amount += r.weighted_amount;
+          return acc;
+        },
+        { status: "รวม", count: 0, amount: 0, weighted_amount: 0 }
+      );
+      rows.push({ id: "TOTAL", ...total });
+    }
+    return rows;
+  }, [summary]);
 
   const handleSearch = () => {
     refetchForecast();
@@ -571,12 +663,23 @@ export default function ForcastSale() {
     });
   };
   const saveAllWeights = async () => {
-    if (!actor_id) return;
-    for (const r of weights) {
-      await saveWeightRow(r);
+    if (!actor_id) {
+      showToast("กรุณาเข้าสู่ระบบก่อนบันทึกน้ำหนัก", false);
+      return;
     }
-    qc.invalidateQueries({ queryKey: ["sales-forecast-summary"] });
-    setShowWeightModal(false);
+    setSavingWeights(true);
+    try {
+      for (const r of weights) {
+        await saveWeightRow(r);
+      }
+      qc.invalidateQueries({ queryKey: ["sales-forecast-summary"] });
+      setShowWeightModal(false);
+      showToast("บันทึกน้ำหนักสำเร็จ", true);
+  } catch {
+      showToast("บันทึกน้ำหนักไม่สำเร็จ", false);
+    } finally {
+      setSavingWeights(false);
+    }
   };
 
   // Goal modal handlers
@@ -631,14 +734,25 @@ export default function ForcastSale() {
     });
   };
   const saveAllGoals = async () => {
-    if (!actor_id) return;
-    await saveAnnualGoal();
-    for (let m = 1; m <= 12; m++) {
-      if (monthlyGoalInputs[m] !== undefined) await saveMonthlyGoal(m);
+    if (!actor_id) {
+      showToast("กรุณาเข้าสู่ระบบก่อนบันทึกเป้าหมาย", false);
+      return;
     }
-    qc.invalidateQueries({ queryKey: ["sales-forecast-summary"] });
-    setShowGoalModal(false);
-    refetchForecast();
+    setSavingGoals(true);
+    try {
+      await saveAnnualGoal();
+      for (let m = 1; m <= 12; m++) {
+        if (monthlyGoalInputs[m] !== undefined) await saveMonthlyGoal(m);
+      }
+      qc.invalidateQueries({ queryKey: ["sales-forecast-summary"] });
+      setShowGoalModal(false);
+      refetchForecast();
+      showToast("บันทึกเป้าหมายสำเร็จ", true);
+  } catch {
+      showToast("บันทึกเป้าหมายไม่สำเร็จ", false);
+    } finally {
+      setSavingGoals(false);
+    }
   };
 
   const navigate = useNavigate();
@@ -684,28 +798,7 @@ export default function ForcastSale() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
-  const renderTooltip = (props: TooltipProps<number, string>) => {
-    const { active, payload } = props;
-    if (!active || !payload || !payload.length) return null;
-    const d = payload[0].payload as {
-      month: string;
-      target: number;
-      actual: number;
-      forecast: number;
-    };
-    const gap = d.target - d.actual;
-    const achieve = d.target ? (d.actual / d.target) * 100 : 0;
-    return (
-      <div className="bg-white border rounded p-2 text-xs shadow">
-        <div>{d.month}</div>
-        <div>Target: {d.target.toLocaleString()}</div>
-        <div>Actual: {d.actual.toLocaleString()}</div>
-        <div>Forecast: {d.forecast.toLocaleString()}</div>
-        <div>Gap (Actual vs Target): {gap.toLocaleString()}</div>
-        <div>Achievement %: {achieve.toFixed(1)}%</div>
-      </div>
-    );
-  };
+  // Tooltip moved to ForecastTooltip component for readability
 
   return (
     <div>
@@ -921,68 +1014,14 @@ export default function ForcastSale() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
-          {kpis.map((k) => {
-            const showScenario =
-              k.scenarioValue !== undefined && selectedScenarioId;
-            const diff = k.diff;
-            const beneficialPositive = k.beneficialPositive; // already inverted for gap when needed
-            const diffFormatted =
-              diff !== undefined
-                ? k.suffix === "%"
-                  ? `${diff > 0 ? "+" : ""}${diff.toFixed(1)}%`
-                  : `${diff > 0 ? "+" : ""}${
-                      k.format
-                        ? Math.round(diff).toLocaleString()
-                        : diff.toLocaleString()
-                    }`
-                : "";
-            const scenarioValDisplay = showScenario
-              ? k.suffix === "%"
-                ? (k.scenarioValue as number).toFixed(1) + "%"
-                : k.format
-                ? Math.round(k.scenarioValue as number).toLocaleString()
-                : k.scenarioValue
-              : null;
-            return (
-              <div
-                key={k.label}
-                className={`p-4 rounded shadow text-sm ${
-                  k.key === "gap_to_goal" &&
-                  summary?.gap_to_goal !== null &&
-                  summary?.gap_to_goal <= 0
-                    ? "bg-green-100 text-green-700"
-                    : k.key === "forecast_year_end"
-                    ? "bg-amber-100 text-amber-800"
-                    : "bg-blue-50 text-slate-800"
-                }`}
-              >
-                <p className="font-semibold mb-1">{k.label}</p>
-                <p className="text-lg font-bold">
-                  {k.format ? Math.round(k.value).toLocaleString() : k.value}
-                  {k.suffix || ""}
-                </p>
-                {showScenario && (
-                  <div className="text-[11px] mt-1">
-                    <span className="font-semibold">Scenario:</span>{" "}
-                    {scenarioValDisplay}
-                    {diff !== 0 && diff !== undefined && (
-                      <span
-                        className={`ml-1 font-semibold ${
-                          beneficialPositive && beneficialPositive > 0
-                            ? "text-green-600"
-                            : beneficialPositive && beneficialPositive < 0
-                            ? "text-red-600"
-                            : ""
-                        }`}
-                      >
-                        {diffFormatted}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {kpis.map((k) => (
+            <KPIBox
+              key={k.label}
+              item={k}
+              hasScenario={k.scenarioValue !== undefined && !!selectedScenarioId}
+              gapToGoal={summary?.gap_to_goal}
+            />
+          ))}
         </div>
       )}
 
@@ -1025,7 +1064,7 @@ export default function ForcastSale() {
                     ]}
                     tickFormatter={(value) => value.toLocaleString()}
                   />
-                  <Tooltip content={renderTooltip} />
+                  <Tooltip content={ForecastTooltip} />
                   <Legend />
                   <Bar dataKey="target" name="เป้าหมาย (บาท)" fill="#3b82f6" barSize={20} />
                   <Bar dataKey="forecast" name="คาดการณ์ (บาท)" fill="#f97316" barSize={20} />
@@ -1103,8 +1142,15 @@ export default function ForcastSale() {
         <p className="text-sm font-semibold">เป้าหมายรวม vs คาดการณ์รวม</p>
                 <p className="text-xs text-gray-500">
                   {hasTotalData
-          ? `อัตราบรรลุ: ${achievementPct.toFixed(1)}% | ช่องว่าง: ${gapToGoal > 0 ? gapToGoal.toLocaleString() + ' บาท' : gapToGoal === 0 ? '0' : 'เกินเป้า ' + Math.abs(gapToGoal).toLocaleString() + ' บาท'}`
-          : 'ยังไม่มีข้อมูล (เป้าหมายหรือคาดการณ์เป็น 0)'}
+                    ? (() => {
+                        const gapLabel = gapToGoal > 0
+                          ? `${gapToGoal.toLocaleString()} บาท`
+                          : gapToGoal === 0
+                          ? "0"
+                          : `เกินเป้า ${Math.abs(gapToGoal).toLocaleString()} บาท`;
+                        return `อัตราบรรลุ: ${achievementPct.toFixed(1)}% | ช่องว่าง: ${gapLabel}`;
+                      })()
+                    : "ยังไม่มีข้อมูล (เป้าหมายหรือคาดการณ์เป็น 0)"}
                 </p>
               </div>
               {hasTotalData ? (
@@ -1215,7 +1261,7 @@ export default function ForcastSale() {
                   </tr>
                 </thead>
                 <tbody>
-                  {weights.map((w) => (
+      {weights.map((w) => (
                     <tr key={w.priority} className="border-t">
                       <td className="p-2">★{w.priority}</td>
                       <td className="p-2">
@@ -1223,19 +1269,8 @@ export default function ForcastSale() {
                           type="number"
                           min={0}
                           max={100}
-                          value={w.weight_percent}
-                          onChange={(e) =>
-                            setWeights((ws) =>
-                              ws.map((r) =>
-                                r.priority === w.priority
-                                  ? {
-                                      ...r,
-                                      weight_percent: Number(e.target.value),
-                                    }
-                                  : r
-                              )
-                            )
-                          }
+        value={w.weight_percent}
+        onChange={(e) => updateWeightPercent(w.priority, Number(e.target.value))}
                           className="border rounded px-2 py-1 w-24 text-right"
                         />
                       </td>
@@ -1256,8 +1291,9 @@ export default function ForcastSale() {
                 btnType="primary"
                 variant="outline"
                 onClick={saveAllWeights}
+                disabled={savingWeights || !actor_id}
               >
-                บันทึก
+                {savingWeights ? "กำลังบันทึก..." : "บันทึก"}
               </Buttons>
             </div>
           </div>
@@ -1312,15 +1348,7 @@ export default function ForcastSale() {
                           type="number"
                           min={0}
                           value={monthlyGoalInputs[m] ?? ""}
-                          onChange={(e) =>
-                            setMonthlyGoalInputs((prev) => ({
-                              ...prev,
-                              [m]:
-                                e.target.value === ""
-                                  ? ""
-                                  : Number(e.target.value),
-                            }))
-                          }
+                          onChange={(e) => updateMonthlyGoal(m, e.target.value)}
                           className="border rounded px-2 py-1"
                         />
                       </div>
@@ -1341,8 +1369,9 @@ export default function ForcastSale() {
                 btnType="primary"
                 variant="outline"
                 onClick={saveAllGoals}
+                disabled={savingGoals || !actor_id}
               >
-                บันทึก
+                {savingGoals ? "กำลังบันทึก..." : "บันทึก"}
               </Buttons>
             </div>
           </div>

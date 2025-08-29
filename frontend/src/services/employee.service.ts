@@ -5,6 +5,7 @@ import {
     SELECT_RESPONSIBLE,
     SELECT_EMPLOYEE,
     CREATE_EMPLOYEE,
+  IMPORT_EMPLOYEES,
     GET_EMPLOYEE_STATUS,
     GET_EMPLOYEE_BY_ID,
     UPDATE_EMPLOYEE
@@ -126,6 +127,20 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
       return response;
     } catch (error) {
       console.error("Error create Employee", error);
+      throw error;
+    }
+  };
+
+  // bulk import employees
+  export const importEmployees = async (items: PayLoadCreateEmployee[]) => {
+    try {
+      const { data: response } = await mainApi.post(
+        `${IMPORT_EMPLOYEES}`,
+        { items }
+      );
+      return response;
+    } catch (error) {
+      console.error("Error import Employees", error);
       throw error;
     }
   };

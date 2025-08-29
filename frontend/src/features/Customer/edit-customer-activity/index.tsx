@@ -432,7 +432,6 @@ export default function EditCustomerActivity() {
                                 placeholder="กรุณาเลือก..."
                                 isClearable
                                 label="ลูกค้า"
-                                labelOrientation="horizontal"
                                 classNameLabel="w-1/2 flex"
                                 classNameSelect="w-full "
                                 nextFields={{ up: "date-activity", down: "hour" }}
