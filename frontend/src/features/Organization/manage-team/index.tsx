@@ -1,19 +1,13 @@
 import { useEffect, useState } from "react";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
-import InputAction from "@/components/customs/input/input.main.component";
-// import { getQuotationData } from "@/services/ms.quotation.service.ts";
-
-import { useToast } from "@/components/customs/alert/ToastContext";
-import { TypeColorAllResponse } from "@/types/response/response.color";
+import { useToast } from "@/components/customs/alert/useToast";
 
 //
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 //fetch tag
-import { useTag } from "@/hooks/useCustomerTag";
 import { TypeTeamResponse } from "@/types/response/response.team";
-import TagCustomer from "@/components/customs/tagCustomer/tagCustomer";
 import { useTeam } from "@/hooks/useTeam";
 import { deleteTeam } from "@/services/team.service";
 type dateTableType = {
@@ -28,15 +22,9 @@ type dateTableType = {
 //
 export default function ManageTeam() {
   const [searchText, setSearchText] = useState("");
-  const [colorsName, setColorsName] = useState("");
-  // const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [data, setData] = useState<dateTableType>([]);
-
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<TypeTeamResponse | null>(null);
-
   const { showToast } = useToast();
   //
   const navigate = useNavigate();
@@ -44,10 +32,6 @@ export default function ManageTeam() {
   const page = searchParams.get("page") ?? "1";
   const pageSize = searchParams.get("pageSize") ?? "25";
   const [searchTeam, setSearchTeam] = useState("");
-
-  const [allQuotation, setAllQuotation] = useState<any[]>([]);
-  const [quotation, setQuotation] = useState<any[]>([]);
-  
   const [filterGroup, setFilterGroup] = useState<string | null>(null);
 
   const { data: dataTeam, refetch: refetchTeam } = useTeam({

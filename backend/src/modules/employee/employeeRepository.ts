@@ -1,11 +1,7 @@
-import { Social } from '@prisma/client';
 import prisma from '@src/db';
 import { TypePayloadEmployee , Filter , UpdateEmployee } from '@modules/employee/employeeModel';
-import { boolean, object } from 'zod';
-import { skip } from '@prisma/client/runtime/library';
 import bcrypt from "bcryptjs";
 import { convertDecimalToNumber } from '@common/models/createCode';
-import { bool } from 'envalid';
 const fs = require('fs');
 
 
@@ -624,4 +620,35 @@ export const employeeRepository = {
         return emp;
     },
 
+    delete: async (employee_id: string) => {
+        employee_id = employee_id.trim();
+
+        // Check existing
+        const emp = await prisma.employees.findFirst({ where: { employee_id } });
+        if (!emp) return null;
+
+        // If employee has related responsibilities that cause FK errors, let service layer map the error
+        // Clean up profile picture file if exists
+        if (emp.profile_picture) {
+            const filePath = `src${emp.profile_picture}`;
+            if (fs.existsSync(filePath)) {
+                fs.unlink(filePath, (err: Error) => {
+                    if (err) {
+                        // ignore missing file errors
+                    }
+                });
+            }
+        }
+
+        // Remove optional relations that use employee_id as unique/foreign keys to avoid constraints
+        await prisma.detailSocial.deleteMany({ where: { employee_id } });
+        await prisma.address.deleteMany({ where: { employee_id } });
+
+        // Set head references to null where applicable
+        await prisma.team.updateMany({ where: { head_id: employee_id }, data: { head_id: null, head_name: null } });
+
+        // Finally delete employee
+        await prisma.employees.delete({ where: { employee_id } });
+        return true;
+    },
 };

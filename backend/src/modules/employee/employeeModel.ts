@@ -157,3 +157,9 @@ export const GetByIdSchema = z.object({
         employee_id: z.string().min(1).max(50),
     }),
 });
+
+export const DeleteEmployeeSchema = z.object({
+    params: z.object({
+        employee_id: z.string().min(1).max(50),
+    }),
+});

@@ -8,7 +8,7 @@ import InputAction from "@/components/customs/input/input.main.component";
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
 
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
@@ -310,7 +310,7 @@ export default function TeamDetails() {
                             </div>
                             <div className="">
 
-                                <LabelWithValue label="สถานะ" value={`${dataLeader?.employee_status}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
+                                <LabelWithValue label="สถานะ" value={`${dataLeader?.employee_status?.name}`} classNameLabel="sm:w-1/2" classNameValue="w-80" />
 
                             </div>
 

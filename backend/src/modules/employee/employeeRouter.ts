@@ -6,7 +6,7 @@ import {
 } from "@common/utils/httpHandlers";
 import { authorizeByName } from "@common/middleware/permissions";
 import { employeeService } from "@modules/employee/employeeService";
-import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema , GetByIdSchema , UpdateSchema, ImportEmployeesSchema } from "@modules/employee/employeeModel";
+import { CreateSchema , GetAllEmployeeSchema , SelectResponsibleInTeamSchema , SelectResponsibleSchema , GetAllSchema , GetByIdSchema , UpdateSchema, ImportEmployeesSchema, DeleteEmployeeSchema } from "@modules/employee/employeeModel";
 import authenticateToken from "@common/middleware/authenticateToken";
 import { upload , handleMulter } from '@common/middleware/multerConfig';
 
@@ -97,6 +97,12 @@ export const employeeRouter = (() => {
         } catch (err: any) {
             res.status(500).json({ success: false, message: err.message });
         }
+    });
+
+    router.delete("/delete/:employee_id", authenticateToken, authorizeByName("พนักงาน", ["A"]), validateRequest(DeleteEmployeeSchema), async (req: Request, res: Response) => {
+        const employee_id = req.params.employee_id;
+        const ServiceResponse = await employeeService.delete(employee_id);
+        handleServiceResponse(ServiceResponse, res);
     });
 
     return router;

@@ -56,7 +56,9 @@ export type leaderResponse = {
     phone: null;
     email: string;
     start_date: null;
-    employee_status: null;
+    employee_status: null | {
+        name: string;
+    };
     address: [];
     detail_social: [];
 }

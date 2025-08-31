@@ -4,7 +4,7 @@ import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 import Buttons from "@/components/customs/button/button.main.component";
 
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 
 //
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -360,7 +360,7 @@ export default function SaleOrderDetails() {
 
   return (
     <>
-      <div className="flex  mb-3 justify-between">
+      <div className="flex mb-3 justify-between">
         <p className="me-2 text-2xl font-bold">รายละเอียดใบสั่งขาย</p>
         <div className="flex gap-2">
           {latestStatus && !["สำเร็จ", "ไม่สำเร็จ"].includes(latestStatus) && (

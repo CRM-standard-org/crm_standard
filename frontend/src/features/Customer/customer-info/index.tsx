@@ -3,7 +3,7 @@ import MasterTableFeature from "@/components/customs/display/master.main.compone
 import { useCustomerStatus } from "@/hooks/useCustomerStatus";
 import { deleteCustomerStatus } from "@/services/customerStatus.service";
 import { TypeCustomerStatusResponse } from "@/types/response/response.customerStatus";
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 

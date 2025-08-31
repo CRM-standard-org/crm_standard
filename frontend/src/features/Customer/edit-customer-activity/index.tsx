@@ -8,7 +8,7 @@ import InputAction from "@/components/customs/input/input.main.component";
 import TextAreaForm from "@/components/customs/textAreas/textAreaForm";
 // import { getQuotationData } from "@/services/ms.quotation.service.ts";
 
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //
@@ -176,6 +176,8 @@ export default function EditCustomerActivity() {
             tag_id: tagId,
             team_id: teamId,
             responsible_id: responsibleId,
+            start_date: "",
+            end_date: ""
         }
     });
 
@@ -586,7 +588,7 @@ export default function EditCustomerActivity() {
                 </div>
 
             </div>
-            <MasterTableFeature
+            {/* <MasterTableFeature
                 title=""
                 hideTitleBtn={true}
                 headers={headers}
@@ -596,7 +598,7 @@ export default function EditCustomerActivity() {
                 headerTab={true}
                 groupTabs={groupTabs}
                 hidePagination={false}
-            />
+            /> */}
         </>
 
     );

@@ -24,7 +24,7 @@ import html2canvas from "html2canvas-pro";
 import ReportYearPDF from "../pdf/print-report-year/ReportYearPDF";
 import api from "@/apis/main.api";
 import { SALES_FORECAST } from "@/apis/endpoint.api";
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 import { useLocalProfileData } from "@/zustand/useProfile";
 
 const MONTH_LABELS = [

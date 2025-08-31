@@ -9,7 +9,7 @@ import {
   updateTag,
   deleteTag,
 } from "@/services/tagColor.service";
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 
 
 import TagColorPicker from "@/components/customs/tagCustomer/tagColor";

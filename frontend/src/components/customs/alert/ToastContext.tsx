@@ -1,63 +1,56 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { ReactNode, useState, useCallback } from "react";
 import * as Toast from "@radix-ui/react-toast";
+import { ToastContext } from "./ToastContextBase";
 
-type ToastContextType = {
-  showToast: (message: string, isSuccess: boolean) => void;
+type ToastItem = {
+  id: string;
+  message: string;
+  isSuccess: boolean;
 };
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+// Context is defined in ToastContextBase to satisfy fast refresh constraints
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
-  const [isToastOpen, setIsToastOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(true);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  const [toastTimeout, setToastTimeout] = useState<NodeJS.Timeout | null>(null);
+  const showToast = useCallback((message: string, isSuccess: boolean) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setToasts((prev) => [...prev, { id, message, isSuccess }]);
+  }, []);
 
-  const showToast = (message: string, isSuccess: boolean) => {
-    // ยกเลิก timeout ที่ตั้งไว้ก่อนหน้านี้ถ้ามี
-    if (toastTimeout) {
-      clearTimeout(toastTimeout);
-    }
-
-    setToastMessage(message);
-    setIsSuccess(isSuccess);
-    setIsToastOpen(true);
-
-    // ตั้งเวลาให้แสดง 3 วินาที
-    const timeoutId = setTimeout(() => {
-      setIsToastOpen(false);
-    }, 3000); // 3 วินาที (3000 มิลลิวินาที)
-
-    // เก็บ timeout id ไว้เพื่อใช้ยกเลิกในครั้งถัดไป
-    setToastTimeout(timeoutId);
-  };
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-    <Toast.Provider swipeDirection="right">
-        <Toast.Root
-          open={isToastOpen}
-          onOpenChange={setIsToastOpen}
-          className={`fixed top-16 right-4 z-[2147483647] max-w-lg w-128 px-4 py-3 rounded-lg shadow-lg border transition-all duration-500 transform ${
-            isSuccess ? "bg-green-100 border-green-400 text-green-700" : "bg-red-100 border-red-400 text-red-700"
-          } ${isToastOpen ? "opacity-100 animate-fade-in" : "opacity-0 animate-fade-out"}`}
-        >
-          <div className="flex items-center">
-            <strong className="font-bold text-lg">{isSuccess ? "Success!" : "Error!"}</strong>
-            <span className="ml-2 text-sm">{toastMessage}</span>
-            <span className="ml-auto cursor-pointer text-gray-700" onClick={() => setIsToastOpen(false)}></span>
-          </div>
-        </Toast.Root>
-  <Toast.Viewport className="fixed top-0 right-0 p-4 z-[2147483647]" />
+      <Toast.Provider swipeDirection="right">
+        {toasts.map((t) => (
+          <Toast.Root
+            key={t.id}
+            duration={6000}
+            onOpenChange={(open) => {
+              if (!open) removeToast(t.id);
+            }}
+            className={`max-w-lg w-128 px-4 py-3 rounded-lg shadow-lg border transition-all duration-300 ${
+              t.isSuccess
+                ? "bg-green-100 border-green-400 text-green-700"
+                : "bg-red-100 border-red-400 text-red-700"
+            }`}
+          >
+            <div className="flex items-start gap-2">
+              <strong className="font-bold text-lg shrink-0">
+                {t.isSuccess ? "Success!" : "Error!"}
+              </strong>
+              <span className="text-sm leading-relaxed break-words">
+                {t.message}
+              </span>
+            </div>
+          </Toast.Root>
+        ))}
+  <Toast.Viewport className="fixed top-16 right-4 z-[2147483647] flex flex-col gap-2 outline-none" />
       </Toast.Provider>
     </ToastContext.Provider>
   );
-};
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) throw new Error("useToast must be used within a ToastProvider");
-  return context;
 };

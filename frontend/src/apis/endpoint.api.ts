@@ -78,6 +78,7 @@ export const CREATE_EMPLOYEE = "/v1/employee/create";
 export const IMPORT_EMPLOYEES = "/v1/employee/import";
 export const GET_EMPLOYEE_BY_ID = "/v1/employee/get";
 export const UPDATE_EMPLOYEE = "/v1/employee/update";
+export const DELETE_EMPLOYEE = "/v1/employee/delete";
 
 //address
 export const SELECT_ADDRESS = "/v1/address/select";

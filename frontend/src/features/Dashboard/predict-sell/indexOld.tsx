@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 
 //
 import { useNavigate, useSearchParams } from "react-router-dom";

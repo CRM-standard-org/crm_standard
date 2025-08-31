@@ -3,7 +3,7 @@ import { Table } from "@radix-ui/themes";
 import MasterTableFeature from "@/components/customs/display/master.main.component";
 import DialogComponent from "@/components/customs/dialog/dialog.main.component";
 
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -20,7 +20,7 @@ import { TypeSocialResponse } from "@/types/response/response.social";
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 import { useDropzone } from "react-dropzone";
-import { importEmployees } from "@/services/employee.service";
+import { importEmployees, deleteEmployee } from "@/services/employee.service";
 import { PayLoadCreateEmployee } from "@/types/requests/request.employee";
 // use a public image as icon to avoid missing asset imports
 
@@ -47,24 +47,24 @@ export default function Employee() {
     email?: string;
     first_name?: string;
     last_name?: string;
-  role?: string;
-  role_id?: string;
+    role?: string;
+    role_id?: string;
     position?: string;
     phone?: string;
-  social?: string;
-  social_id?: string;
+    social?: string;
+    social_id?: string;
     detail?: string;
     address?: string;
-  country?: string;
-  country_id?: string;
-  province?: string;
-  province_id?: string;
-  district?: string;
-  district_id?: string;
-  status?: string;
-  status_id?: string;
-  team?: string;
-  team_id?: string;
+    country?: string;
+    country_id?: string;
+    province?: string;
+    province_id?: string;
+    district?: string;
+    district_id?: string;
+    status?: string;
+    status_id?: string;
+    team?: string;
+    team_id?: string;
     salary?: string | number | null;
     start_date?: string | Date;
     end_date?: string | Date;
@@ -89,6 +89,11 @@ export default function Employee() {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
   const [isActive, setIsActive] = useState<boolean>(true);
+
+  // delete modal state
+  const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+  const [selectedItem, setSelectedItem] =
+    useState<TypeAllEmployeeResponse | null>(null);
 
   // Lookups for mapping names -> ids
   const { data: dataEmployeeStatus } = useSelectEmployeeStatus({
@@ -163,6 +168,7 @@ export default function Employee() {
     { label: "สถานะ", colSpan: 1, className: "w-auto" },
     { label: "เงินเดือน/ค่าแรง", colSpan: 1, className: "w-auto" },
     { label: "ดูรายละเอียด", colSpan: 1, className: "w-auto" },
+    { label: "ลบ", colSpan: 1, className: "w-auto" },
   ];
 
   // no mock data
@@ -272,6 +278,32 @@ export default function Employee() {
   const handleView = (item: TypeAllEmployeeResponse) => {
     navigate(`/employee-details/${item.employee_id}`);
   };
+  const openDelete = (item: TypeAllEmployeeResponse) => {
+    setSelectedItem(item);
+    setIsDeleteOpen(true);
+  };
+  const closeDelete = () => setIsDeleteOpen(false);
+  const confirmDelete = async () => {
+    if (!selectedItem?.employee_id) {
+      showToast("ไม่พบข้อมูลพนักงาน", false);
+      return;
+    }
+    try {
+      const res = await deleteEmployee(selectedItem.employee_id);
+      if (res?.statusCode === 200) {
+        showToast("ลบพนักงานเรียบร้อยแล้ว", true);
+        setIsDeleteOpen(false);
+        setSearchParams({ page: "1", pageSize });
+        refetchEmployee();
+      } else if (res?.statusCode === 400) {
+        showToast("ไม่สามารถลบพนักงานได้", false);
+      } else {
+        showToast(res?.message || "ไม่สามารถลบพนักงานได้", false);
+      }
+    } catch {
+      showToast("ไม่สามารถลบพนักงานได้", false);
+    }
+  };
   // no local create/edit/delete handlers
 
   // Helpers for Excel import
@@ -315,12 +347,13 @@ export default function Employee() {
     return d1.isValid() ? d1.format("YYYY-MM-DD") : undefined;
   };
   // Thai-friendly normalization helpers and fuzzy resolve
-  const normalizeStrict = (s?: string) => (s || "").toString().trim().toLowerCase();
+  const normalizeStrict = (s?: string) =>
+    (s || "").toString().trim().toLowerCase();
   const simplifyThai = (s: string) =>
     s
       .toLowerCase()
       .replace(/\s+/g, "")
-  .replace(/[-_.]/g, "")
+      .replace(/[-_.]/g, "")
       // remove common Thai prefixes
       .replace(/^จังหวัด/, "")
       .replace(/^เขต/, "")
@@ -389,185 +422,212 @@ export default function Employee() {
       districtMap,
     };
   }, [addressTree, dataRole, dataEmployeeStatus, dataTeam, dataSocial]);
-  const makePayload = useCallback((
-    r: ImportRow,
-    lookups: ReturnType<typeof buildLookups>
-  ): { payload?: PayLoadCreateEmployee; error?: string } => {
-    const countryAliases: Record<string, string> = {
-      ไทย: "ประเทศไทย",
-      thailand: "ประเทศไทย",
-      "ราชอาณาจักรไทย": "ประเทศไทย",
-    };
-    const provinceAliases: Record<string, string> = {
-      กรุงเทพ: "กรุงเทพมหานคร",
-      bangkok: "กรุงเทพมหานคร",
-    };
-    const aliasName = (name?: string, table?: Record<string, string>) => {
-      const n = normalizeStrict(name);
-      if (!n) return "";
-      return (table && (table[n] || table[name || ""])) || (name || "");
-    };
-    // local fuzzy resolver that tries exact normalized match, then simplified/alias and partial contains
-    const tryResolve = (
-      map: Record<string, string> | undefined,
-      input: unknown,
-      aliasTable?: Record<string, string>
-    ): string | undefined => {
-      if (!map) return undefined;
-      const raw = safeStr(input);
-      if (!raw) return undefined;
-      const aliased = aliasTable ? aliasName(raw, aliasTable) : raw;
-      const key = normalizeStrict(aliased);
-      // exact key (name) match
-      if (map[key]) return map[key];
-      // direct id provided
-      for (const k in map) {
-        if (map[k] === raw) return raw;
-      }
-      const keySimple = simplifyThai(key);
-      for (const k in map) {
-        if (simplifyThai(k) === keySimple) return map[k];
-      }
-      for (const k in map) {
-        const ks = simplifyThai(k);
-        if (ks.includes(keySimple) || keySimple.includes(ks)) return map[k];
-      }
-      return undefined;
-    };
-
-    // resolve country/province/district with fuzzy matching and aliases
-    const countryId = r.country_id || tryResolve(lookups.countryMap, r.country, countryAliases);
-    const provinceId = r.province_id || (countryId
-      ? tryResolve(
-          lookups.provinceMap[countryId],
-          r.province,
-          provinceAliases
-        )
-      : undefined);
-    const districtId = r.district_id || (countryId && provinceId
-        ? tryResolve(
-            lookups.districtMap[countryId]?.[provinceId],
-            r.district
-          )
-        : undefined);
-
-    // resolve other references (role/status/team/social)
-  const roleId = r.role_id || tryResolve(lookups.roleMap, r.role);
-  const statusId = r.status_id || tryResolve(lookups.statusMap, r.status);
-  const teamId = r.team_id || (r.team ? tryResolve(lookups.teamMap, r.team) : undefined);
-  const socialId = r.social_id || (r.social ? tryResolve(lookups.socialMap, r.social) : undefined);
-    const salaryRaw = r.salary;
-    const salaryNum =
-      salaryRaw === "" || salaryRaw === undefined || salaryRaw === null
-        ? undefined
-        : Number(String(salaryRaw).replace(/[,\s]/g, ""));
-    const phone = safeStr(r.phone).replace(/\D/g, "");
-    const missing: string[] = [];
-    if (!r.employee_code) missing.push("employee_code");
-    if (!r.username) missing.push("username");
-    if (!r.password) missing.push("password");
-    if (!r.email) missing.push("email");
-    if (!r.first_name) missing.push("first_name");
-    if (!r.position) missing.push("position");
-    if (!phone) missing.push("phone");
-    if (!roleId) missing.push("role");
-    if (!statusId) missing.push("status");
-    if (!countryId) missing.push("country");
-    if (!provinceId) missing.push("province");
-    if (!districtId) missing.push("district");
-    if (missing.length) {
-      return {
-        error: `ข้อมูลไม่ครบถ้วนหรือไม่พบการจับคู่: ${missing.join(", ")}`,
+  const makePayload = useCallback(
+    (
+      r: ImportRow,
+      lookups: ReturnType<typeof buildLookups>
+    ): { payload?: PayLoadCreateEmployee; error?: string } => {
+      const countryAliases: Record<string, string> = {
+        ไทย: "ประเทศไทย",
+        thailand: "ประเทศไทย",
+        ราชอาณาจักรไทย: "ประเทศไทย",
       };
-    }
-    const payload: PayLoadCreateEmployee = {
-      employee_code: safeStr(r.employee_code).trim(),
-      username: safeStr(r.username).trim(),
-      password: safeStr(r.password),
-      email: safeStr(r.email).trim(),
-      first_name: safeStr(r.first_name).trim(),
-      last_name: r.last_name ? safeStr(r.last_name).trim() : "",
-      role_id: roleId,
-      position: safeStr(r.position).trim(),
-      phone,
-      social_id: socialId,
-      detail: r.detail ? safeStr(r.detail) : undefined,
-      address: r.address ? safeStr(r.address) : undefined,
-      country_id: countryId,
-      province_id: provinceId,
-      district_id: districtId,
-      status_id: statusId,
-      team_id: teamId,
-      salary: salaryNum,
-      start_date: parseDate(r.start_date),
-      end_date: parseDate(r.end_date),
-      birthdate: parseDate(r.birthdate),
-    };
-    return { payload };
-  }, []);
-  const transformRowsToPayloads = useCallback((rows: ImportRow[]) => {
-    const lookups = buildLookups();
-    const out: PayLoadCreateEmployee[] = [];
-    const errs: { index: number; message: string }[] = [];
-    let i = 0;
-    for (const r of rows) {
-      const { payload, error } = makePayload(r, lookups);
-      if (payload) out.push(payload);
-      else errs.push({ index: i, message: error || "แปลงข้อมูลล้มเหลว" });
-      i++;
-    }
-    return { out, errs };
-  }, [buildLookups, makePayload]);
+      const provinceAliases: Record<string, string> = {
+        กรุงเทพ: "กรุงเทพมหานคร",
+        bangkok: "กรุงเทพมหานคร",
+      };
+      const aliasName = (name?: string, table?: Record<string, string>) => {
+        const n = normalizeStrict(name);
+        if (!n) return "";
+        return (table && (table[n] || table[name || ""])) || name || "";
+      };
+      // local fuzzy resolver that tries exact normalized match, then simplified/alias and partial contains
+      const tryResolve = (
+        map: Record<string, string> | undefined,
+        input: unknown,
+        aliasTable?: Record<string, string>
+      ): string | undefined => {
+        if (!map) return undefined;
+        const raw = safeStr(input);
+        if (!raw) return undefined;
+        const aliased = aliasTable ? aliasName(raw, aliasTable) : raw;
+        const key = normalizeStrict(aliased);
+        // exact key (name) match
+        if (map[key]) return map[key];
+        // direct id provided
+        for (const k in map) {
+          if (map[k] === raw) return raw;
+        }
+        const keySimple = simplifyThai(key);
+        for (const k in map) {
+          if (simplifyThai(k) === keySimple) return map[k];
+        }
+        for (const k in map) {
+          const ks = simplifyThai(k);
+          if (ks.includes(keySimple) || keySimple.includes(ks)) return map[k];
+        }
+        return undefined;
+      };
+
+      // resolve country/province/district with fuzzy matching and aliases
+      const countryId =
+        r.country_id ||
+        tryResolve(lookups.countryMap, r.country, countryAliases);
+      const provinceId =
+        r.province_id ||
+        (countryId
+          ? tryResolve(
+              lookups.provinceMap[countryId],
+              r.province,
+              provinceAliases
+            )
+          : undefined);
+      const districtId =
+        r.district_id ||
+        (countryId && provinceId
+          ? tryResolve(lookups.districtMap[countryId]?.[provinceId], r.district)
+          : undefined);
+
+      // resolve other references (role/status/team/social)
+      const roleId = r.role_id || tryResolve(lookups.roleMap, r.role);
+      const statusId = r.status_id || tryResolve(lookups.statusMap, r.status);
+      const teamId =
+        r.team_id || (r.team ? tryResolve(lookups.teamMap, r.team) : undefined);
+      const socialId =
+        r.social_id ||
+        (r.social ? tryResolve(lookups.socialMap, r.social) : undefined);
+      const salaryRaw = r.salary;
+      const salaryNum =
+        salaryRaw === "" || salaryRaw === undefined || salaryRaw === null
+          ? undefined
+          : Number(String(salaryRaw).replace(/[,\s]/g, ""));
+      const phone = safeStr(r.phone).replace(/\D/g, "");
+      const missing: string[] = [];
+      if (!r.employee_code) missing.push("employee_code");
+      if (!r.username) missing.push("username");
+      if (!r.password) missing.push("password");
+      if (!r.email) missing.push("email");
+      if (!r.first_name) missing.push("first_name");
+      if (!r.position) missing.push("position");
+      if (!phone) missing.push("phone");
+      if (!roleId) missing.push("role");
+      if (!statusId) missing.push("status");
+      if (!countryId) missing.push("country");
+      if (!provinceId) missing.push("province");
+      if (!districtId) missing.push("district");
+      if (missing.length) {
+        return {
+          error: `ข้อมูลไม่ครบถ้วนหรือไม่พบการจับคู่: ${missing.join(", ")}`,
+        };
+      }
+      const payload: PayLoadCreateEmployee = {
+        employee_code: safeStr(r.employee_code).trim(),
+        username: safeStr(r.username).trim(),
+        password: safeStr(r.password),
+        email: safeStr(r.email).trim(),
+        first_name: safeStr(r.first_name).trim(),
+        last_name: r.last_name ? safeStr(r.last_name).trim() : "",
+        role_id: roleId,
+        position: safeStr(r.position).trim(),
+        phone,
+        social_id: socialId,
+        detail: r.detail ? safeStr(r.detail) : undefined,
+        address: r.address ? safeStr(r.address) : undefined,
+        country_id: countryId,
+        province_id: provinceId,
+        district_id: districtId,
+        status_id: statusId,
+        team_id: teamId,
+        salary: salaryNum,
+        start_date: parseDate(r.start_date),
+        end_date: parseDate(r.end_date),
+        birthdate: parseDate(r.birthdate),
+      };
+      return { payload };
+    },
+    []
+  );
+  const transformRowsToPayloads = useCallback(
+    (rows: ImportRow[]) => {
+      const lookups = buildLookups();
+      const out: PayLoadCreateEmployee[] = [];
+      const errs: { index: number; message: string }[] = [];
+      let i = 0;
+      for (const r of rows) {
+        const { payload, error } = makePayload(r, lookups);
+        if (payload) out.push(payload);
+        else errs.push({ index: i, message: error || "แปลงข้อมูลล้มเหลว" });
+        i++;
+      }
+      return { out, errs };
+    },
+    [buildLookups, makePayload]
+  );
   const handleExcelPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
     void readExcelFile(f);
   };
-  const readExcelFile = useCallback(async (file: File) => {
-    const MAX = 25 * 1024 * 1024; // 25 MB
-    if (file.size > MAX) { showToast("ไฟล์มีขนาดเกิน 25 MB", false); return; }
-    const name = file.name.toLowerCase();
-    const isCSV = name.endsWith(".csv");
-    setExcelFile(file);
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        let wb: XLSX.WorkBook;
-        if (isCSV) {
-          const res = evt.target?.result;
-          const text = typeof res === 'string' ? res : '';
-          wb = XLSX.read(text, { type: "string" });
-        } else {
-          const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-          wb = XLSX.read(data, { type: "array" });
-        }
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json<ImportRow>(ws, { defval: "", raw: true });
-        setPreviewRows(json.slice(0, 10));
-        const { out, errs } = transformRowsToPayloads(json);
-        setPayloads(out);
-        console.log("out", out);
-        console.log("errs", errs);
-        setTransformErrors(errs);
-      } catch {
-        setTransformErrors([{ index: -1, message: "อ่านไฟล์ไม่สำเร็จ" }]);
+  const readExcelFile = useCallback(
+    async (file: File) => {
+      const MAX = 25 * 1024 * 1024; // 25 MB
+      if (file.size > MAX) {
+        showToast("ไฟล์มีขนาดเกิน 25 MB", false);
+        return;
       }
-    };
-    if (isCSV) reader.readAsText(file); else reader.readAsArrayBuffer(file);
-  }, [showToast, transformRowsToPayloads]);
-  const onDrop = useMemo(() => (accepted: File[]) => {
-    const f = accepted?.[0];
-    if (!f) return;
-    void readExcelFile(f);
-  }, [readExcelFile]);
+      const name = file.name.toLowerCase();
+      const isCSV = name.endsWith(".csv");
+      setExcelFile(file);
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          let wb: XLSX.WorkBook;
+          if (isCSV) {
+            const res = evt.target?.result;
+            const text = typeof res === "string" ? res : "";
+            wb = XLSX.read(text, { type: "string" });
+          } else {
+            const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+            wb = XLSX.read(data, { type: "array" });
+          }
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json<ImportRow>(ws, {
+            defval: "",
+            raw: true,
+          });
+          setPreviewRows(json.slice(0, 10));
+          const { out, errs } = transformRowsToPayloads(json);
+          setPayloads(out);
+          console.log("out", out);
+          console.log("errs", errs);
+          setTransformErrors(errs);
+        } catch {
+          setTransformErrors([{ index: -1, message: "อ่านไฟล์ไม่สำเร็จ" }]);
+        }
+      };
+      if (isCSV) reader.readAsText(file);
+      else reader.readAsArrayBuffer(file);
+    },
+    [showToast, transformRowsToPayloads]
+  );
+  const onDrop = useMemo(
+    () => (accepted: File[]) => {
+      const f = accepted?.[0];
+      if (!f) return;
+      void readExcelFile(f);
+    },
+    [readExcelFile]
+  );
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: false,
     noClick: true, // prevent click bubbling opening dialog; we'll use our own button
     accept: {
-      'text/csv': ['.csv'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'application/vnd.ms-excel': ['.xls'],
+      "text/csv": [".csv"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+      "application/vnd.ms-excel": [".xls"],
     },
   });
   const previewHeaders = useMemo(() => {
@@ -648,16 +708,21 @@ export default function Employee() {
     const sampleCountryId = addressTree?.[0]?.country_id || "";
     const sampleProvince = addressTree?.[0]?.province?.[0]?.province_name || "";
     const sampleProvinceId = addressTree?.[0]?.province?.[0]?.province_id || "";
-    const sampleDistrict = addressTree?.[0]?.province?.[0]?.district?.[0]?.district_name || "";
-    const sampleDistrictId = addressTree?.[0]?.province?.[0]?.district?.[0]?.district_id || "";
+    const sampleDistrict =
+      addressTree?.[0]?.province?.[0]?.district?.[0]?.district_name || "";
+    const sampleDistrictId =
+      addressTree?.[0]?.province?.[0]?.district?.[0]?.district_id || "";
     const sampleRole = dataRole?.responseObject.data?.[0]?.role_name || "";
     const sampleRoleId = dataRole?.responseObject.data?.[0]?.role_id || "";
-    const sampleStatus = dataEmployeeStatus?.responseObject.data?.[0]?.name || "";
-    const sampleStatusId = dataEmployeeStatus?.responseObject.data?.[0]?.status_id || "";
+    const sampleStatus =
+      dataEmployeeStatus?.responseObject.data?.[0]?.name || "";
+    const sampleStatusId =
+      dataEmployeeStatus?.responseObject.data?.[0]?.status_id || "";
     const sampleTeam = dataTeam?.responseObject.data?.[0]?.name || "";
     const sampleTeamId = dataTeam?.responseObject.data?.[0]?.team_id || "";
     const sampleSocial = dataSocial?.responseObject.data?.[0]?.name || "";
-    const sampleSocialId = dataSocial?.responseObject.data?.[0]?.social_id || "";
+    const sampleSocialId =
+      dataSocial?.responseObject.data?.[0]?.social_id || "";
     const sample = [
       {
         employee_code: "EMP001",
@@ -692,34 +757,60 @@ export default function Employee() {
     ];
     const ws = XLSX.utils.json_to_sheet(sample, { header: headers });
     const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "แบบฟอร์ม");
+    XLSX.utils.book_append_sheet(wb, ws, "แบบฟอร์ม");
     // add a second sheet with allowed values for reference (with ids)
     const refRows: Array<Record<string, string>> = [];
-    (dataRole?.responseObject.data || []).forEach((r: { role_id: string; role_name: string }) =>
-      refRows.push({ catalog: "role", id: r.role_id, name: r.role_name })
+    (dataRole?.responseObject.data || []).forEach(
+      (r: { role_id: string; role_name: string }) =>
+        refRows.push({ catalog: "role", id: r.role_id, name: r.role_name })
     );
-    (dataEmployeeStatus?.responseObject.data || []).forEach((s: TypeSelectEmployeeStatusResponse) =>
-      refRows.push({ catalog: "status", id: s.status_id, name: s.name })
+    (dataEmployeeStatus?.responseObject.data || []).forEach(
+      (s: TypeSelectEmployeeStatusResponse) =>
+        refRows.push({ catalog: "status", id: s.status_id, name: s.name })
     );
-    (dataTeam?.responseObject.data || []).forEach((t: { team_id: string; name: string }) =>
-      refRows.push({ catalog: "team", id: t.team_id, name: t.name })
+    (dataTeam?.responseObject.data || []).forEach(
+      (t: { team_id: string; name: string }) =>
+        refRows.push({ catalog: "team", id: t.team_id, name: t.name })
     );
     (dataSocial?.responseObject.data || []).forEach((s: TypeSocialResponse) =>
       refRows.push({ catalog: "social", id: s.social_id, name: s.name })
     );
-    (addressTree || []).forEach((c: { country_id: string; country_name: string }) =>
-      refRows.push({ catalog: "country", id: c.country_id, name: c.country_name })
+    (addressTree || []).forEach(
+      (c: { country_id: string; country_name: string }) =>
+        refRows.push({
+          catalog: "country",
+          id: c.country_id,
+          name: c.country_name,
+        })
     );
-  const ws2 = XLSX.utils.json_to_sheet(refRows, { header: ["catalog", "id", "name"] });
-  XLSX.utils.book_append_sheet(wb, ws2, "รายการอ้างอิง");
+    const ws2 = XLSX.utils.json_to_sheet(refRows, {
+      header: ["catalog", "id", "name"],
+    });
+    XLSX.utils.book_append_sheet(wb, ws2, "รายการอ้างอิง");
     // add an Instructions sheet
     const instructions = [
-      { field: "หมายเหตุ", description: "ช่องที่มี * ต้องกรอก: employee_code, username, password, email, first_name, role/status/country/province/district, position, phone" },
-      { field: "ฟิลด์แบบเลือก", description: "สำหรับ (role/status/team/social/country/province/district) ใส่เป็นชื่อ (ไทย) หรือ ID ก็ได้; ถ้ามี *_id จะใช้ *_id เป็นหลัก" },
-      { field: "วันที่", description: "ใช้รูปแบบ YYYY-MM-DD หรือวันที่ที่ Excel เข้าใจ" },
-      { field: "โทรศัพท์", description: "เก็บเฉพาะตัวเลข ระบบจะลบอักขระอื่นให้อัตโนมัติ" },
+      {
+        field: "หมายเหตุ",
+        description:
+          "ช่องที่มี * ต้องกรอก: employee_code, username, password, email, first_name, role/status/country/province/district, position, phone",
+      },
+      {
+        field: "ฟิลด์แบบเลือก",
+        description:
+          "สำหรับ (role/status/team/social/country/province/district) ใส่เป็นชื่อ (ไทย) หรือ ID ก็ได้; ถ้ามี *_id จะใช้ *_id เป็นหลัก",
+      },
+      {
+        field: "วันที่",
+        description: "ใช้รูปแบบ YYYY-MM-DD หรือวันที่ที่ Excel เข้าใจ",
+      },
+      {
+        field: "โทรศัพท์",
+        description: "เก็บเฉพาะตัวเลข ระบบจะลบอักขระอื่นให้อัตโนมัติ",
+      },
     ];
-    const ws3 = XLSX.utils.json_to_sheet(instructions, { header: ["field", "description"] });
+    const ws3 = XLSX.utils.json_to_sheet(instructions, {
+      header: ["field", "description"],
+    });
     XLSX.utils.book_append_sheet(wb, ws3, "คำแนะนำ");
     XLSX.writeFile(wb, "employee_import_template.xlsx");
   };
@@ -753,12 +844,26 @@ export default function Employee() {
     try {
       const res = (await importEmployees(items)) as unknown as {
         success: boolean;
-        responseObject?: { success?: number; failed?: number; errors?: Array<{ index: number; message: string }> };
+        responseObject?: {
+          success?: number;
+          failed?: number;
+          errors?: Array<{ index: number; message: string }>;
+        };
         statusCode?: number;
       };
       const ok = res?.responseObject?.success ?? 0;
       const fail = res?.responseObject?.failed ?? 0;
-      showToast(`นำเข้าสำเร็จ ${ok} รายการ, ล้มเหลว ${fail} รายการ`, fail === 0);
+      // Always show overall summary
+      showToast(
+        `นำเข้าสำเร็จ ${ok} รายการ, ล้มเหลว ${fail} รายการ`,
+        fail === 0
+      );
+      // Additionally show row-level errors if any
+      if (res?.responseObject?.errors?.length) {
+        res.responseObject.errors.forEach((err) => {
+          showToast(`แถวที่ ${err.index + 1} ล้มเหลว: ${err.message}`, false);
+        });
+      }
       if (ok > 0) refetchEmployee();
     } catch {
       showToast("เกิดข้อผิดพลาดในการนำเข้า", false);
@@ -786,6 +891,7 @@ export default function Employee() {
         rowData={data}
         totalData={dataEmployee?.responseObject?.totalCount}
         onView={handleView}
+        onDelete={openDelete}
         onCreateBtn={true}
         onCreateBtnClick={handleNavCreate}
         nameCreateBtn="+ เพิ่มพนักงานใหม่"
@@ -807,49 +913,101 @@ export default function Employee() {
         confirmText={isImporting ? "กำลังนำเข้า..." : "ยืนยันนำเข้า"}
         cancelText="ยกเลิก"
         confirmBtnType="primary"
-        maxWidth={previewRows.length > 0 ? "min(700px, 100vw - 32px)" : "min(540px, 100vw - 32px)"}
+        maxWidth={
+          previewRows.length > 0
+            ? "min(700px, 100vw - 32px)"
+            : "min(540px, 100vw - 32px)"
+        }
       >
-        <div className="space-y-4 max-w-full min-w-0 overflow-x-hidden">
+        <div className="space-y-4 w-full max-w-full min-w-0 overflow-x-hidden">
           {/* Dropzone */}
-          <div {...getRootProps({ className: 'flex justify-center items-center w-full h-52  border-2 border-dashed rounded-lg bg-gray-50 p-6 cursor-pointer hover:bg-gray-100 transition-colors' })}>
+          <div
+            {...getRootProps({
+              className:
+                "flex justify-center items-center w-full h-52  border-2 border-dashed rounded-lg bg-gray-50 p-6 cursor-pointer hover:bg-gray-100 transition-colors",
+            })}
+          >
             <input {...getInputProps()} />
             <div className="min-h-28 flex flex-col items-center justify-center text-center gap-2">
-              <img className=" w-[48px] h-[48px]" src="/images/microsoft-excel-icon.png" alt="ไอคอน Excel" />
+              <img
+                className=" w-[48px] h-[48px]"
+                src="/images/microsoft-excel-icon.png"
+                alt="ไอคอน Excel"
+              />
               <div className="text-gray-700">
-        {isDragActive ? 'ปล่อยไฟล์ที่นี่' : (
+                {isDragActive ? (
+                  "ปล่อยไฟล์ที่นี่"
+                ) : (
                   <>
-          ลากและวางไฟล์ที่นี่ หรือ <button type="button" onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); fileInputRef.current?.click(); }} className="text-main underline">เลือกไฟล์</button>
+                    ลากและวางไฟล์ที่นี่ หรือ{" "}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
+                      className="text-main underline"
+                    >
+                      เลือกไฟล์
+                    </button>
                   </>
                 )}
               </div>
-        <div className="text-xs text-gray-500">รองรับไฟล์: XLS, XLSX, CSV • ขนาดสูงสุด: 25 MB</div>
+              <div className="text-xs text-gray-500">
+                รองรับไฟล์: XLS, XLSX, CSV • ขนาดสูงสุด: 25 MB
+              </div>
             </div>
           </div>
-          <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleExcelPick} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv"
+            className="hidden"
+            onChange={handleExcelPick}
+          />
           {excelFile && (
-            <div className="text-sm">ไฟล์ที่เลือก: <span className="font-medium">{excelFile.name}</span></div>
+            <div className="text-sm">
+              ไฟล์ที่เลือก:{" "}
+              <span className="font-medium">{excelFile.name}</span>
+            </div>
           )}
 
           {/* Template card */}
           <div className="w-full flex flex-col gap-2 border rounded-lg p-4 bg-white">
             <div className="flex items-start gap-2 flex-col">
-              <img className=" w-[24px] h-[24px]" src="/images/microsoft-excel-icon.png" alt="ไอคอน Excel" />
+              <img
+                className=" w-[24px] h-[24px]"
+                src="/images/microsoft-excel-icon.png"
+                alt="ไอคอน Excel"
+              />
               <div>
                 <div className="font-semibold">เทมเพลต</div>
-                <div className="text-sm text-gray-600">ดาวน์โหลดเทมเพลตเพื่อใช้เป็นจุดเริ่มต้นสำหรับไฟล์ของคุณ</div>
+                <div className="text-sm text-gray-600">
+                  ดาวน์โหลดเทมเพลตเพื่อใช้เป็นจุดเริ่มต้นสำหรับไฟล์ของคุณ
+                </div>
               </div>
             </div>
-            <button type="button" className="w-[124px] px-3 py-2 text-sm rounded-md bg-white border hover:bg-gray-50" onClick={downloadTemplate}>ดาวน์โหลด</button>
+            <button
+              type="button"
+              className="w-[124px] px-3 py-2 text-sm rounded-md bg-white border hover:bg-gray-50"
+              onClick={downloadTemplate}
+            >
+              ดาวน์โหลด
+            </button>
           </div>
 
           {transformErrors.length > 0 && (
             <div className="p-3 rounded bg-red-50 text-red-700 text-sm">
-              ตรวจพบปัญหา {transformErrors.length} รายการ ข้อมูลบางบรรทัดไม่ครบถ้วน
+              ตรวจพบปัญหา {transformErrors.length} รายการ
+              ข้อมูลบางบรรทัดไม่ครบถ้วน
             </div>
           )}
           {previewRows.length > 0 && (
             <div>
-              <div className="font-semibold mb-2">ตัวอย่างข้อมูล (สูงสุด 10 แถวแรก)</div>
+              <div className="font-semibold mb-2">
+                ตัวอย่างข้อมูล (สูงสุด 10 แถวแรก)
+              </div>
 
               <div className="min-w-0">
                 <div className="w-full max-w-full min-w-0 max-h-[60vh] overflow-x-auto overflow-y-auto border rounded">
@@ -857,32 +1015,58 @@ export default function Employee() {
                     <Table.Header className="sticky top-0 z-0">
                       <Table.Row className="text-left bg-main text-white sticky top-0 z-10 whitespace-nowrap">
                         {previewHeaders.map((k) => (
-                          <Table.ColumnHeaderCell key={k} className="h-6 px-2 py-1 max-w-[240px]">
-                            <div className="max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap">{headerLabel(k)}</div>
+                          <Table.ColumnHeaderCell
+                            key={k}
+                            className="h-6 px-2 py-1 max-w-[240px]"
+                          >
+                            <div className="max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap">
+                              {headerLabel(k)}
+                            </div>
                           </Table.ColumnHeaderCell>
                         ))}
-                        <Table.ColumnHeaderCell className="h-6 px-2 py-1">สถานะ</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell className="h-6 px-2 py-1">
+                          สถานะ
+                        </Table.ColumnHeaderCell>
                       </Table.Row>
                     </Table.Header>
                     <Table.Body>
                       {previewRows.map((row, idx) => {
-                        const err = transformErrors.find((e) => e.index === idx);
+                        const err = transformErrors.find(
+                          (e) => e.index === idx
+                        );
                         const rk = rowKey(row);
                         return (
-                          <Table.Row key={rk} className={`${err ? 'bg-red-50' : ''} hover:bg-gray-50 whitespace-nowrap`}>
+                          <Table.Row
+                            key={rk}
+                            className={`${
+                              err ? "bg-red-50" : ""
+                            } hover:bg-gray-50 whitespace-nowrap`}
+                          >
                             {previewHeaders.map((k) => (
-                              <Table.Cell key={`${rk}-${k}`} className="h-10 p-2 border border-gray-300 align-top max-w-[240px]">
-                                <div className="max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap" title={toDisplay(row[k])}>{toDisplay(row[k])}</div>
+                              <Table.Cell
+                                key={`${rk}-${k}`}
+                                className="h-10 p-2 border border-gray-300 align-top max-w-[240px]"
+                              >
+                                <div
+                                  className="max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap"
+                                  title={toDisplay(row[k])}
+                                >
+                                  {toDisplay(row[k])}
+                                </div>
                               </Table.Cell>
                             ))}
                             <Table.Cell className="h-10 p-2 border border-gray-300 align-top">
                               {err ? (
                                 <div className="text-red-600">
                                   <div>ผิดพลาด</div>
-                                  <div className="text-[11px] leading-snug whitespace-normal break-words max-w-[260px]">{err.message}</div>
+                                  <div className="text-[11px] leading-snug whitespace-normal break-words max-w-[260px]">
+                                    {err.message}
+                                  </div>
                                 </div>
                               ) : (
-                                <span className="text-green-600">พร้อมนำเข้า</span>
+                                <span className="text-green-600">
+                                  พร้อมนำเข้า
+                                </span>
                               )}
                             </Table.Cell>
                           </Table.Row>
@@ -895,6 +1079,26 @@ export default function Employee() {
             </div>
           )}
         </div>
+      </DialogComponent>
+
+      {/* Delete confirm */}
+      <DialogComponent
+        isOpen={isDeleteOpen}
+        onClose={closeDelete}
+        title="ยืนยันการลบ"
+        onConfirm={confirmDelete}
+        confirmText="ยืนยัน"
+        cancelText="ยกเลิก"
+      >
+        <p className="font-bold text-lg">
+          คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?
+        </p>
+        <p>
+          ชื่อ :{" "}
+          <span className="text-red-500">
+            {selectedItem?.first_name} {selectedItem?.last_name}
+          </span>
+        </p>
       </DialogComponent>
     </div>
   );

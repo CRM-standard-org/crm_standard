@@ -298,4 +298,33 @@ export const employeeService = {
             );
         }
     },
+    
+    delete: async (employee_id: string) => {
+        try{
+            const check = await employeeRepository.findById(employee_id);
+            if(!check){
+                return new ServiceResponse(
+                    ResponseStatus.Failed,
+                    "Employee not found",
+                    null,
+                    StatusCodes.NOT_FOUND
+                )
+            }
+            await employeeRepository.delete(employee_id);
+            return new ServiceResponse(
+                ResponseStatus.Success,
+                "Delete employee success",
+                null,
+                StatusCodes.OK
+            )
+        } catch (ex) {
+            const errorMessage = "Error delete employee :" + (ex as Error).message;
+            return new ServiceResponse(
+                ResponseStatus.Failed,
+                (ex as any).code === 'P2003' ? "Deletion failed: this data is still in use" : errorMessage,
+                null,
+                StatusCodes.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 import { fetchCustomerAnalytics, CustomerAnalyticsResponse } from "@/services/customerAnalytics.service.ts";
 import MasterSelectComponent from "@/components/customs/select/select.main.component";
 import { useSelectTag } from "@/hooks/useCustomerTag";

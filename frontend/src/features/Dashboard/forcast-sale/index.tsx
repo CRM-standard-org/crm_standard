@@ -31,7 +31,7 @@ import type { TooltipProps } from "recharts";
 import { useForecastFilters } from "../ForecastFilterContext";
 import { useSelectTag } from "@/hooks/useCustomerTag";
 import { useLocalProfileData } from "@/zustand/useProfile";
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 
 // -------- Helper components & utilities (reduce complexity in main component) --------
 

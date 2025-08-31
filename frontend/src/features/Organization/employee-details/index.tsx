@@ -4,7 +4,7 @@ import MasterTableFeature from "@/components/customs/display/master.main.compone
 import { OptionType } from "@/components/customs/select/select.main.component";
 import Buttons from "@/components/customs/button/button.main.component";
 
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 import { TypeColorAllResponse } from "@/types/response/response.color";
 
 //

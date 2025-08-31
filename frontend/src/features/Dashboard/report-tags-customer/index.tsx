@@ -16,7 +16,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 
 //
 import { pdf } from "@react-pdf/renderer";

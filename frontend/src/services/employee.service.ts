@@ -8,7 +8,8 @@ import {
   IMPORT_EMPLOYEES,
     GET_EMPLOYEE_STATUS,
     GET_EMPLOYEE_BY_ID,
-    UPDATE_EMPLOYEE
+  UPDATE_EMPLOYEE,
+  DELETE_EMPLOYEE
 } from "@/apis/endpoint.api";
 
 import mainApi from "@/apis/main.api";
@@ -55,6 +56,19 @@ export const getEmployeeNoTeam= async (page: string, pageSize: string, searchTex
     }
   };
   
+  export const deleteEmployee = async (employeeId: string) => {
+    try {
+      const encoded = encodeURIComponent(employeeId);
+      const { data: response } = await mainApi.delete(
+        `${DELETE_EMPLOYEE}/${encoded}`
+      );
+      return response;
+    } catch (error) {
+      console.error("Error delete Employee", error);
+      throw error;
+    }
+  };
+
   //get all employee 
   export const getAllEmployees= async (page: string, pageSize: string, searchText: string,payload:PayLoadFilterEmployee) => {
     try {

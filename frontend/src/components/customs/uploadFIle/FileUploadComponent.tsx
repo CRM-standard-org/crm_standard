@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { TiAttachment } from "react-icons/ti";
 import { Dialog } from "@radix-ui/themes";
-import { useToast } from "@/components/customs/alert/ToastContext";
+import { useToast } from "@/components/customs/alert/useToast";
 
 type FileUploadProps = {
   onFilesChange: (files: File[]) => void;
