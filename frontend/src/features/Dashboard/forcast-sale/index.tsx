@@ -32,6 +32,9 @@ import { useForecastFilters } from "../ForecastFilterContext";
 import { useSelectTag } from "@/hooks/useCustomerTag";
 import { useLocalProfileData } from "@/zustand/useProfile";
 import { useToast } from "@/components/customs/alert/useToast";
+import html2canvas from "html2canvas-pro";
+import { pdf } from "@react-pdf/renderer";
+import ForcastSalePDF from "../pdf/print-forcast-sale/ForcastSalePDF";
 
 // -------- Helper components & utilities (reduce complexity in main component) --------
 
@@ -800,6 +803,80 @@ export default function ForcastSale() {
   }, [location.search]);
   // Tooltip moved to ForecastTooltip component for readability
 
+  // PDF generation function
+  const handleOpenPdf = async () => {
+    if (!summary) {
+      showToast("ไม่มีข้อมูลสำหรับสร้าง PDF", false);
+      return;
+    }
+
+    try {
+      // Capture charts
+      const chartImage1 = chartRef1.current 
+        ? await html2canvas(chartRef1.current).then(canvas => canvas.toDataURL("image/png"))
+        : null;
+      const chartImage2 = chartRef2.current 
+        ? await html2canvas(chartRef2.current).then(canvas => canvas.toDataURL("image/png"))
+        : null;
+      const chartImage3 = chartRef3.current 
+        ? await html2canvas(chartRef3.current).then(canvas => canvas.toDataURL("image/png"))
+        : null;
+
+      // Prepare KPI data
+      const kpiData = {
+        annual_goal: summary.goals.annual_goal || 0,
+        actual_to_date: summary.actual_to_date || 0,
+        forecast_year_end: summary.forecast_year_end || 0,
+        forecast_achievement_percent: summary.forecast_achievement_percent || 0,
+        gap_to_goal: summary.gap_to_goal || 0,
+      };
+
+      // Prepare sales table data (monthly breakdown)
+      const salesTable = chartData.length > 0 ? [
+        {
+          label: 'เป้าหมายยอดขายสะสม',
+          values: chartData.map(d => d.target),
+        },
+        {
+          label: 'ยอดขายสะสมคาดการณ์',
+          values: chartData.map(d => d.forecast),
+        },
+        {
+          label: 'ยอดขายจริงสะสม',
+          values: chartData.map(d => d.actual),
+        },
+      ] : [];
+
+      // Get date range
+      const dateRange = initMonth && endMonth ? {
+        start_date: initMonth.toISOString().slice(0, 10),
+        end_date: endMonth.toISOString().slice(0, 10),
+      } : undefined;
+
+      // Generate PDF
+      const blob = await pdf(
+        <ForcastSalePDF
+          chartImage1={chartImage1}
+          chartImage2={chartImage2}
+          chartImage3={chartImage3}
+          year={year || new Date().getFullYear()}
+          dateRange={dateRange}
+          kpiData={kpiData}
+          salesTable={salesTable}
+          priorityBreakdown={summary.priority_breakdown || []}
+          topCustomers={summary.top_customers || []}
+          statusBreakdown={summary.status_breakdown || []}
+        />
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      showToast("เกิดข้อผิดพลาดในการสร้าง PDF", false);
+    }
+  };
+
   return (
     <div>
       <p className="mb-4 text-2xl font-bold">รายงานพยากรณ์ยอดขาย</p>
@@ -1000,7 +1077,7 @@ export default function ForcastSale() {
           <Buttons btnType="default" variant="outline" onClick={openGoalModal} className="sm:min-w-[110px]">แก้ไขเป้าหมาย</Buttons>
           <Buttons btnType="default" variant="outline" onClick={openWeightModal} className="sm:min-w-[110px]">แก้ไขน้ำหนัก</Buttons>
           <Buttons btnType="primary" variant="outline" className="w-full sm:w-auto sm:min-w-[100px]" onClick={handleSearch}>ค้นหา</Buttons>
-          <Buttons btnType="primary" variant="outline" className="w-full sm:w-auto sm:min-w-[100px]" /* onClick={handleOpenPdf}*/>
+          <Buttons btnType="primary" variant="outline" className="w-full sm:w-auto sm:min-w-[100px]" onClick={handleOpenPdf} disabled={!summary || loadingForecast}>
             <FiPrinter style={{ fontSize: 18 }} /> พิมพ์
           </Buttons>
         </div>

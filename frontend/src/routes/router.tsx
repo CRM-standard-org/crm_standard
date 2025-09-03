@@ -1,4 +1,3 @@
-import HomePage from "@/pages/home";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Error404 from "@/components/layouts/layout.error404";
 
@@ -47,6 +46,7 @@ import ManageTeam from "@/pages/Organization/manage-team";
 import CreateTeam from "@/pages/Organization/create-team";
 import TeamDetails from "@/pages/Organization/team-details";
 import EditTeamDetails from "@/pages/Organization/edit-team-details";
+import MyProfilePage from "@/pages/Organization/my-profile";
 
 import LoginPage from "@/pages/login";
 import MainLayout from "@/components/layouts/layout";
@@ -71,6 +71,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <SellProcess />,
+      },
+      {
+        path: "/my-profile",
+        element: <MyProfilePage />,
       },
       //การวิเคราะห์ติดตามผล
       {

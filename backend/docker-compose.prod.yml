@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: crm-backend:prod
+    ports:
+      - "8081:8081"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=8081
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - COMMON_RATE_LIMIT_MAX_REQUESTS=1000
+      - COMMON_RATE_LIMIT_WINDOW_MS=60000
+      - JWT_SECRET=${JWT_SECRET}
+      - ACCESS_EXPIRATION_MINUTES=10000
+      - REFRESH_EXPIRATION_DAYS=1
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URI=${REDIS_URI}
+    depends_on: []

@@ -102,6 +102,22 @@ docker-compose up --build
 
 ---
 
+## File Upload Policy
+
+Backend enforces per-field MIME type restrictions via Multer:
+
+- Employee profile (`emp`): .jpg, .jpeg, .png (image/jpeg, image/png)
+- Company logo (`company`): .jpg, .jpeg, .png (image/jpeg, image/png)
+- Quotation attachments (`quotation`): .jpg, .jpeg, .png, .pdf
+- Sale order attachments (`sale-order`): .jpg, .jpeg, .png, .pdf
+- Payment proof (`payment`): .jpg, .jpeg, .png, .pdf
+
+Max file size: 10MB per file. Attachment endpoints allow multiple files as indicated by the API.
+
+Frontend inputs/`FileUploadComponent` should align with these accept types.
+
+---
+
 ##  Pending Tasks / Known Issues
 
 - เอกสารสิ่งที่จะต้องทำต่ออยู่ในกลุ่มไลน์ CRM-Dev ครับ

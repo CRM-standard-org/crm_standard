@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        - VITE_BASE_API=http://localhost:8081
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_BASE_API=http://localhost:8081
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ["pnpm", "dev", "--host", "0.0.0.0"]

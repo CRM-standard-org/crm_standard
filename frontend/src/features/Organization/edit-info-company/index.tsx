@@ -318,7 +318,7 @@ export default function EditInfoCompany() {
                   <input
                     ref={inputRef}
                     type="file"
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                     className="hidden"
                     onChange={handleFileChange}
                   />

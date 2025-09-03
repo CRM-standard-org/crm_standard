@@ -682,47 +682,31 @@ export default function Employee() {
       "first_name",
       "last_name",
       "role",
-      "role_id",
       "position",
       "phone",
       "social",
-      "social_id",
       "detail",
       "address",
       "country",
-      "country_id",
       "province",
-      "province_id",
       "district",
-      "district_id",
       "status",
-      "status_id",
       "team",
-      "team_id",
       "salary",
       "start_date",
       "end_date",
       "birthdate",
     ];
     const sampleCountry = addressTree?.[0]?.country_name || "";
-    const sampleCountryId = addressTree?.[0]?.country_id || "";
+  // note: we no longer include *_id columns in the template; ids remain available in the reference sheet
     const sampleProvince = addressTree?.[0]?.province?.[0]?.province_name || "";
-    const sampleProvinceId = addressTree?.[0]?.province?.[0]?.province_id || "";
     const sampleDistrict =
       addressTree?.[0]?.province?.[0]?.district?.[0]?.district_name || "";
-    const sampleDistrictId =
-      addressTree?.[0]?.province?.[0]?.district?.[0]?.district_id || "";
     const sampleRole = dataRole?.responseObject.data?.[0]?.role_name || "";
-    const sampleRoleId = dataRole?.responseObject.data?.[0]?.role_id || "";
     const sampleStatus =
       dataEmployeeStatus?.responseObject.data?.[0]?.name || "";
-    const sampleStatusId =
-      dataEmployeeStatus?.responseObject.data?.[0]?.status_id || "";
     const sampleTeam = dataTeam?.responseObject.data?.[0]?.name || "";
-    const sampleTeamId = dataTeam?.responseObject.data?.[0]?.team_id || "";
     const sampleSocial = dataSocial?.responseObject.data?.[0]?.name || "";
-    const sampleSocialId =
-      dataSocial?.responseObject.data?.[0]?.social_id || "";
     const sample = [
       {
         employee_code: "EMP001",
@@ -731,24 +715,17 @@ export default function Employee() {
         email: "jdoe@example.com",
         first_name: "John",
         last_name: "Doe",
-        role: sampleRole,
-        role_id: sampleRoleId,
+    role: sampleRole,
         position: "Sales Rep",
         phone: "0812345678",
-        social: sampleSocial,
-        social_id: sampleSocialId,
+    social: sampleSocial,
         detail: "@jdoe",
         address: "123 Main Rd",
-        country: sampleCountry,
-        country_id: sampleCountryId,
-        province: sampleProvince,
-        province_id: sampleProvinceId,
-        district: sampleDistrict,
-        district_id: sampleDistrictId,
-        status: sampleStatus,
-        status_id: sampleStatusId,
-        team: sampleTeam,
-        team_id: sampleTeamId,
+    country: sampleCountry,
+    province: sampleProvince,
+    district: sampleDistrict,
+    status: sampleStatus,
+    team: sampleTeam,
         salary: 25000,
         start_date: "2025-01-01",
         end_date: "",
@@ -795,9 +772,14 @@ export default function Employee() {
           "ช่องที่มี * ต้องกรอก: employee_code, username, password, email, first_name, role/status/country/province/district, position, phone",
       },
       {
-        field: "ฟิลด์แบบเลือก",
+        field: "การกรอกค่าแบบอ้างอิง",
         description:
-          "สำหรับ (role/status/team/social/country/province/district) ใส่เป็นชื่อ (ไทย) หรือ ID ก็ได้; ถ้ามี *_id จะใช้ *_id เป็นหลัก",
+          "สำหรับ (role/status/team/social/country/province/district) ให้กรอกเป็นชื่อที่มีในระบบเท่านั้น (ดูที่แผ่นงาน 'รายการอ้างอิง') ไม่ต้องกรอก ID",
+      },
+      {
+        field: "การตรวจสอบข้อมูล",
+        description:
+          "ระบบจะตรวจสอบความถูกต้องของชื่อ หากไม่พบในระบบจะแจ้งเตือนแถวที่ผิดพลาดและไม่ทำการนำเข้าบรรทัดนั้น",
       },
       {
         field: "วันที่",

@@ -1122,11 +1122,9 @@ export default function EditSaleOrder() {
         setPaymentDate(new Date(item.payment_date));
         setPaymentValue(item.amount_paid);
         setUpdatePaymentCondition(item.payment_term_name);
-        // ถ้าเป็นเต็มจำนวน ให้เซ็ตสถานะและกรอกยอดคงเหลือในรอบนี้
+        // ถ้าเป็นเต็มจำนวน ให้เซ็ตสถานะ แต่คงจำนวนเงินเดิมไว้ (ไม่แทนที่ด้วยยอดคงเหลือ)
         if (item.payment_term_name === "เต็มจำนวน") {
-            const remain = Number(remainingTotal || 0);
             setIsFullPaymentEdit(true);
-            setPaymentValue(remain);
         } else {
             setIsFullPaymentEdit(false);
         }
@@ -1266,9 +1264,13 @@ export default function EditSaleOrder() {
             return;
         }
 
-        if (paymentValue > remainingTotal) {
+        // In edit, allow up to remaining + original amount of this log
+        const baseRemain = Number(remainingTotal || 0);
+        const original = Number(selectedPaymentLogItem?.amount_paid || 0);
+        const maxEditable = baseRemain + original;
+        if (paymentValue > maxEditable) {
             setErrorFields((prev) => ({ ...prev, editPaymentValue: true }));
-            showToast("จำนวนเงินที่ชำระมากกว่ายอดคงเหลือ", false);
+            showToast("จำนวนเงินที่ชำระมากกว่ายอดที่แก้ไขได้", false);
             return;
         }
        
@@ -2681,7 +2683,6 @@ export default function EditSaleOrder() {
                         onAction={handleCreatePaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex"
                         classNameSelect="w-full "
-                        key={`create-paycond-${updatePaymentCondition ?? 'none'}`}
                         nextFields={{ up: "payment-date", down: "payment-value" }}
                         require="require"
                         isError={errorFields.updatePaymentCondition}
@@ -2791,10 +2792,8 @@ export default function EditSaleOrder() {
                             setUpdatePaymentCondition(condition);
                             console.log(condition)
                             console.log(option)
-                            const remain = Number(remainingTotal || 0);
                             if (condition === "เต็มจำนวน") {
                                 setIsFullPaymentEdit(true);
-                                setPaymentValue(remain);
                                 setErrorFields((prev) => ({ ...prev, editPaymentValue: false }));
                             } else {
                                 setIsFullPaymentEdit(false);
@@ -2809,7 +2808,6 @@ export default function EditSaleOrder() {
                         onAction={handleCreatePaymentLogConfirm}
                         classNameLabel="w-40 min-w-20 flex"
                         classNameSelect="w-full "
-                        key={`edit-paycond-${paymentLogId}-${updatePaymentCondition ?? 'none'}`}
                         defaultValue={
                             updatePaymentCondition
                                 ? { label: updatePaymentCondition, value: mapPaymentTermNameToId(updatePaymentCondition) }
@@ -2820,12 +2818,15 @@ export default function EditSaleOrder() {
                         isError={errorFields.editUpdatePaymentCondition}
                     />
 
-                    <InputAction
+            <InputAction
                         id="payment-value"
                         placeholder=""
                         type="number"
                         onChange={(e) => {
-                            const remain = Number(remainingTotal || 0);
+                // In edit mode, allow reassigning up to remaining + original amount of this log
+                const baseRemain = Number(remainingTotal || 0);
+                const original = Number(selectedPaymentLogItem?.amount_paid || 0);
+                const remain = baseRemain + original;
                             const raw = Number(e.target.value);
                             const clamped = Math.max(0, Math.min(raw, remain));
                             setPaymentValue(Number.isFinite(clamped) ? clamped : 0);
@@ -2847,7 +2848,16 @@ export default function EditSaleOrder() {
                         isError={errorFields.editPaymentValue}
                     />
                     <div className="text-xs text-gray-500 text-right -mt-4 mb-2">
-                        ยอดคงเหลือ: {Number(remainingTotal || 0).toFixed(2)} บาท{isFullPaymentEdit ? " • ระบบกรอกให้อัตโนมัติ (เต็มจำนวน)" : ""}
+                        {(() => {
+                            const baseRemain = Number(remainingTotal || 0);
+                            const original = Number(selectedPaymentLogItem?.amount_paid || 0);
+                            const remain = baseRemain + original;
+                            return (
+                                <>
+                                    ยอดคงเหลือที่แก้ไขได้: {remain.toFixed(2)} บาท{isFullPaymentEdit ? " • ระบบกรอกให้อัตโนมัติ (เต็มจำนวน)" : ""}
+                                </>
+                            );
+                        })()}
                     </div>
 
                     <MasterSelectComponent

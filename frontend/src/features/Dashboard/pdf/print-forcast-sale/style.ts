@@ -32,6 +32,11 @@ export const styles = StyleSheet.create({
         color: '#888',
     },
 
+    // New styles for sections
+    section: {
+        marginBottom: 10,
+    },
+
 
     //table 
     labelCell: {

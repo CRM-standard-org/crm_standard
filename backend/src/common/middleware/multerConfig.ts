@@ -56,13 +56,45 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req:Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, file: Express.Multer.File, cb:FileFilterCallback) => {
-  const allowedMimeTypes = ["image/jpeg", "image/png", "application/pdf"];
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  // Per-field MIME policy
+  // - emp (employee profile): images only (jpg/png)
+  // - company (company logo): images only (jpg/png)
+  // - quotation/sale-order/payment attachments: images or PDF
+  const field = file.fieldname;
+  const policies: Record<string, { mimes: string[]; message: string }> = {
+    emp: {
+      mimes: ["image/jpeg", "image/jpg", "image/png"],
+      message: "Only .jpg and .png image files are allowed for employee profile.",
+    },
+    company: {
+      mimes: ["image/jpeg", "image/jpg", "image/png"],
+      message: "Only .jpg and .png image files are allowed for company logo.",
+    },
+    quotation: {
+      mimes: ["image/jpeg", "image/jpg", "image/png", "application/pdf"],
+      message: "Only .jpg, .png and .pdf files are allowed for quotation.",
+    },
+    "sale-order": {
+      mimes: ["image/jpeg", "image/jpg", "image/png", "application/pdf"],
+      message: "Only .jpg, .png and .pdf files are allowed for sale-order.",
+    },
+    payment: {
+      mimes: ["image/jpeg", "image/jpg", "image/png", "application/pdf"],
+      message: "Only .jpg, .png and .pdf files are allowed for payment proof.",
+    },
+  };
+
+  const policy = policies[field] ?? {
+    mimes: ["image/jpeg", "image/jpg", "image/png", "application/pdf"],
+    message: "Only .jpg, .png and .pdf files are allowed.",
+  };
+
+  if (policy.mimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only .jpg, .png, and .pdf files are allowed!"));
+    cb(new Error(policy.message));
   }
-  // console.log("Uploaded MIME type:", file.mimetype);
+  // console.log("Uploaded field:", field, "MIME type:", file.mimetype);
 };
 
 

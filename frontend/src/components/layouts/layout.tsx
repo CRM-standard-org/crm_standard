@@ -4,15 +4,13 @@ import { getAuthStatus, getLogout } from "@/services/auth.service";
 import { useNavigate } from "react-router-dom";
 
 import { SidebarProvider } from "../ui/sidebar";
-import { IoIosLogOut } from "react-icons/io";
+import { FaCube, FaCog, FaCalendarDay } from "react-icons/fa";
+import { LuLogOut } from "react-icons/lu";
 import { DataSideBar, SidebarComponent } from "./sidebars/sidebar";
 
 import { FaCircleUser } from "react-icons/fa6";
-import { IoIosCube, IoIosSettings } from "react-icons/io";
 import { GiSellCard } from "react-icons/gi";
-import { FaCalendarDay } from "react-icons/fa";
 
-// import { getUserProfie } from "@/services/user.service";
 import { useLocalProfileData } from "@/zustand/useProfile";
 import { permissionMap } from "@/utils/permissionMap";
 import PermissionRedirect from "@/utils/permissionRedirect";
@@ -58,10 +56,7 @@ const MainLayout = () => {
       });
   }, [navigate, setLocalProfileData]);
 
-  const editprofile = () => {
-    //navigate('/eidit/companies', { state: { customer_id: profile.company_id} });
-    // navigate(`/edit-info-company/${dataCompany?.company_id}`);
-  };
+  //
 
   const rawSidebarItems = [
     {
@@ -164,7 +159,7 @@ const MainLayout = () => {
     {
       title: "สินค้า",
       url: "",
-      icon: IoIosCube,
+  icon: FaCube,
       disable: true,
       items: [
         {
@@ -184,7 +179,7 @@ const MainLayout = () => {
     {
       title: "การตั้งค่าองค์กร",
       url: "",
-      icon: IoIosSettings,
+  icon: FaCog,
       disable: true,
       items: [
         {
@@ -251,19 +246,17 @@ const MainLayout = () => {
       },
       items: [
         {
-          icon: <IoIosLogOut className="text-theme-yellow" />,
-          name: "ออกจากระบบ",
+          icon: <FaCircleUser className="text-main" />,
+          name: "โปรไฟล์ของฉัน",
           onClick: () => {
-            console.log("logout");
-            handleLogout();
+            navigate('/my-profile');
           },
         },
         {
-          icon: <IoIosLogOut className="text-theme-yellow" />,
-          name: "แก้ไขโปรไฟล์บริษัท",
+          icon: <LuLogOut className="text-theme-yellow" />,
+          name: "ออกจากระบบ",
           onClick: () => {
-            console.log("logout");
-            editprofile();
+            handleLogout();
           },
         },
       ],
@@ -291,7 +284,7 @@ const MainLayout = () => {
           boxShadow: "4px 2px 12px 0px #0A0A100F",
         }}
       >
-        <NavbarMain />
+  <NavbarMain onLogout={handleLogout} />
         <SidebarComponent data={dataSidebar} />
 
         <OutletApp />

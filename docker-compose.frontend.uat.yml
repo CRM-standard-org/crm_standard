@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - VITE_BASE_API=${VITE_BASE_API:-https://uat.api.example.com}
+    image: crm-standard-frontend:uat
+    environment:
+      - VITE_BASE_API=${VITE_BASE_API:-https://uat.api.example.com}
+    ports:
+      - "8080:80"

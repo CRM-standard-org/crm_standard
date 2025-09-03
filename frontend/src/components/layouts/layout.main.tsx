@@ -11,24 +11,26 @@ const MainLayout = () => {
   useEffect(() => {
     getAuthStatus()
       .then((response) => {
-        if (response.statusCode === 200) {  
+        if (response.statusCode === 200) {
           if (response.message == "Authentication required") {
-            navigate("/login"); 
-          }    
+            navigate("/login");
+          }
         }
       })
       .catch((error) => {
+        navigate("/login");
         console.error("Error checking authentication status:", error.message);
       });
   }, []);
-
 
   return (
     <div className=" relative w-screen h-screen">
       <NavbarMain />
       <div className=" flex pt-[70px] w-full h-full">
-        <SidebarMain  />
-        <div className="bg-[#F6F7F9] overflow-auto w-full sm:p-6"><Outlet /></div>
+        <SidebarMain />
+        <div className="bg-[#F6F7F9] overflow-auto w-full sm:p-6">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

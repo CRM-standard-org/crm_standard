@@ -13,6 +13,15 @@ type FileUploadProps = {
   classNameInput?: string;
   classNameLabel?: string;
   require?: string;
+  // Allow selecting multiple files; default true to preserve current behavior
+  multiple?: boolean;
+  // Optional cap for total files kept in the component (useful for avatar/logo)
+  maxFiles?: number;
+  // Optional: override accepted file extensions and mime types
+  // If not provided, sensible defaults (images, pdf, office docs, csv, txt) are used
+  acceptExtensions?: string[];
+  acceptMimeTypes?: string[];
+  acceptDescription?: string;
 };
 
 const FileUploadComponent: React.FC<FileUploadProps> = ({
@@ -25,6 +34,11 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
   classNameInput = "",
   classNameLabel = "",
   require = "",
+  multiple = true,
+  maxFiles,
+  acceptExtensions,
+  acceptMimeTypes,
+  acceptDescription,
 }) => {
   const { showToast } = useToast();
   const [files, setFiles] = useState<File[]>(defaultFiles);
@@ -35,17 +49,54 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
     if (files.length === 0 && defaultFiles.length > 0) {
       setFiles(defaultFiles);
     }
-  }, []);
-  
+  }, [defaultFiles, files.length]);
+
+  // Restrict defaults to match backend: only .jpg, .jpeg, .png, .pdf
+  const defaultExtensions = [".jpg", ".jpeg", ".png", ".pdf"];
+  const defaultMimeTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "application/pdf",
+  ];
+
+  const allowedExtensions = (acceptExtensions && acceptExtensions.length
+    ? acceptExtensions
+    : defaultExtensions
+  ).map((e) => e.toLowerCase());
+  const allowedMimeTypes = acceptMimeTypes && acceptMimeTypes.length
+    ? acceptMimeTypes
+    : defaultMimeTypes;
+  const derivedAcceptText = `รองรับ: ${allowedExtensions.join(", ")}`;
+  const acceptList = [...allowedExtensions, ...allowedMimeTypes];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    const acceptedFiles = selectedFiles.filter((file) =>
-      ["image/jpeg", "image/png", "application/pdf"].includes(file.type)
-    );
+    let acceptedFiles = selectedFiles.filter((file) => {
+      const typeOk = file.type
+        ? allowedMimeTypes.includes(file.type)
+        : false;
+      const name = (file.name || "").toLowerCase();
+      const extOk = allowedExtensions.some((ext) => name.endsWith(ext));
+      return typeOk || extOk;
+    });
+
+    // Enforce max files if provided
+    if (typeof maxFiles === "number" && maxFiles >= 0) {
+      const remaining = Math.max(0, maxFiles - files.length);
+      if (remaining <= 0) {
+        showToast(`ถึงจำนวนไฟล์สูงสุดแล้ว (${maxFiles})`, false);
+        e.target.value = "";
+        return;
+      }
+      if (acceptedFiles.length > remaining) {
+        acceptedFiles = acceptedFiles.slice(0, remaining);
+        showToast(`เลือกได้สูงสุด ${maxFiles} ไฟล์`, false);
+      }
+    }
 
     if (acceptedFiles.length === 0) {
-      showToast("ไฟล์ไม่รองรับ หรือยังไม่ได้เลือกไฟล์", false);
+      showToast("อนุญาตเฉพาะไฟล์ .jpg, .png และ .pdf เท่านั้น", false);
       return;
     }
 
@@ -74,7 +125,7 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
       <div
         className={`${className || ""} flex flex-col sm:flex-row items-start sm:items-center gap-2`}
       >
-        {label && (
+  {label && (
           <label htmlFor={id} className={classNameLabel}>
             {label}{require && <span className="text-red-500">*</span>}
           </label>
@@ -89,14 +140,14 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
             <TiAttachment className="mr-1" />
             {labelFile}
           </button>
-          <span className="text-sm text-gray-400">รองรับ JPG, PNG, PDF</span>
+          <span className="text-sm text-gray-400">{acceptDescription || derivedAcceptText}</span>
         </div>
 
         <input
           ref={inputRef}
           type="file"
-          multiple
-          accept=".jpg,.jpeg,.png,.pdf"
+          multiple={multiple}
+          accept={acceptList.join(",")}
           onChange={handleFileChange}
           className={`hidden ${classNameInput}`}
         />
@@ -108,11 +159,11 @@ const FileUploadComponent: React.FC<FileUploadProps> = ({
         {files.map((file, index) => {
           const url = getFileURL(file);
 
-          if (file.type === "application/pdf") {
+      if (!file.type.startsWith("image/")) {
             return (
               <div
                 key={index}
-                className="w-40 h-40 bg-gray-100 flex flex-col items-center justify-center border border-gray-300 text-blue-600 text-xs rounded shadow relative p-2"
+        className="w-40 h-40 bg-gray-100 flex flex-col items-center justify-center border border-gray-300 text-blue-600 text-xs rounded shadow relative p-2"
               >
                 <a
                   href={url}

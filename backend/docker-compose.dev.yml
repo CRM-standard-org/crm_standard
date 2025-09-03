@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    image: crm-backend:dev
+    ports:
+      - "8081:8081"
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=8081
+      - CORS_ORIGIN=http://localhost:5173
+      - COMMON_RATE_LIMIT_MAX_REQUESTS=1000
+      - COMMON_RATE_LIMIT_WINDOW_MS=60000
+      - JWT_SECRET=devsecret
+      - ACCESS_EXPIRATION_MINUTES=10000
+      - REFRESH_EXPIRATION_DAYS=1
+      - DATABASE_URL=postgresql://myuser:mypassword@postgres:5432/crm_standard?schema=public
+      - REDIS_URI=redis://default:redispw@redis:6379
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on: []
