@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: crm-postgres
+    environment:
+      POSTGRES_DB: crm_standard
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      TZ: Asia/Bangkok
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - crm-dev-network
+    restart: unless-stopped
+
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: crm-redis-dev
+  #   environment:
+  #     - REDIS_PASSWORD=redispw
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_dev_data:/data
+  #   networks:
+  #     - crm-dev-network
+  #   restart: unless-stopped
+  #   command: redis-server --requirepass redispw
+
+  # pgadmin:
+  #   image: dpage/pgadmin4:latest
+  #   container_name: crm-pgadmin-dev
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@gmail.com
+  #     PGADMIN_DEFAULT_PASSWORD: admin
+  #     PGADMIN_CONFIG_SERVER_MODE: 'False'
+  #   ports:
+  #     - "5050:80"
+  #   volumes:
+  #     - pgadmin_dev_data:/var/lib/pgadmin
+  #   networks:
+  #     - crm-dev-network
+  #   depends_on:
+  #     - postgres
+  #   restart: unless-stopped
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  # redis_dev_data:
+  #   driver: local
+  pgadmin_dev_data:
+    driver: local
+
+networks:
+  crm-dev-network:
+    driver: bridge
