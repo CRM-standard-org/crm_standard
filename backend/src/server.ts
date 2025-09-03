@@ -92,6 +92,7 @@ app.get("/health", (req: Request, res: Response) => {
     timestamp: new Date().toISOSt
       ring(),
   });
+});
 
 app.use(errorHandler());
 export { app, logger };
