@@ -58,4 +58,5 @@ volumes:
 
 networks:
   crm-dev-network:
-    driver: bridge
+    external: true  # กำหนดให้ใช้ network ที่มีอยู่แล้ว
+    name: crm_standard_crm-dev-network  # ระบุชื่อ network ที่ถูกต้อง
