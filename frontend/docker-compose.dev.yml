@@ -20,4 +20,5 @@ services:
 
 networks:
   crm-dev-network:
-    external: true  # ใช้ network ที่มีอยู่แล้วใน Docker
+    external: true  # กำหนดให้ใช้ network ที่มีอยู่แล้ว
+    name: crm_standard_crm-dev-network  # ระบุชื่อ network ที่ถูกต้อง
