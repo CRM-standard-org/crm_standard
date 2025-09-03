@@ -6,12 +6,18 @@ services:
       dockerfile: Dockerfile
       target: dev
       args:
-        - VITE_BASE_API=http://localhost:8081
+        - VITE_BASE_API=http://backend:8081  # ใช้ backend:8081 แทน localhost
     ports:
       - "5173:5173"
     environment:
-      - VITE_BASE_API=http://localhost:8081
+      - VITE_BASE_API=http://backend:8081  # ใช้ backend:8081 แทน localhost
     volumes:
       - .:/app
       - /app/node_modules
     command: ["pnpm", "dev", "--host", "0.0.0.0"]
+    networks:
+      - crm-dev-network  # เพิ่ม network ให้ตรงกับ backend และ postgres
+
+networks:
+  crm-dev-network:
+    external: true  # ใช้ network ที่มีอยู่แล้วใน Docker
