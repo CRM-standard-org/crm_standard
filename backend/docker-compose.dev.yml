@@ -24,3 +24,9 @@ services:
       - .:/app
       - /app/node_modules
     depends_on: []
+    networks:
+      - crm-dev-network  # เพิ่มบรรทัดนี้เพื่อเชื่อมกับ network เดียวกับ postgres
+
+networks:
+  crm-dev-network:
+    external: true  # ระบุให้ใช้ network ที่มีอยู่แล้วใน Docker
