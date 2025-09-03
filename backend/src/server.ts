@@ -88,9 +88,7 @@ app.use(
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
     status: "ok",
-    message: "Server is running",
-    timestamp: new Date().toISOSt
-      ring(),
+    message: "Server is running"
   });
 });
 
