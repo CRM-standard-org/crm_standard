@@ -67,7 +67,7 @@ export const authService = {
             res.clearCookie('token', {
                 httpOnly: true, 
                 secure: process.env.NODE_ENV === 'production', // แก้ไข: เป็น true ใน production
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // สำหรับ cross-origin
+                // sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // สำหรับ cross-origin
             });
     
             return new ServiceResponse(
