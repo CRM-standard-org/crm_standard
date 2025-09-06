@@ -46,13 +46,13 @@ export default function LoginFeature() {
     // <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100">
     <div className="flex items-center justify-center min-h-screen bg-[url('/images/bg-login.jpg')] bg-cover bg-center bg-no-repeat">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl border border-gray-200 animate-fade-in">
-        <div className="flex justify-center mb-6">
+        {/* <div className="flex justify-center mb-6">
           <img
             src="/images/logo.png"
             alt="logo-main-website"
             className="h-12 transition-opacity duration-300 hover:opacity-70 cursor-pointer"
           />
-        </div>
+        </div> */}
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">Login</h2>
         <form onSubmit={handleLogin} className="space-y-5">
           <div>

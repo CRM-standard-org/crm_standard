@@ -105,7 +105,7 @@ const NavbarMain = ({ onLogout }: NavbarMainProps) => {
       >
         <div className=" flex gap-4 items-center">
           <SidebarTriggerCustom />
-          <Link href={"/"}>
+          {/* <Link href={"/"}>
             <Box className=" overflow-hidden sm:w-[320px] w-[200px]">
               <img
                 src="/images/logo.png"
@@ -113,7 +113,7 @@ const NavbarMain = ({ onLogout }: NavbarMainProps) => {
                 className="hover:cursor-pointer hover:opacity-60 opacity-100 transition ease-in-out duration-300  sm:h-[40px] h-[32px]"
               />
             </Box>
-          </Link>
+          </Link> */}
         </div>
         <NavbarProfileMenu onLogout={onLogout} />
       </Flex>
