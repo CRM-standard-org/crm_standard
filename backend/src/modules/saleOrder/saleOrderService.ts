@@ -585,15 +585,15 @@ export const saleOrderService = {
                     StatusCodes.BAD_REQUEST
                 );
             }
-            const data = await saleOrderRepository.closeSale(sale_order_id, remark, employee_id);
-            if(data == null){
-                return new ServiceResponse(
-                    ResponseStatus.Failed,
-                    "Awaiting Receipt",
-                    null,
-                    StatusCodes.BAD_REQUEST
-                );
-            }
+            const data = await saleOrderRepository.rejectSale(sale_order_id, remark, employee_id);
+            // if(data == null){
+            //     return new ServiceResponse(
+            //         ResponseStatus.Failed,
+            //         "Awaiting Receipt",
+            //         null,
+            //         StatusCodes.BAD_REQUEST
+            //     );
+            // }
             return new ServiceResponse(
                 ResponseStatus.Success,
                 "Reject sale success",
