@@ -42,7 +42,8 @@ export const authService = {
             const token = await jwtGenerator.generate(dataPayload);
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV !== 'production',
+                secure: process.env.NODE_ENV === 'production', // แก้ไข: เป็น true ใน production
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // สำหรับ cross-origin
                 maxAge:  (10 * 60 * 60 * 1000)
             });
             return new ServiceResponse(
@@ -65,8 +66,8 @@ export const authService = {
         try {
             res.clearCookie('token', {
                 httpOnly: true, 
-                secure: process.env.NODE_ENV !== 'production', 
-                sameSite: 'strict'
+                secure: process.env.NODE_ENV === 'production', // แก้ไข: เป็น true ใน production
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // สำหรับ cross-origin
             });
     
             return new ServiceResponse(
