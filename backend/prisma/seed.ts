@@ -126,22 +126,22 @@ async function main() {
         },
       });
       for (const district of province.amphure) {
-        const province = await prisma.province.findUnique({
-          where: { province_name: district.name_th },
+        const currentProvince = await prisma.province.findUnique({
+          where: { province_name: province.name_th },
         });
     
-        if (province) {
+        if (currentProvince) {
           await prisma.district.upsert({
             where: {
               province_id_name: {
-                province_id: province.province_id,
+                province_id: currentProvince.province_id,
                 district_name: district.name_th,
               },
             },
             update: {},
             create: {
               district_name: district.name_th,
-              province_id: province.province_id,
+              province_id: currentProvince.province_id,
             },
           });
         }
