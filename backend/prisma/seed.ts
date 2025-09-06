@@ -37,7 +37,7 @@ async function main() {
   })
   
   // Create User Admin
-  const password = "123456";
+  const password = "admin123456";
   const saltRounds = 10;
   const salt = await bcrypt.genSalt(saltRounds);  
   const hashPassword = await bcrypt.hash(password, salt);
