@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG NODE_VERSION=20-alpine
+ARG NODE_VERSION=20
 
 # ---- Base with pnpm ----
 FROM node:${NODE_VERSION} AS base
@@ -16,6 +16,8 @@ RUN pnpm install --frozen-lockfile
 # ---- Dev (tsx watch) ----
 FROM deps AS dev
 ENV NODE_ENV=development
+# Install OpenSSL (already available in Debian-based Node image)
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY . .
 EXPOSE 8081
 # Prisma generate for type safety (optional in dev)
@@ -35,6 +37,9 @@ RUN pnpm prisma generate \
 FROM node:${NODE_VERSION} AS production
 WORKDIR /app
 ENV NODE_ENV=production
+
+# Install OpenSSL (already available in Debian-based Node image)
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Only keep runtime deps, but pnpm hoists prod deps already
 COPY --from=deps /app/node_modules ./node_modules
